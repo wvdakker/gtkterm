@@ -1,0 +1,73 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH GTKTERM "1" "September 20, 2002"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+gtkterm \- A simple GTK+ serial port terminal
+
+.SH SYNOPSIS
+.B gtkterm [ options ]
+
+.SH DESCRIPTION
+.B gtkterm 
+is a simple GTK+ terminal used to communicate with the serial port.
+
+.SH OPTIONS
+.B gtkterm 
+accepts the following options:
+
+.B \-h, \-\-help 
+Help screen.
+.TP
+.B \-c, \-\-config <configuration>
+Load configuration (default is "default").
+.TP
+.B \-p, \-\-port <device>
+Serial port device (default /dev/ttyS0).
+.TP
+.B \-s, \-\-speed <speed>
+Serial port speed (default 9600).
+.TP
+.B \-b, \-\-bits <bits> 
+Number of bits (default 8).
+.TP
+.B \-t, \-\-stopbits <stopbits>
+Number of stopbits (default 1).
+.TP
+.B \-a, \-\-parity <odd | even> 
+Partity (default none).
+.TP
+.B \-w, \-\-flow <Xon | CTS>
+Flow control (default none).
+.TP
+.B \-d, \-\-delay <ms>
+End of line delay in ms (default none).
+.TP
+.B \-r, \-\-char <char>
+Wait for a special char at end of line (default none).
+.TP
+.B \-f, \-\-file <filename>
+Default file to send (default none).
+.TP
+.B \-e, \-\-echo
+Set local echo.
+
+.SH AUTHOR
+.B gtkterm
+was written by Julien Schmitt <julien@jls-info.com>.
+.PP
+This manual page was written by Sebastien Bacher <seb128@debian.org>,
+for the Debian GNU/Linux system (but may be used by others).

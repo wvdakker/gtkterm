@@ -1,0 +1,1474 @@
+/***********************************************************************/
+/* config.c                                                            */
+/* --------                                                            */
+/*           GTKTerm Software                                          */
+/*                      (c) Julien Schmitt                             */
+/*                      julien@jls-info.com                            */                      
+/*                                                                     */
+/* ------------------------------------------------------------------- */
+/*                                                                     */
+/*   Purpose                                                           */
+/*      Configuration of the serial port                               */
+/*                                                                     */
+/*   ChangeLog                                                         */
+/*      - 0.99.5 : Make the combo list for the device editable         */
+/*      - 0.99.3 : Configuration for VTE terminal                      */
+/*      - 0.99.2 : Internationalization                                */
+/*      - 0.99.1 : fixed memory management bug                         */
+/*                 test if there are devices found                     */
+/*      - 0.99.0 : fixed enormous memory management bug ;-)            */
+/*                 save / read macros                                  */
+/*      - 0.98.5 : font saved in configuration                         */
+/*                 bug fixed in memory management                      */
+/*                 combos set to non editable                          */
+/*      - 0.98.3 : configuration file                                  */
+/*      - 0.98.2 : autodetect existing devices                         */
+/*      - 0.98 : added devfs devices                                   */
+/*                                                                     */
+/***********************************************************************/
+
+#include <gtk/gtk.h>
+#include <termios.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <vte/vte.h>
+
+#include "serie.h"
+#include "config.h"
+#include "widgets.h"
+#include "parsecfg.h"
+#include "macros.h"
+#include "gettext.h"
+#include "i18n.h"
+
+#define NUMBER_OF_DEVICES 16
+
+gchar *devices_list[NUMBER_OF_DEVICES] = {
+  "/dev/ttyS0",
+  "/dev/ttyS1",
+  "/dev/ttyS2",
+  "/dev/ttyS3",
+  "/dev/tts/0",
+  "/dev/tts/1",
+  "/dev/tts/2",
+  "/dev/tts/3",
+  "/dev/ttyUSB0",
+  "/dev/ttyUSB1",
+  "/dev/ttyUSB2",
+  "/dev/ttyUSB3",
+  "/dev/usb/tts/0",
+  "/dev/usb/tts/1",
+  "/dev/usb/tts/2",
+  "/dev/usb/tts/3"
+};
+
+/* Configuration file variables */
+gchar **port;
+gint *speed;
+gint *bits;
+gint *stopbits;
+gchar **parity;
+gchar **flow;
+gint *wait_delay;
+gint *wait_char;
+gint *echo;
+gint *crlfauto;
+cfgList **macro_list = NULL;
+gchar **font;
+
+gint *transparency;
+gint *show_cursor;
+gint *rows;
+gint *columns;
+gint *visual_bell;
+gint *foreground_red;
+gint *foreground_blue;
+gint *foreground_green;
+gint *background_red;
+gint *background_blue;
+gint *background_green;
+gdouble *background_saturation;
+
+
+cfgStruct cfg[] = {
+  {"port", CFG_STRING, &port},
+  {"speed", CFG_INT, &speed},
+  {"bits", CFG_INT, &bits},
+  {"stopbits", CFG_INT, &stopbits},
+  {"parity", CFG_STRING, &parity},
+  {"flow", CFG_STRING, &flow},
+  {"wait_delay", CFG_INT, &wait_delay},
+  {"wait_char", CFG_INT, &wait_char},
+  {"echo", CFG_BOOL, &echo},
+  {"crlfauto", CFG_BOOL, &crlfauto},
+  {"font", CFG_STRING, &font},
+  {"macros", CFG_STRING_LIST, &macro_list},
+  {"term_transparency", CFG_BOOL, &transparency},
+  {"term_show_cursor", CFG_BOOL, &show_cursor},
+  {"term_rows", CFG_INT, &rows},
+  {"term_columns", CFG_INT, &columns},
+  {"term_visual_bell", CFG_BOOL, &visual_bell},
+  {"term_foreground_red", CFG_INT, &foreground_red},
+  {"term_foreground_blue", CFG_INT, &foreground_blue},
+  {"term_foreground_green", CFG_INT, &foreground_green},
+  {"term_background_red", CFG_INT, &background_red},
+  {"term_background_blue", CFG_INT, &background_blue},
+  {"term_background_green", CFG_INT, &background_green},
+  {"term_background_saturation", CFG_DOUBLE, &background_saturation},
+  {NULL, CFG_END, NULL}
+};
+
+gchar *config_file;
+
+struct configuration_port config;
+display_config_t term_conf;
+
+GtkWidget *Entry, *Bouton_font = NULL;
+
+gint Grise_Degrise(GtkWidget *bouton, gpointer pointeur);
+gint Lis_Font(GtkFontSelectionDialog *fontsel);
+void Hard_default_configuration(void);
+void Copy_configuration(int);
+
+static void Select_config(gchar *, void *);
+static void Save_config_file(void);
+static void load_config(GtkDialog *, gint, GtkTreeSelection *);
+static void delete_config(GtkDialog *, gint, GtkTreeSelection *);
+static void save_config(GtkDialog *, gint, GtkWidget *);
+static void really_save_config(GtkDialog *, gint, gpointer);
+static gint remove_section(gchar *, gchar *);
+static void Curseur_OnOff(GtkWidget *, gpointer);
+static void Selec_couleur(GdkColor *, gfloat, gfloat, gfloat);
+static gint config_color_fg(GtkWidget *, gpointer);
+static gint config_color_bg(GtkWidget *, gpointer);
+static void Transparency_OnOff(GtkWidget *, gpointer);
+static void change_scale(GtkRange *, gpointer);
+
+extern GtkWidget *display;
+
+gint Config_Port_Fenetre(GtkWidget *widget, guint param)
+{
+  GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule, *Combo, *Dialogue, *Frame, *CheckBouton, *Spin;
+  static GtkWidget *Combos[8];
+  GList *liste;
+  gchar *chaine = NULL;
+  GtkObject *adj;
+  struct stat my_stat;
+  int i;
+
+  liste = NULL;
+
+  for(i = 0; i < NUMBER_OF_DEVICES; i++)
+    {
+      if(stat(devices_list[i], &my_stat) == 0)
+	liste = g_list_append(liste, devices_list[i]);
+    }
+
+  if(liste == NULL)
+    {
+      show_message(_("No valid serial device found in /dev, sorry !\nYou should have at least one of these :\n/dev/ttyS*\n/dev/tts/*\n/dev/ttyUSB*\n/dev/usb/tts/*\n"), MSG_ERR);
+      return FALSE;
+    }
+
+  Dialogue = gtk_dialog_new();
+  gtk_window_set_title(GTK_WINDOW(Dialogue), _("Configuration"));
+  gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(Dialogue)->vbox), 5);
+  
+  Frame = gtk_frame_new(_("Serial port"));
+  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->vbox), Frame, FALSE, TRUE, 5);
+
+  Table = gtk_table_new(4, 3, FALSE);
+  gtk_container_add(GTK_CONTAINER(Frame), Table);
+  
+  Label = gtk_label_new(_("Port :"));
+  gtk_table_attach(GTK_TABLE(Table), Label, 0, 1, 0, 1, 0, 0, 10, 5);
+  Label = gtk_label_new(_("Speed :"));
+  gtk_table_attach(GTK_TABLE(Table), Label, 1, 2, 0, 1, 0, 0, 10, 5);
+  Label = gtk_label_new(_("Parity :"));
+  gtk_table_attach(GTK_TABLE(Table), Label, 2, 3, 0, 1, 0, 0, 10, 5);
+
+  Combo = gtk_combo_new();
+  gtk_editable_set_editable(GTK_EDITABLE((GTK_COMBO(Combo)->entry)), TRUE);
+
+  gtk_combo_set_popdown_strings(GTK_COMBO(Combo), liste);
+  gtk_combo_set_value_in_list(GTK_COMBO(Combo), FALSE, FALSE);
+  chaine = g_strdup(config.port);
+  if(g_list_find_custom(liste, chaine, (GCompareFunc)strcmp) != NULL)
+    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(Combo)->entry), chaine);
+  gtk_table_attach(GTK_TABLE(Table), Combo, 0, 1, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
+  Combos[0] = Combo;
+
+  Combo = gtk_combo_new();
+  gtk_editable_set_editable(GTK_EDITABLE((GTK_COMBO(Combo)->entry)), FALSE);
+  g_list_free(liste);
+  liste = NULL;
+  liste = g_list_append(liste, "300");
+  liste = g_list_append(liste, "600");
+  liste = g_list_append(liste, "1200");
+  liste = g_list_append(liste, "2400");
+  liste = g_list_append(liste, "4800");
+  liste = g_list_append(liste, "9600");
+  liste = g_list_append(liste, "19200");
+  liste = g_list_append(liste, "38400");
+  liste = g_list_append(liste, "57600");
+  liste = g_list_append(liste, "115200");
+  gtk_combo_set_popdown_strings(GTK_COMBO(Combo), liste);
+  gtk_combo_set_value_in_list(GTK_COMBO(Combo), TRUE, FALSE);
+
+  g_free(chaine);
+  chaine = g_strdup_printf("%d", config.vitesse);
+  gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(Combo)->entry), chaine);
+  gtk_table_attach(GTK_TABLE(Table), Combo, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
+  Combos[1] = Combo;
+ 
+  Combo = gtk_combo_new();
+  gtk_editable_set_editable(GTK_EDITABLE((GTK_COMBO(Combo)->entry)), FALSE);
+  g_list_free(liste);
+  liste = NULL;
+  liste = g_list_append(liste, "none");
+  liste = g_list_append(liste, "even");
+  liste = g_list_append(liste, "odd");
+  gtk_combo_set_popdown_strings(GTK_COMBO(Combo), liste);
+  gtk_combo_set_value_in_list(GTK_COMBO(Combo), TRUE, FALSE);
+  switch(config.parite)
+    {
+    case 0:
+      gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(Combo)->entry), "none");
+      break;
+    case 1:
+      gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(Combo)->entry), "odd");
+      break;
+    case 2:
+      gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(Combo)->entry), "even");
+      break;
+    }
+  gtk_table_attach(GTK_TABLE(Table), Combo, 2, 3, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
+  Combos[2] = Combo;
+
+  Label = gtk_label_new(_("Bits :"));
+  gtk_table_attach(GTK_TABLE(Table), Label, 0, 1, 2, 3, 0, 0, 10, 5);
+  Label = gtk_label_new(_("Stopbits :"));
+  gtk_table_attach(GTK_TABLE(Table), Label, 1, 2, 2, 3, 0, 0, 10, 5);
+  Label = gtk_label_new(_("Flow control :"));
+  gtk_table_attach(GTK_TABLE(Table), Label, 2, 3, 2, 3, 0, 0, 10, 5);
+
+  Combo = gtk_combo_new();
+  gtk_editable_set_editable(GTK_EDITABLE((GTK_COMBO(Combo)->entry)), FALSE);
+  g_list_free(liste);
+  liste = NULL;
+  liste = g_list_append(liste, "5");
+  liste = g_list_append(liste, "6");
+  liste = g_list_append(liste, "7");
+  liste = g_list_append(liste, "8");
+  gtk_combo_set_popdown_strings(GTK_COMBO(Combo), liste);
+  gtk_combo_set_value_in_list(GTK_COMBO(Combo), TRUE, FALSE);
+
+  g_free(chaine);
+  chaine = g_strdup_printf("%d", config.bits);
+  gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(Combo)->entry), chaine);
+  gtk_table_attach(GTK_TABLE(Table), Combo, 0, 1, 3, 4, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
+  Combos[3] = Combo;
+
+  Combo = gtk_combo_new();
+  gtk_editable_set_editable(GTK_EDITABLE((GTK_COMBO(Combo)->entry)), FALSE);
+  g_list_free(liste);
+  liste = NULL;
+  liste = g_list_append(liste, "1");
+  liste = g_list_append(liste, "2");
+  gtk_combo_set_popdown_strings(GTK_COMBO(Combo), liste);
+  gtk_combo_set_value_in_list(GTK_COMBO(Combo), TRUE, FALSE);
+
+  g_free(chaine);
+  chaine = g_strdup_printf("%d", config.stops);
+  gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(Combo)->entry), chaine);
+  gtk_table_attach(GTK_TABLE(Table), Combo, 1, 2, 3, 4, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
+  Combos[4] = Combo;
+  g_free(chaine);
+
+  Combo = gtk_combo_new();
+  gtk_editable_set_editable(GTK_EDITABLE((GTK_COMBO(Combo)->entry)), FALSE);
+  g_list_free(liste);
+  liste = NULL;
+  liste = g_list_append(liste, "none");
+  liste = g_list_append(liste, "RTS/CTS");
+  liste = g_list_append(liste, "Xon/Xoff");
+  gtk_combo_set_popdown_strings(GTK_COMBO(Combo), liste);
+  gtk_combo_set_value_in_list(GTK_COMBO(Combo), TRUE, FALSE);
+  switch(config.flux)
+    {
+    case 0:
+      gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(Combo)->entry), "none");
+      break;
+    case 1:
+      gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(Combo)->entry), "Xon/Xoff");
+      break;
+    case 2:
+      gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(Combo)->entry), "RTS/CTS");
+      break;
+    }
+  gtk_table_attach(GTK_TABLE(Table), Combo, 2, 3, 3, 4, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
+  Combos[5] = Combo;
+  g_list_free(liste);
+
+  Frame = gtk_frame_new(_("ASCII file transfer"));
+  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->vbox), Frame, FALSE, TRUE, 5);
+
+  Table = gtk_table_new(2, 2, FALSE);
+  gtk_container_add(GTK_CONTAINER(Frame), Table);
+
+  Label = gtk_label_new(_("End of line delay (milliseconds) :"));
+  gtk_table_attach_defaults(GTK_TABLE(Table), Label, 0, 1, 0, 1);
+
+  adj = gtk_adjustment_new(0.0, 0.0, 500.0, 10.0, 20.0, 0.0);
+  Spin = gtk_spin_button_new(GTK_ADJUSTMENT(adj), 0, 0);
+  gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(Spin), TRUE);
+  gtk_spin_button_set_value(GTK_SPIN_BUTTON(Spin), (gfloat)config.delai);
+  gtk_table_attach(GTK_TABLE(Table), Spin, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
+  Combos[6] = Spin;
+
+  Entry = gtk_entry_new_with_max_length(1);
+  gtk_widget_set_sensitive(GTK_WIDGET(Entry), FALSE);
+  gtk_table_attach(GTK_TABLE(Table), Entry, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
+
+  CheckBouton = gtk_check_button_new_with_label(_("Wait for this special character before passing to next line :"));
+  gtk_signal_connect(GTK_OBJECT(CheckBouton), "clicked", GTK_SIGNAL_FUNC(Grise_Degrise), (gpointer)Spin);
+  if(config.car != -1)
+    {
+      gtk_entry_set_text(GTK_ENTRY(Entry), &(config.car));
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(CheckBouton), TRUE);
+    }
+  gtk_table_attach_defaults(GTK_TABLE(Table), CheckBouton, 0, 1, 1, 2);
+  Combos[7] = CheckBouton;
+
+
+
+  Bouton_OK = gtk_button_new_from_stock(GTK_STOCK_OK);
+  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->action_area), Bouton_OK, FALSE, TRUE, 0);
+  gtk_signal_connect(GTK_OBJECT(Bouton_OK), "clicked", (GtkSignalFunc)Lis_Config, (gpointer)Combos);
+  gtk_signal_connect_object(GTK_OBJECT(Bouton_OK), "clicked", (GtkSignalFunc)gtk_widget_destroy, GTK_OBJECT(Dialogue));
+  Bouton_annule = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
+  gtk_signal_connect_object(GTK_OBJECT(Bouton_annule), "clicked", (GtkSignalFunc)gtk_widget_destroy, GTK_OBJECT(Dialogue));
+  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->action_area), Bouton_annule, FALSE, TRUE, 0);
+
+  gtk_widget_show_all(Dialogue);
+
+  return FALSE;
+}
+
+gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos)
+{
+  gchar *message;
+
+  strcpy(config.port, gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(Combos[0])->entry)));
+  config.vitesse = atoi(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(Combos[1])->entry)));
+  config.bits = atoi(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(Combos[3])->entry)));
+  config.delai = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(Combos[6]));
+
+  if(!strcmp(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(Combos[2])->entry)), "odd"))
+      config.parite = 1;
+  else if(!strcmp(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(Combos[2])->entry)), "even"))
+      config.parite = 2;
+  else
+      config.parite = 0;
+  config.stops = atoi(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(Combos[4])->entry)));
+  if(!strcmp(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(Combos[5])->entry)), "Xon/Xoff"))
+    config.flux = 1;
+  else if(!strcmp(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(Combos[5])->entry)), "RTS/CTS"))
+    config.flux = 2;
+  else
+    config.flux = 0;
+
+  if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(Combos[7])))
+    {
+      config.car = *gtk_entry_get_text(GTK_ENTRY(Entry));
+      config.delai = 0;
+    }
+  else
+    config.car = -1;
+	
+  message = Config_port();
+  if(message == NULL)
+    message = g_strdup_printf(_("No open port"));
+  Set_status_message(message);
+  g_free(message);
+
+  return FALSE;
+}
+
+gint Grise_Degrise(GtkWidget *bouton, gpointer pointeur)
+{
+  if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(bouton)))
+    {
+      gtk_widget_set_sensitive(GTK_WIDGET(Entry), TRUE);
+      gtk_widget_set_sensitive(GTK_WIDGET(pointeur), FALSE);
+    }
+  else
+    {
+      gtk_widget_set_sensitive(GTK_WIDGET(Entry), FALSE);
+      gtk_widget_set_sensitive(GTK_WIDGET(pointeur), TRUE);
+    }
+  return FALSE;
+}
+
+gint Config_Font(GtkWidget *widget, guint param)
+{
+  GtkFontSelectionDialog *fontsel;
+
+  fontsel = (GtkFontSelectionDialog *)gtk_font_selection_dialog_new(_("Font selection"));
+  gtk_signal_connect(GTK_OBJECT(fontsel), "delete_event", (GtkSignalFunc)gtk_widget_destroy, NULL);
+  gtk_signal_connect(GTK_OBJECT(fontsel), "destroy", (GtkSignalFunc)gtk_widget_destroy, NULL);
+  gtk_signal_connect_object(GTK_OBJECT(fontsel->cancel_button), "clicked", (GtkSignalFunc)gtk_widget_destroy, GTK_OBJECT(fontsel));
+  gtk_signal_connect_object(GTK_OBJECT(fontsel->ok_button), "clicked", (GtkSignalFunc)Lis_Font, GTK_OBJECT(fontsel));
+  gtk_signal_connect_object(GTK_OBJECT(fontsel->ok_button), "clicked", (GtkSignalFunc)gtk_widget_destroy, GTK_OBJECT(fontsel));
+  gtk_font_selection_dialog_set_font_name(fontsel, term_conf.font);
+
+  gtk_widget_show(GTK_WIDGET(fontsel));
+  return FALSE;
+}
+
+
+void Set_Font(void)
+{
+  if(Bouton_font != NULL)
+    {
+      gchar *string;
+
+      gtk_button_set_label(GTK_BUTTON(Bouton_font), term_conf.font);
+      string = g_strdup(term_conf.font);
+      cfgStoreValue(cfg, "font", string, CFG_INI, 0);
+      g_free(string);
+    }
+
+  if(term_conf.font != NULL)
+    vte_terminal_set_font_from_string(VTE_TERMINAL(display), term_conf.font);   
+}
+
+gint Lis_Font(GtkFontSelectionDialog *fontsel)
+{
+  g_free(term_conf.font);
+  term_conf.font = gtk_font_selection_dialog_get_font_name(fontsel);
+  Set_Font();
+
+  return FALSE;
+}
+
+gint config_window(gpointer *pointer, guint param)
+{
+  switch(param)
+    {
+    case 0:
+      Select_config(_("Load configuration"), G_CALLBACK(load_config));
+      break;
+    case 1:
+      Save_config_file();
+      break;
+    default:
+      Select_config(_("Delete configuration"), G_CALLBACK(delete_config));
+    }
+  return 0;
+}
+
+void Select_config(gchar *title, void *callback)
+{
+  GtkWidget *dialog;
+  gint i, max;
+
+  GtkWidget *Frame, *Scroll, *Liste, *Label;
+  gchar *texte_label;
+
+  GtkListStore *Modele_Liste;
+  GtkTreeIter iter_Liste;
+  GtkCellRenderer *renderer;
+  GtkTreeViewColumn *Colonne;
+  GtkTreeSelection *Selection_Liste;
+
+  enum 
+  {
+    N_texte,
+    N_COLONNES        
+  };
+
+  /* Parse the config file */
+
+  max = cfgParse(config_file, cfg, CFG_INI);
+
+  if(max == -1)
+    {
+      show_message(_("Cannot read configuration file !\n"), MSG_ERR);
+      return;
+    }
+
+  else
+    { 
+      gchar *Titre[]= {_("Configurations")};
+      
+      dialog = gtk_dialog_new_with_buttons (title,
+					    NULL,
+					    GTK_DIALOG_DESTROY_WITH_PARENT,
+					    GTK_STOCK_CANCEL,
+					    GTK_RESPONSE_NONE,
+					    GTK_STOCK_OK,
+					    GTK_RESPONSE_ACCEPT,
+					    NULL);
+      
+      Modele_Liste = gtk_list_store_new(N_COLONNES, G_TYPE_STRING);
+      
+      Liste = gtk_tree_view_new_with_model(GTK_TREE_MODEL(Modele_Liste));
+      gtk_tree_view_set_search_column(GTK_TREE_VIEW(Liste), N_texte);
+      
+      Selection_Liste = gtk_tree_view_get_selection(GTK_TREE_VIEW(Liste));
+      gtk_tree_selection_set_mode(Selection_Liste, GTK_SELECTION_SINGLE);
+      
+      Frame = gtk_frame_new(NULL);
+      
+      Scroll = gtk_scrolled_window_new(NULL, NULL);
+      gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(Scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+      gtk_container_add(GTK_CONTAINER(Frame), Scroll);
+      gtk_container_add(GTK_CONTAINER(Scroll), Liste);
+      
+      renderer = gtk_cell_renderer_text_new();
+      
+      g_object_set(G_OBJECT(renderer), "xalign", (gfloat)0.5, NULL);
+      Colonne = gtk_tree_view_column_new_with_attributes(Titre[0], renderer, "text", 0, NULL);
+      gtk_tree_view_column_set_sort_column_id(Colonne, 0);
+      
+      Label=gtk_label_new("");
+      texte_label = g_strdup_printf("<span weight=\"bold\" style=\"italic\">%s</span>", Titre[0]);
+      gtk_label_set_markup(GTK_LABEL(Label), texte_label);
+      g_free(texte_label);
+      gtk_tree_view_column_set_widget(GTK_TREE_VIEW_COLUMN(Colonne), Label); 
+      gtk_widget_show(Label);
+  
+      gtk_tree_view_column_set_alignment(GTK_TREE_VIEW_COLUMN(Colonne), 0.5f);
+      gtk_tree_view_column_set_resizable(GTK_TREE_VIEW_COLUMN(Colonne), FALSE);
+      gtk_tree_view_append_column(GTK_TREE_VIEW(Liste), Colonne);
+
+
+      for(i = 0; i < max; i++)
+	{
+	  gtk_list_store_append(Modele_Liste, &iter_Liste);
+	  gtk_list_store_set(Modele_Liste, &iter_Liste, N_texte, cfgSectionNumberToName(i), -1);
+	}
+
+      gtk_widget_set_size_request(GTK_WIDGET(dialog), 200, 200);
+
+      g_signal_connect(GTK_OBJECT(dialog), "response", G_CALLBACK (callback), GTK_TREE_SELECTION(Selection_Liste));
+      g_signal_connect_swapped(GTK_OBJECT(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
+
+      gtk_container_add (GTK_CONTAINER (GTK_DIALOG(dialog)->vbox), Frame);
+      
+      gtk_widget_show_all (dialog);
+    }
+}
+
+void Save_config_file(void)
+{
+  GtkWidget *dialog, *label, *box, *entry;
+
+  dialog = gtk_dialog_new_with_buttons (_("Save configuration"),
+					NULL,
+					GTK_DIALOG_DESTROY_WITH_PARENT,
+					GTK_STOCK_CANCEL,
+					GTK_RESPONSE_NONE,
+					GTK_STOCK_OK,
+					GTK_RESPONSE_ACCEPT,
+					NULL);
+
+  label=gtk_label_new(_("Configuration name : "));
+
+  box = gtk_hbox_new(FALSE, 0);
+  entry = gtk_entry_new();
+  gtk_box_pack_start(GTK_BOX(box), label, FALSE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(box), entry, FALSE, TRUE, 0);
+
+  g_signal_connect(GTK_OBJECT(dialog), "response", G_CALLBACK(save_config), GTK_ENTRY(entry));
+  g_signal_connect_swapped(GTK_OBJECT(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
+
+  gtk_container_add(GTK_CONTAINER (GTK_DIALOG(dialog)->vbox), box);
+
+  gtk_widget_show_all (dialog);
+}
+
+void really_save_config(GtkDialog *Fenetre, gint id, gpointer data)
+{
+  int max, cfg_num, i;
+  gchar *string = NULL;
+
+  cfg_num = -1;
+
+  if(id == GTK_RESPONSE_ACCEPT)
+    {
+      max = cfgParse(config_file, cfg, CFG_INI);
+
+      if(max == -1)
+	return;
+
+      for(i = 0; i < max; i++)
+	{
+	  if(!strcmp((char *)data, cfgSectionNumberToName(i)))
+	    cfg_num = i;
+	}
+
+      /* not overwriting */
+      if(cfg_num == -1)
+	{
+	  max = cfgAllocForNewSection(cfg, (char *)data);
+	  cfg_num = max - 1;
+	}
+      else
+	{
+	  if(remove_section(config_file, (char *)data) == -1)
+	    {
+	      show_message(_("Cannot overwrite section !"), MSG_ERR);
+       	      return;
+	    }
+	  if(max == cfgParse(config_file, cfg, CFG_INI))
+	    {
+	      show_message(_("Cannot read configuration file !"), MSG_ERR);
+	      return;
+	    }
+	  max = cfgAllocForNewSection(cfg, (char *)data);
+	  cfg_num = max - 1;
+	}
+
+      Copy_configuration(cfg_num);
+      cfgDump(config_file, cfg, CFG_INI, max);
+
+      string = g_strdup_printf(_("Configuration [%s] saved\n"), (char *)data);
+      show_message(string, MSG_WRN);
+      g_free(string);
+    }
+  else
+    Save_config_file();
+}
+
+void save_config(GtkDialog *Fenetre, gint id, GtkWidget *edit)
+{
+  int max, i;
+  GtkWidget *dialog, *label;
+  static gchar text[100];
+
+  if(id == GTK_RESPONSE_ACCEPT)
+    {
+      max = cfgParse(config_file, cfg, CFG_INI);
+
+      if(max == -1)
+	return;
+      
+      for(i = 0; i < max; i++)
+	{
+	  if(!strcmp(gtk_entry_get_text(GTK_ENTRY(edit)), cfgSectionNumberToName(i)))
+	    {
+	      /* section already exists */
+	      dialog = gtk_dialog_new_with_buttons (_("Warning !"),
+						    NULL,
+						    GTK_DIALOG_DESTROY_WITH_PARENT,
+						    GTK_STOCK_CANCEL,
+						    GTK_RESPONSE_NONE,
+						    GTK_STOCK_OK,
+						    GTK_RESPONSE_ACCEPT,
+						    NULL);
+
+	      sprintf(text, _("\nSection [%s] already exists\nDo you want to overwrite it ?\n"), gtk_entry_get_text(GTK_ENTRY(edit)));
+	      label=gtk_label_new(text);
+	      strcpy(text, gtk_entry_get_text(GTK_ENTRY(edit)));
+	      g_signal_connect(GTK_OBJECT(dialog), "response", G_CALLBACK(really_save_config), (gpointer)text);
+	      g_signal_connect_swapped(GTK_OBJECT(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
+	      
+	      gtk_container_add(GTK_CONTAINER (GTK_DIALOG(dialog)->vbox), label);
+	      
+	      gtk_widget_show_all (dialog);
+
+	      i = max + 1;
+	    }
+	}
+      if(i == max)
+	/* Section does not exist */
+	{
+	  strcpy(text, gtk_entry_get_text(GTK_ENTRY(edit)));
+	  really_save_config(Fenetre, GTK_RESPONSE_ACCEPT, (gpointer)text);
+	}
+    }
+}
+
+void load_config(GtkDialog *Fenetre, gint id, GtkTreeSelection *Selection_Liste)
+{
+  GtkTreeIter iter;
+  GtkTreeModel *Modele;
+  gchar *txt, *message;
+
+  if(id == GTK_RESPONSE_ACCEPT)
+    {
+      if(gtk_tree_selection_get_selected(Selection_Liste, &Modele, &iter))
+	{
+	  gtk_tree_model_get(GTK_TREE_MODEL(Modele), &iter, 0, (gint *)&txt, -1);
+	  Load_configuration_from_file(txt);
+	  Verify_configuration();
+	  message = Config_port();
+	  Set_Font();
+	  add_shortcuts();
+	  if(message == NULL)
+	    message = g_strdup_printf(_("No open port"));
+	  Set_status_message(message);
+	  g_free(message);
+	}
+    }
+}
+
+void delete_config(GtkDialog *Fenetre, gint id, GtkTreeSelection *Selection_Liste)
+{
+  GtkTreeIter iter;
+  GtkTreeModel *Modele;
+  gchar *txt;
+
+  if(id == GTK_RESPONSE_ACCEPT)
+    {
+      if(gtk_tree_selection_get_selected(Selection_Liste, &Modele, &iter))
+	{
+	  gtk_tree_model_get(GTK_TREE_MODEL(Modele), &iter, 0, (gint *)&txt, -1);
+	  if(remove_section(config_file, txt) == -1)
+	    show_message(_("Cannot delete section !"), MSG_ERR);
+	}
+    }
+}
+
+gint Load_configuration_from_file(gchar *config_name)
+{
+  int max, i, j, k, size;
+  gchar *string = NULL;
+  gchar *str;
+  macro_t *macros = NULL;
+  cfgList *t;
+
+  max = cfgParse(config_file, cfg, CFG_INI);
+
+  if(max == -1)
+    return -1;
+
+  else
+    {
+      for(i = 0; i < max; i++)
+	{
+	  if(!strcmp(config_name, cfgSectionNumberToName(i)))
+	  {
+	    Hard_default_configuration();
+	    
+	    if(port[i] != NULL)
+	      strcpy(config.port, port[i]);
+	    if(speed[i] != 0)
+	      config.vitesse = speed[i];
+	    if(bits[i] != 0)
+	      config.bits = bits[i];
+	    if(stopbits[i] != 0)
+	      config.stops = stopbits[i];
+	    if(parity[i] != NULL)
+	      {
+		if(!g_ascii_strcasecmp(parity[i], "none"))
+		  config.parite = 0;
+		else if(!g_ascii_strcasecmp(parity[i], "odd"))
+		  config.parite = 1;
+		else if(!g_ascii_strcasecmp(parity[i], "even"))
+		  config.parite = 2;
+	      }
+	    if(flow[i] != NULL)
+	      {
+		if(!g_ascii_strcasecmp(parity[i], "none"))
+		  config.flux = 0;
+		else if(!g_ascii_strcasecmp(parity[i], "xon"))
+		  config.flux = 1;
+		else if(!g_ascii_strcasecmp(parity[i], "rts"))
+		  config.flux = 2;
+	      }
+
+	    config.delai = wait_delay[i];
+	    
+	    if(wait_char[i] != 0)
+	      config.car = (signed char)wait_char[i];
+	    else
+	      config.car = -1;
+
+	    if(echo[i] != -1)
+	      config.echo = (gboolean)echo[i];
+	    else
+	      config.echo = FALSE;
+
+	    if(crlfauto[i] != -1)
+	      config.crlfauto = (gboolean)crlfauto[i];
+	    else
+	      config.crlfauto = FALSE;
+
+	    g_free(term_conf.font);
+	    term_conf.font = g_strdup(font[i]);
+
+	    t = macro_list[i];
+	    size = 0;
+	    if(t != NULL)
+	      {
+		size++;
+		while(t->next != NULL)
+		  {
+		    t = t->next;
+		    size++;
+		  }
+	      }
+
+	    if(size != 0)
+	      {	      
+		t = macro_list[i];
+		macros = g_malloc(size * sizeof(macro_t));
+		if(macros == NULL)
+		  {
+		    perror("malloc");
+		    return -1;
+		  }
+		for(j = 0; j < size; j++)
+		  {
+		    for(k = 0; k < (strlen(t->str) - 1); k++)
+		      {
+			if((t->str[k] == ':') && (t->str[k + 1] == ':'))
+			  break;
+		      }
+		    macros[j].shortcut = g_strndup(t->str, k);
+		    str = &(t->str[k + 2]);
+		    macros[j].action = g_strdup(str);
+		    
+		    t = t->next;
+		  }
+	      }
+
+	    remove_shortcuts();
+	    create_shortcuts(macros, size);
+	    g_free(macros);
+
+	    if(transparency[i] != -1)
+	      term_conf.transparency = (gboolean)transparency[i];
+	    else
+	      term_conf.transparency = FALSE;
+
+	    if(show_cursor[i] != -1)
+	      term_conf.show_cursor = (gboolean)show_cursor[i];
+	    else
+	      term_conf.show_cursor = FALSE;
+
+	    if(rows[i] != 0)
+	      term_conf.rows = rows[i];
+
+	    if(columns[i] != 0)
+	      term_conf.columns = columns[i];
+
+	    if(visual_bell[i] != -1)
+	      term_conf.visual_bell = (gboolean)visual_bell[i];
+	    else
+	      term_conf.visual_bell = FALSE;
+
+	    term_conf.foreground_color.red = foreground_red[i];
+	    term_conf.foreground_color.green = foreground_green[i];
+	    term_conf.foreground_color.blue = foreground_blue[i];
+		
+	    term_conf.background_color.red = background_red[i];
+	    term_conf.background_color.green = background_green[i];
+	    term_conf.background_color.blue = background_blue[i];
+	    
+	    if(background_saturation[i] != 0)
+	      term_conf.background_saturation = background_saturation[i];
+
+	    /* rows and columns are empty when the conf is autogenerate in the 
+	       first save; so set term to default */
+	    if(rows[i] == 0 || columns[i] == 0)
+	      {	   
+		term_conf.transparency = FALSE;
+		term_conf.show_cursor = TRUE;
+		term_conf.rows = 80;
+		term_conf.columns = 25;
+		term_conf.visual_bell = FALSE;
+
+		term_conf.foreground_color.red = 43253;
+		term_conf.foreground_color.green = 43253;
+		term_conf.foreground_color.blue = 43253;
+		
+		term_conf.background_color.red = 0;
+		term_conf.background_color.green = 0;
+		term_conf.background_color.blue = 0;
+	    
+		term_conf.background_saturation = 0.5;
+	      }
+
+	    i = max + 1;
+	  }
+	}
+      if(i == max)
+	{
+	  string = g_strdup_printf(_("No section \"%s\" in configuration file\n"), config_name);
+	  show_message(string, MSG_ERR);
+	  g_free(string);
+	  return -1;
+	}
+    }
+  vte_terminal_set_font_from_string(VTE_TERMINAL(display), term_conf.font);
+
+  vte_terminal_set_background_transparent(VTE_TERMINAL(display), term_conf.transparency);
+  vte_terminal_set_size (VTE_TERMINAL(display), term_conf.rows, term_conf.columns);
+  vte_terminal_set_color_foreground (VTE_TERMINAL(display), &term_conf.foreground_color);
+  vte_terminal_set_color_background (VTE_TERMINAL(display), &term_conf.background_color);
+  vte_terminal_set_background_saturation(VTE_TERMINAL(display), (gdouble)term_conf.background_saturation);
+  gtk_widget_queue_draw(display);
+
+  return 0;
+}
+
+void Verify_configuration(void)
+{
+  gchar *string = NULL;
+
+  switch(config.vitesse)
+    {
+    case 300:
+    case 600:
+    case 1200:
+    case 2400:
+    case 4800:
+    case 9600:
+    case 19200:
+    case 38400:
+    case 57600:
+    case 115200:
+      break;
+      
+    default:
+      string = g_strdup_printf(_("Unknown speed : %d bauds\nFalling back to default speed : %d bauds\n"), config.vitesse, DEFAULT_SPEED);
+      show_message(string, MSG_ERR);
+      config.vitesse = DEFAULT_SPEED;
+      g_free(string);
+    }
+
+  if(config.stops != 1 && config.stops != 2)
+    {
+      string = g_strdup_printf(_("Impossible stopbits number : %d\nFalling back to default stop bits number : %d\n"), config.stops, DEFAULT_STOP);
+      show_message(string, MSG_ERR);
+      config.stops = DEFAULT_STOP;
+      g_free(string);
+    }
+  
+  if(config.bits < 5 || config.bits > 8)
+    {
+      string = g_strdup_printf(_("Impossible bits number : %d\nFalling back to default stop bits : %d\n"), config.bits, DEFAULT_BITS);
+      show_message(string, MSG_ERR);
+      config.bits = DEFAULT_BITS;
+      g_free(string);
+    }
+  
+  if(config.delai < 0 || config.delai > 500)
+    {
+      string = g_strdup_printf(_("Impossible delay : %d ms\nFalling back to default delay : %d ms\n"), config.delai, DEFAULT_DELAY);
+      show_message(string, MSG_ERR);
+      config.delai = DEFAULT_DELAY;
+      g_free(string);
+    }
+
+  if(term_conf.font == NULL)
+    term_conf.font = g_strdup_printf(DEFAULT_FONT);
+
+}
+
+gint Check_configuration_file(void)
+{
+  struct stat my_stat;
+  gchar *string = NULL;
+
+  /* is configuration file present ? */
+  if(stat(config_file, &my_stat) == 0)
+    {
+      /* If bad configuration file, fallback to _hardcoded_ defaults ! */
+      if(Load_configuration_from_file("default") == -1)
+	{
+	  Hard_default_configuration();
+	  return -1;
+	}
+    }
+  
+  /* if not, create it, with the [default] section */
+  else
+    {
+      string = g_strdup_printf(_("Configuration file (%s) with\n[default] configuration has been created.\n"), config_file);
+      show_message(string, MSG_WRN);
+      cfgAllocForNewSection(cfg, "default");
+      Hard_default_configuration();
+      Copy_configuration(0);
+      cfgDump(config_file, cfg, CFG_INI, 1);
+      g_free(string);
+    }
+  return 0;
+}
+
+void Hard_default_configuration(void)
+{
+  strcpy(config.port, DEFAULT_PORT);
+  config.vitesse = DEFAULT_SPEED;
+  config.parite = DEFAULT_PARITY;
+  config.bits = DEFAULT_BITS;
+  config.stops = DEFAULT_STOP;
+  config.flux = DEFAULT_FLOW;
+  config.delai = DEFAULT_DELAY;
+  config.car = DEFAULT_CHAR;
+  config.echo = DEFAULT_ECHO;
+  config.crlfauto = FALSE;
+ 
+  term_conf.font = g_strdup_printf(DEFAULT_FONT);
+
+  term_conf.transparency = FALSE;
+  term_conf.show_cursor = TRUE;
+  term_conf.rows = 80;
+  term_conf.columns = 25;
+  term_conf.visual_bell = TRUE;
+
+  Selec_couleur(&term_conf.foreground_color, 0.66, 0.66, 0.66);
+  Selec_couleur(&term_conf.background_color, 0, 0, 0);
+
+  term_conf.background_saturation = 0.50;
+}
+
+void Copy_configuration(int pos)
+{
+  gchar *string = NULL;
+  macro_t *macros = NULL;
+  gint size, i;
+
+  string = g_strdup(config.port);
+  cfgStoreValue(cfg, "port", string, CFG_INI, pos);
+  g_free(string);
+
+  string = g_strdup_printf("%d", config.vitesse);
+  cfgStoreValue(cfg, "speed", string, CFG_INI, pos);
+  g_free(string);
+
+  string = g_strdup_printf("%d", config.bits);
+  cfgStoreValue(cfg, "bits", string, CFG_INI, pos);
+  g_free(string);
+
+  string = g_strdup_printf("%d", config.stops);
+  cfgStoreValue(cfg, "stopbits", string, CFG_INI, pos);
+  g_free(string);
+
+  switch(config.parite)
+    {
+    case 0:
+      string = g_strdup_printf("none");
+      break;
+    case 1:
+      string = g_strdup_printf("odd");
+      break;
+    case 2:
+      string = g_strdup_printf("even");
+      break;
+    default:
+      string = g_strdup_printf("none");
+    }
+  cfgStoreValue(cfg, "parity", string, CFG_INI, pos);
+  g_free(string);
+
+  switch(config.flux)
+    {
+    case 0:
+      string = g_strdup_printf("none");
+      break;
+    case 1:
+      string = g_strdup_printf("xon");
+      break;
+    case 2:
+      string = g_strdup_printf("rts");
+      break;
+    default:
+      string = g_strdup_printf("none");
+    }
+  cfgStoreValue(cfg, "flow", string, CFG_INI, pos);
+  g_free(string);
+
+  string = g_strdup_printf("%d", config.delai);
+  cfgStoreValue(cfg, "wait_delay", string, CFG_INI, pos);
+  g_free(string);
+
+  string = g_strdup_printf("%d", config.car);
+  cfgStoreValue(cfg, "wait_char", string, CFG_INI, pos);
+  g_free(string);
+  
+  if(config.echo == FALSE)
+    string = g_strdup_printf("False");
+  else
+    string = g_strdup_printf("True");
+
+  cfgStoreValue(cfg, "echo", string, CFG_INI, pos);
+  g_free(string);
+
+  if(config.crlfauto == FALSE)
+    string = g_strdup_printf("False");
+  else
+    string = g_strdup_printf("True");
+
+  cfgStoreValue(cfg, "crlfauto", string, CFG_INI, pos);
+  g_free(string);
+  
+  string = g_strdup(term_conf.font);
+  cfgStoreValue(cfg, "font", string, CFG_INI, pos);
+  g_free(string);
+
+  macros = get_shortcuts(&size);
+  for(i = 0; i < size; i++)
+    {
+      string = g_strdup_printf("%s::%s", macros[i].shortcut, macros[i].action);
+      cfgStoreValue(cfg, "macros", string, CFG_INI, pos);
+      g_free(string);
+    }
+  
+  if(term_conf.transparency == FALSE)
+    string = g_strdup_printf("False");
+  else
+    string = g_strdup_printf("True");
+  cfgStoreValue(cfg, "term_transparency", string, CFG_INI, pos);
+  g_free(string);
+
+  if(term_conf.show_cursor == FALSE)
+    string = g_strdup_printf("False");
+  else
+    string = g_strdup_printf("True");
+  cfgStoreValue(cfg, "term_show_cursor", string, CFG_INI, pos);
+  g_free(string);
+  
+  string = g_strdup_printf("%d", term_conf.rows);
+  cfgStoreValue(cfg, "term_rows", string, CFG_INI, pos);
+  g_free(string);
+
+  string = g_strdup_printf("%d", term_conf.columns);
+  cfgStoreValue(cfg, "term_columns", string, CFG_INI, pos);
+  g_free(string);
+  
+  if(term_conf.visual_bell == FALSE)
+    string = g_strdup_printf("False");
+  else
+    string = g_strdup_printf("True");
+  cfgStoreValue(cfg, "term_visual_bell", string, CFG_INI, pos);
+  g_free(string);
+
+  string = g_strdup_printf("%d", term_conf.foreground_color.red);
+  cfgStoreValue(cfg, "term_foreground_red", string, CFG_INI, pos);
+  g_free(string);
+  string = g_strdup_printf("%d", term_conf.foreground_color.green);
+  cfgStoreValue(cfg, "term_foreground_green", string, CFG_INI, pos);
+  g_free(string);
+  string = g_strdup_printf("%d", term_conf.foreground_color.blue);
+  cfgStoreValue(cfg, "term_foreground_blue", string, CFG_INI, pos);
+  g_free(string);
+
+  string = g_strdup_printf("%d", term_conf.background_color.red);
+  cfgStoreValue(cfg, "term_background_red", string, CFG_INI, pos);
+  g_free(string);
+  string = g_strdup_printf("%d", term_conf.background_color.green);
+  cfgStoreValue(cfg, "term_background_green", string, CFG_INI, pos);
+  g_free(string);
+  string = g_strdup_printf("%d", term_conf.background_color.blue);
+  cfgStoreValue(cfg, "term_background_blue", string, CFG_INI, pos);
+  g_free(string);
+
+  string = g_strdup_printf("%g", term_conf.background_saturation);
+  cfgStoreValue(cfg, "term_background_saturation", string, CFG_INI, pos);
+  g_free(string);  
+}
+
+
+gint remove_section(gchar *cfg_file, gchar *section)
+{
+  FILE *f = NULL;
+  char *buffer = NULL;
+  char *buf;
+  long size;
+  gchar *to_search;
+  long i, j, length, sect;
+
+  f = fopen(cfg_file, "r");
+  if(f == NULL)
+    {
+      perror(cfg_file);
+      return -1;
+    }
+
+  fseek(f, 0L, SEEK_END);
+  size = ftell(f);
+  rewind(f);
+
+  buffer = g_malloc(size);
+  if(buffer == NULL)
+    {
+      perror("malloc");
+      return -1;
+    }
+
+  fread(buffer, 1, size, f);
+  fclose(f);
+
+  to_search = g_strdup_printf("[%s]", section);
+  length = strlen(to_search);
+
+  /* Search section */
+  for(i = 0; i < size - length; i++)
+    {
+      for(j = 0; j < length; j++)
+	{
+	  if(to_search[j] != buffer[i + j])
+	    break;
+	}
+      if(j == length)
+	break;
+    }
+  
+  if(i == size - length)
+    {
+      i18n_printf(_("Cannot find section %s\n"), to_search);
+      return -1;
+    }
+
+  sect = i;
+
+  /* Search for next section */
+  for(i = sect + length; i < size; i++)
+    {
+      if(buffer[i] == '[')
+	break;
+    }
+
+  f = fopen(cfg_file, "w");
+  if(f == NULL)
+    {
+      perror(cfg_file);
+      return -1;
+    }
+
+  fwrite(buffer, 1, sect, f);
+  buf = buffer + i; 
+  fwrite(buf, 1, size - i, f);
+  fclose(f);
+
+  g_free(to_search);
+  g_free(buffer);
+  
+  return 0;
+}
+
+
+gint Config_Terminal(GtkWidget *widget, guint param)
+{
+  GtkWidget *Dialog, *BoiteH, *BoiteV, *Label, *Check_Bouton, *Bouton, *Eventbox, *Table, *HScale;
+  gchar *fonte;
+
+  Dialog = gtk_dialog_new_with_buttons (_("Terminal configuration"),
+					NULL,
+					GTK_DIALOG_DESTROY_WITH_PARENT,
+					GTK_STOCK_CLOSE,
+					GTK_RESPONSE_CLOSE,
+					NULL);
+  gtk_widget_set_size_request(GTK_WIDGET(Dialog), 400, 300);
+
+
+  BoiteV = gtk_vbox_new(FALSE, 0);
+  gtk_container_set_border_width(GTK_CONTAINER(BoiteV), 10);
+
+  BoiteH = gtk_hbox_new(FALSE, 0);
+  Label = gtk_label_new(NULL);
+  gtk_label_set_markup(GTK_LABEL(Label), "<b>Font selection : </b>");
+  gtk_box_pack_start(GTK_BOX(BoiteH), Label, FALSE, TRUE, 0);
+  fonte =  g_strdup_printf("%s", term_conf.font);
+  Bouton_font = gtk_button_new_with_label(fonte);
+  gtk_box_pack_start(GTK_BOX(BoiteH), Bouton_font, FALSE, TRUE, 10);
+  g_signal_connect(GTK_OBJECT(Bouton_font), "clicked", G_CALLBACK(Config_Font), 0);
+  gtk_box_pack_start(GTK_BOX(BoiteV), BoiteH, FALSE, TRUE, 0);
+
+  Check_Bouton = gtk_check_button_new_with_label("Show cursor");
+  g_signal_connect(GTK_OBJECT(Check_Bouton), "toggled", G_CALLBACK(Curseur_OnOff), 0);
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Check_Bouton), term_conf.show_cursor);
+  gtk_box_pack_start(GTK_BOX(BoiteV), Check_Bouton, FALSE, TRUE, 5);
+
+  Label = gtk_label_new(NULL);
+  gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
+  gtk_label_set_markup(GTK_LABEL(Label), "<b>Colors : </b>");  
+  gtk_box_pack_start(GTK_BOX(BoiteV), Label, FALSE, TRUE, 10);
+
+
+  Table = gtk_table_new(2, 2, FALSE);
+
+  Label = gtk_label_new("Text color :");
+  gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
+  gtk_table_attach(GTK_TABLE(Table), Label, 0, 1, 0, 1, GTK_SHRINK | GTK_FILL, GTK_SHRINK, 10, 0);
+
+  Label = gtk_label_new("Background color :");
+  gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
+  gtk_table_attach(GTK_TABLE(Table), Label, 0, 1, 1, 2, GTK_SHRINK | GTK_FILL , GTK_SHRINK, 10, 0);
+
+  Bouton = gtk_button_new();
+  Eventbox = gtk_event_box_new();
+  gtk_container_add(GTK_CONTAINER(Bouton), Eventbox);
+  gtk_widget_set_size_request(GTK_WIDGET(Bouton), 60, 25);
+  gtk_widget_modify_bg(GTK_WIDGET(Eventbox), GTK_STATE_NORMAL, &term_conf.foreground_color);
+  gtk_table_attach(GTK_TABLE(Table), Bouton, 1, 2, 0, 1, GTK_SHRINK, GTK_SHRINK, 10, 0);
+  g_signal_connect(GTK_OBJECT(Bouton), "clicked", G_CALLBACK(config_color_fg), Eventbox);
+
+  Bouton = gtk_button_new();
+  Eventbox = gtk_event_box_new();
+  gtk_container_add(GTK_CONTAINER(Bouton), Eventbox);
+  gtk_widget_set_size_request(GTK_WIDGET(Bouton), 60, 25);
+  gtk_widget_modify_bg(GTK_WIDGET(Eventbox), GTK_STATE_NORMAL, &term_conf.background_color);
+  gtk_table_attach(GTK_TABLE(Table), Bouton, 1, 2, 1, 2, GTK_SHRINK, GTK_SHRINK, 10, 0);
+  g_signal_connect(GTK_OBJECT(Bouton), "clicked", G_CALLBACK(config_color_bg), Eventbox);
+  gtk_box_pack_start(GTK_BOX(BoiteV), Table, FALSE, TRUE, 0);
+
+
+  Label = gtk_label_new(NULL);
+  gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
+  gtk_label_set_markup(GTK_LABEL(Label), "<b>Transparency : </b>");  
+  gtk_box_pack_start(GTK_BOX(BoiteV), Label, FALSE, TRUE, 10);
+
+  Check_Bouton = gtk_check_button_new_with_label("Transparency enable");
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Check_Bouton), term_conf.transparency);
+  gtk_box_pack_start(GTK_BOX(BoiteV), Check_Bouton, FALSE, TRUE, 0);
+
+  HScale = gtk_hscale_new_with_range(0.0, 100.0, 1.0);
+  gtk_range_set_value(GTK_RANGE(HScale), term_conf.background_saturation*100.0);
+  g_signal_connect(GTK_OBJECT(Check_Bouton), "toggled", G_CALLBACK(Transparency_OnOff), HScale);
+  g_signal_connect(GTK_RANGE(HScale), "value-changed", G_CALLBACK(change_scale), 0);
+  gtk_widget_set_sensitive(GTK_WIDGET(HScale), term_conf.transparency);
+  gtk_box_pack_start(GTK_BOX(BoiteV), HScale, FALSE, TRUE, 0);
+
+
+  gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Dialog)->vbox), BoiteV);
+
+  //g_signal_connect(GTK_OBJECT(Dialog), "response", G_CALLBACK(config_term_response), 0);
+  g_signal_connect_swapped(GTK_OBJECT(Dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialog));
+  
+  gtk_widget_show_all (Dialog);
+
+  return FALSE;
+}
+
+void Curseur_OnOff(GtkWidget *Check_Bouton, gpointer data)
+{
+  term_conf.show_cursor = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(Check_Bouton));  
+}
+
+void Selec_couleur(GdkColor *Couleur, gfloat R, gfloat V, gfloat B)
+{
+  Couleur->red=(guint16)(R*65535);
+  Couleur->green=(guint16)(V*65535);
+  Couleur->blue=(guint16)(B*65535);
+}
+
+gint config_color_fg(GtkWidget *bouton, gpointer data)
+{
+  GtkWidget *Fenetre;
+  GtkColorSelection *colorsel;
+  gint response;
+  gchar *string;
+
+  Fenetre = gtk_color_selection_dialog_new ("Changing text color");
+  colorsel = GTK_COLOR_SELECTION (GTK_COLOR_SELECTION_DIALOG (Fenetre)->colorsel);      
+  gtk_color_selection_set_previous_color (colorsel, &term_conf.foreground_color);
+  gtk_color_selection_set_current_color (colorsel, &term_conf.foreground_color);
+
+  gtk_color_selection_set_has_palette (colorsel, TRUE);
+  gtk_widget_set_size_request(GTK_WIDGET(Fenetre), 465, 315);
+  gtk_window_set_position(GTK_WINDOW(Fenetre), GTK_WIN_POS_CENTER);
+
+  response = gtk_dialog_run (GTK_DIALOG (Fenetre));
+
+  if (response == GTK_RESPONSE_OK)
+    {
+      gtk_color_selection_get_current_color (colorsel, &term_conf.foreground_color);
+      gtk_widget_modify_bg(GTK_WIDGET(data), GTK_STATE_NORMAL, &term_conf.foreground_color);
+      vte_terminal_set_color_foreground (VTE_TERMINAL(display), &term_conf.foreground_color);
+      gtk_widget_queue_draw(display);
+
+      string = g_strdup_printf("%d", term_conf.foreground_color.red);
+      cfgStoreValue(cfg, "term_foreground_red", string, CFG_INI, 0);
+      g_free(string);
+      string = g_strdup_printf("%d", term_conf.foreground_color.green);
+      cfgStoreValue(cfg, "term_foreground_green", string, CFG_INI, 0);
+      g_free(string);
+      string = g_strdup_printf("%d", term_conf.foreground_color.blue);
+      cfgStoreValue(cfg, "term_foreground_blue", string, CFG_INI, 0);
+      g_free(string);
+    }
+
+  gtk_widget_destroy(Fenetre);
+
+  return TRUE;
+}
+
+gint config_color_bg(GtkWidget *bouton, gpointer data)
+{
+  GtkWidget *Fenetre;
+  GtkColorSelection *colorsel;
+  gint response;
+  gchar *string;
+
+  Fenetre = gtk_color_selection_dialog_new ("Changing background color");
+  colorsel = GTK_COLOR_SELECTION (GTK_COLOR_SELECTION_DIALOG (Fenetre)->colorsel);
+  gtk_color_selection_set_previous_color (colorsel, &term_conf.background_color);
+  gtk_color_selection_set_current_color (colorsel, &term_conf.background_color);  
+
+  gtk_color_selection_set_has_palette (colorsel, TRUE);
+  gtk_widget_set_size_request(GTK_WIDGET(Fenetre), 465, 315);
+  gtk_window_set_position(GTK_WINDOW(Fenetre), GTK_WIN_POS_CENTER);
+
+  response = gtk_dialog_run (GTK_DIALOG (Fenetre));
+
+  if (response == GTK_RESPONSE_OK)
+    {
+      gtk_color_selection_get_current_color (colorsel, &term_conf.background_color);
+      gtk_widget_modify_bg(GTK_WIDGET(data), GTK_STATE_NORMAL, &term_conf.background_color);
+      vte_terminal_set_color_background (VTE_TERMINAL(display), &term_conf.background_color);
+      gtk_widget_queue_draw(display);
+
+      string = g_strdup_printf("%d", term_conf.background_color.red);
+      cfgStoreValue(cfg, "term_background_red", string, CFG_INI, 0);
+      g_free(string);
+      string = g_strdup_printf("%d", term_conf.background_color.green);
+      cfgStoreValue(cfg, "term_background_green", string, CFG_INI, 0);
+      g_free(string);
+      string = g_strdup_printf("%d", term_conf.background_color.blue);
+      cfgStoreValue(cfg, "term_background_blue", string, CFG_INI, 0);
+      g_free(string);      
+    }
+
+  gtk_widget_destroy(Fenetre);
+
+  return TRUE;
+}
+
+
+static void Transparency_OnOff(GtkWidget *Check_Bouton, gpointer data)
+{
+  gchar *string;
+
+  term_conf.transparency = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(Check_Bouton));  
+  vte_terminal_set_background_transparent(VTE_TERMINAL(display), term_conf.transparency);
+  gtk_widget_set_sensitive(GTK_WIDGET(data), term_conf.transparency);
+
+  if(term_conf.transparency == FALSE)
+    string = g_strdup_printf("False");
+  else
+    string = g_strdup_printf("True");
+  
+  cfgStoreValue(cfg, "term_transparency", string, CFG_INI, 1);
+  g_free(string);
+}
+
+static void change_scale(GtkRange *range, gpointer data)
+{
+  gchar *string;
+  term_conf.background_saturation = gtk_range_get_value(GTK_RANGE(range))/100.0;
+  vte_terminal_set_background_saturation(VTE_TERMINAL(display), (gdouble)term_conf.background_saturation);
+
+  string = g_strdup_printf("%g", term_conf.background_saturation);
+  cfgStoreValue(cfg, "term_background_saturation", string, CFG_INI, 0);
+  g_free(string);  
+}

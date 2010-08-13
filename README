@@ -1,0 +1,22 @@
+GTKTerm : a GTK+ serial port terminal
+=====================================
+         (c) Julien Schmitt - julien@jls-info.com
+         http://www.jls-info.com/julien/linux
+
+This program is released under the terms of the GPL V.2
+	 ** Use at your own risks ! **
+
+Command line options
+--help or -h : this help screen
+--config <configuration> or -c : load configuration
+--port <device> or -p : serial port device (default /dev/ttyS0)
+--speed <speed> or -s : serial port speed (default 9600)
+--bits <bits> or -b : number of bits (default 8)
+--stopbits <stopbits> or -t : number of stopbits (default 1)
+--parity <odd | even> or -a : partity (default none)
+--flow <Xon | CTS> or -w : flow control (default none)
+--delay <ms> or -d : end of line delay in ms (default none)
+--char <char> or -r : wait for a special char at end of line (default none)
+--file <filename> or -f : default file to send (default none)
+--echo or -e : switch on local echo
+

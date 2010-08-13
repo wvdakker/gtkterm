@@ -1,0 +1,73 @@
+	* Released gtkterm 0.99.5       13-nov-2005
+	        Bugfixes version :
+		   Backspace key now works and sends \b (thanks to Sebastien Bacher)
+	           Print all messages in UTF8 format (thanks to Bús József)
+	           Fixed segfault in case of local buffer overflow (thanks to Brett Foster)
+	        Added hungarian translation (thanks to Bús József)
+		Allow user to change the port manually to an unlisted port device
+	
+	* Released gtkterm 0.99.4	06-sep-2003
+	        New version with VTE widget
+		New CR/LF Auto fonctionality
+		Many hacks from Seb (sebastien.bacher@laposte.net)
+	
+	* Released gtkterm 0.99.2	09-mar-2003
+	        Changed all source files for internationalisation
+		New i18n.* source files to print UTF-8 strings in all terminals
+		First translation in French
+		Moved from automake 1.4 to 1.6 (needed for gettext)
+
+	* Released gtkterm 0.99.1	21-feb-2003
+	        If no serial port is found in /dev, display an error box
+	        Possible segfault fixed in port configuration window
+	
+	* Released gtkterm 0.99.0       16-feb-2003
+		gtkterm now behaves more like a real ASCII terminal (SUPPR and
+		\b are OK.
+		new "macros" functionality
+		fixed major bug (memory management in config file)
+		
+	* Released gtkterm 0.98.6       13-feb-2003
+		bugfixes
+		possible to send breaks
+	
+	* Released gtkterm 0.98.5	05-feb-2003
+	        nice icons in the menu
+	        new hexadecimal separator : space
+		font saved in the configuration
+		lots of bugfixes !!
+	
+	* Released gtkterm 0.98.4       11-jan-2003
+		hexadecimal display
+		possibility to send hexadecimal raw data
+
+	* Released gtkterm 0.98.3	07-jan-2003
+		configuration file ~/.gtktermrc
+		CRLF bug fixed
+
+	* Released gtkterm 0.98.2	14-oct-2002
+	        local echo in configuration menu and in command line
+		manpage from Debian maintainer Sebastien Bacher added to source tree
+		few bugfixes
+	
+	* Released gtkterm 0.98
+	        moved to GTK+ 2.0
+	        command line options
+	        bug fixes
+	        faster file transfer
+
+	* Released gtkterm 0.97
+	        control signals control
+
+	* Released gtkterm 0.96
+		Wait for a special char after CR is now working !!
+
+	* Released gtkterm 0.95
+		CR delay is now working !!
+		many bug fixes
+
+	* Released gtkterm 0.91
+	        bug fixes
+
+	* Released gtkterm 0.9
+	        first working release

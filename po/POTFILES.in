@@ -1,0 +1,12 @@
+# List of source files containing translatable strings.
+# Copyright (C) 1995 Free Software Foundation, Inc.
+
+# Package source files
+src/buffer.c
+src/cmdline.c
+src/config.c
+src/fichier.c
+src/macros.c
+src/parsecfg.c
+src/serie.c
+src/widgets.c
