@@ -13,6 +13,8 @@
 /*   ChangeLog                                                         */
 /*   (All changes by Julien Schmitt except when explicitly written)    */
 /*                                                                     */
+/*      - 0.99.6 : Added scrollbar and copy/paste (Zach Davis)         */
+/*                                                                     */
 /*      - 0.99.5 : Make package buildable on pure *BSD by changing the */
 /*                 include to asm/termios.h by sys/ttycom.h            */
 /*                 Print message without converting it into the locale */
@@ -663,8 +665,6 @@ void clear_display(void)
     vte_terminal_reset(VTE_TERMINAL(display), TRUE, TRUE);
 }
 
-
-
 gint gui_paste(void)
 {
     vte_terminal_paste_clipboard(VTE_TERMINAL(display));
@@ -677,15 +677,8 @@ gint gui_copy(void)
     return 0;
 }
 
-gboolean check_selection_func(VteTerminal *terminal, glong column, 
-			      glong row, gpointer data)
-{
-    return TRUE;
-}
-
 gint gui_copy_all_clipboard(void)
 {
-    /* unfortunately copies trailing whitespace as well... but works */
     vte_terminal_select_all(VTE_TERMINAL(display));
     gui_copy();
     vte_terminal_select_none(VTE_TERMINAL(display));
