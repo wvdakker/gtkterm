@@ -111,8 +111,8 @@ static inline int Send_crlf(void)
 
 int Send_chars(char *string, int length)
 {
-  char *buffer, *start_buffer;
-  int i, size_written, buf_length;
+  char *buffer /*, *start_buffer */;
+/*  int i, size_written, buf_length; */
   int bytes_written = 0;
 
   /* Normally it never happens, but it is better not to segfault ;) */
@@ -120,8 +120,11 @@ int Send_chars(char *string, int length)
     return 0;
 
   buffer=string;
+  
+  /* HDG <j.w.r.degoede@hhs.nl> this is non sense, when sending enter it
+     should be just '\r' and not "\r\n", disabling */
 
-  if(config.crlfauto)
+/*  if(config.crlfauto)
     {
       if(length == 1)
 	{
@@ -184,7 +187,7 @@ int Send_chars(char *string, int length)
 	    bytes_written += write(serial_port_fd, "\n", 1);
 	}
     }
-  else
+  else */
     {
       bytes_written = write(serial_port_fd, buffer, length);
     }

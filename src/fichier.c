@@ -153,7 +153,7 @@ gint Envoie_fichier(GtkFileSelection *FS)
   else
     {
       g_free(str);
-      str = g_strdup_printf(_("Cannot read file %s : %s\n"), NomFichier, strerror_utf8(errno));
+      str = g_strdup_printf(_("Cannot read file %s : %s\n"), NomFichier, strerror(errno));
       show_message(str, MSG_ERR);
     }
   return FALSE;
@@ -202,7 +202,7 @@ void ecriture(gpointer data, gint source, GdkInputCondition condition)
 	{
 	  /* Problem while writing, stop file transfer */
 	  g_free(str);
-	  str = g_strdup_printf(_("Cannot write file %s\n"), strerror_utf8(errno));
+	  str = g_strdup_printf(_("Cannot write file %s\n"), strerror(errno));
 	  show_message(str, MSG_ERR);
 	  close_all();
 	  return;
@@ -298,7 +298,7 @@ gint Sauve_fichier(GtkFileSelection *FS)
   if(Fic == NULL)
     {
       g_free(str);
-      str = g_strdup_printf(_("Cannot open file %s : %s\n"), NomFichier, strerror_utf8(errno));
+      str = g_strdup_printf(_("Cannot open file %s : %s\n"), NomFichier, strerror(errno));
       show_message(str, MSG_ERR);
     }
   else

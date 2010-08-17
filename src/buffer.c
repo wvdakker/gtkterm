@@ -23,11 +23,12 @@
 #include "buffer.h"
 #include "gettext.h"
 #include "i18n.h"
+#include "serie.h"
 
 static char *buffer = NULL;
 static char *current_buffer;
 static unsigned int pointer;
-
+static int cr_received = 0;
 char overlapped;
 
 void (*write_func)(char *, unsigned int) = NULL;
@@ -54,38 +55,55 @@ void put_chars(char *chars, unsigned int size, gboolean crlf_auto)
 {
   char *characters;
 
-  int pos;
-  GString *buffer_tmp;
-  gchar *in_buffer;
-
-  buffer_tmp =  g_string_new(chars);
-	  
   /* If the auto CR LF mode on, read the buffer to add \r before \n */ 
 
   if(crlf_auto)
     {
-      in_buffer=buffer_tmp->str;
+      /* BUFFER_RECEPTION*2 for worst case scenario, all \n or \r chars */
+      char out_buffer[BUFFER_RECEPTION*2];
+      int i, out_size = 0;
       
-      in_buffer += size;
-      for(pos=size; pos>0; pos--)
-	{
-	  in_buffer--;
-	  
-	  if(*in_buffer=='\n' && *(in_buffer-1) != '\r') 
-	    {
-	      g_string_insert_c(buffer_tmp, pos-1, '\r');
-	      size += 1;
-	    }
-
-	  if(*in_buffer=='\r' && *(in_buffer+1) != '\n') 
-	    {
-	      g_string_insert_c(buffer_tmp, pos, '\n');
-	      size += 1;
-	    }
-	}
+      for (i=0; i<size; i++)
+        {
+          if (chars[i] == '\r')
+            {
+              /* If the previous character was a CR too, insert a newline */
+              if (cr_received)
+                {
+                   out_buffer[out_size] = '\n';
+                   out_size++;
+                }
+              cr_received = 1;
+            }
+          else
+            {
+              if (chars[i] == '\n')
+                {
+                  /* If we get a newline without a CR first, insert a CR */
+                  if (!cr_received)
+                    {
+                       out_buffer[out_size] = '\r';
+                       out_size++;
+                    }
+                }
+              else
+                {
+                  /* If we receive a normal char, and the previous one was a
+                     CR insert a newline */
+                  if (cr_received)
+                    {
+                       out_buffer[out_size] = '\n';
+                       out_size++;
+                    }
+                }
+              cr_received = 0;
+            }
+          out_buffer[out_size] = chars[i];
+          out_size++;
+        }
+      chars = out_buffer;
+      size = out_size;
     }
-
-  chars = buffer_tmp->str;
 
   if(buffer == NULL)
     {
@@ -157,6 +175,7 @@ void clear_buffer(void)
   memset(buffer, 0, BUFFER_SIZE);
   current_buffer = buffer;
   pointer = 0;
+  cr_received = 0;
 }
 
 void set_clear_func(void (*func)(void))

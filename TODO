@@ -1,4 +1,9 @@
-- debug the code !!
-- add a vertical scrollbar to main window
-- get hexadecimal display faster
-- make backspace key behaviour configurable via the menu
+Immediate updates/changes
+    - debug the code !!
+    - add more translations
+    - add support for more/custom baudrates
+    - add logging support
+
+On-down-the-road possibilities
+    - scripting support
+    - support for tabs

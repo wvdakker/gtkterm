@@ -43,6 +43,7 @@ typedef struct {
   gboolean show_cursor;
   gint rows;
   gint columns;
+  gint scrollback;
   gboolean visual_bell;
   GdkColor foreground_color;
   GdkColor background_color;

@@ -1,3 +1,12 @@
+	* Released gtkterm 0.99.6	16-aug-2010
+	        Maintainership changed to https://fedorahosted.org/released/gtkterm
+		Bugfixes :
+	           Several code cleanup changes
+	           Fixed sendhex methods
+	        Additions :
+		   Made CR/LF configurable
+	           Added scrollback and scrollbar capabilities
+
 	* Released gtkterm 0.99.5       13-nov-2005
 	        Bugfixes version :
 		   Backspace key now works and sends \b (thanks to Sebastien Bacher)

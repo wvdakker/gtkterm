@@ -59,7 +59,7 @@ static void shortcut_callback(gpointer *number)
   guchar a;
   guint val_read;
   
-  string = macros[(gint)number].action;
+  string = macros[(long)number].action;
   length = strlen(string);
   
   for(i = 0; i < length; i++)
@@ -140,7 +140,7 @@ static void shortcut_callback(gpointer *number)
 	}
     }
 
-  str = g_strdup_printf(_("Macro \"%s\" sent !"), macros[(gint)number].shortcut);
+  str = g_strdup_printf(_("Macro \"%s\" sent !"), macros[(long)number].shortcut);
   Put_temp_message(str, 800);
   g_free(str);
 }
@@ -160,7 +160,7 @@ void create_shortcuts(macro_t *macro, gint size)
 
 void add_shortcuts(void)
 {
-  gint i = 0;
+  long i = 0;
   guint acc_key;
   GdkModifierType mod;
 

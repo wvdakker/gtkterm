@@ -84,6 +84,7 @@ gint *transparency;
 gint *show_cursor;
 gint *rows;
 gint *columns;
+gint *scrollback;
 gint *visual_bell;
 gint *foreground_red;
 gint *foreground_blue;
@@ -111,6 +112,7 @@ cfgStruct cfg[] = {
   {"term_show_cursor", CFG_BOOL, &show_cursor},
   {"term_rows", CFG_INT, &rows},
   {"term_columns", CFG_INT, &columns},
+  {"term_scrollback", CFG_INT, &scrollback},
   {"term_visual_bell", CFG_BOOL, &visual_bell},
   {"term_foreground_red", CFG_INT, &foreground_red},
   {"term_foreground_blue", CFG_INT, &foreground_blue},
@@ -860,6 +862,9 @@ gint Load_configuration_from_file(gchar *config_name)
 	    if(columns[i] != 0)
 	      term_conf.columns = columns[i];
 
+	    if(scrollback[i] != 0)
+	      term_conf.scrollback = scrollback[i];
+
 	    if(visual_bell[i] != -1)
 	      term_conf.visual_bell = (gboolean)visual_bell[i];
 	    else
@@ -884,6 +889,7 @@ gint Load_configuration_from_file(gchar *config_name)
 		term_conf.show_cursor = TRUE;
 		term_conf.rows = 80;
 		term_conf.columns = 25;
+		term_conf.scrollback = 100;
 		term_conf.visual_bell = FALSE;
 
 		term_conf.foreground_color.red = 43253;
@@ -912,6 +918,7 @@ gint Load_configuration_from_file(gchar *config_name)
 
   vte_terminal_set_background_transparent(VTE_TERMINAL(display), term_conf.transparency);
   vte_terminal_set_size (VTE_TERMINAL(display), term_conf.rows, term_conf.columns);
+  vte_terminal_set_scrollback_lines (VTE_TERMINAL(display), term_conf.scrollback);
   vte_terminal_set_color_foreground (VTE_TERMINAL(display), &term_conf.foreground_color);
   vte_terminal_set_color_background (VTE_TERMINAL(display), &term_conf.background_color);
   vte_terminal_set_background_saturation(VTE_TERMINAL(display), (gdouble)term_conf.background_saturation);
@@ -1023,6 +1030,7 @@ void Hard_default_configuration(void)
   term_conf.show_cursor = TRUE;
   term_conf.rows = 80;
   term_conf.columns = 25;
+  term_conf.scrollback = 100;
   term_conf.visual_bell = TRUE;
 
   Selec_couleur(&term_conf.foreground_color, 0.66, 0.66, 0.66);

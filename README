@@ -1,7 +1,13 @@
-GTKTerm : a GTK+ serial port terminal
-=====================================
+          GTKTerm : a GTK+ serial port terminal
+          =====================================
+
+	           Original Code by:
          (c) Julien Schmitt - julien@jls-info.com
          http://www.jls-info.com/julien/linux
+
+	           Currently Maintained At:
+	 https://fedorahosted.org/released/gtkterm/
+
 
 This program is released under the terms of the GPL V.2
 	 ** Use at your own risks ! **

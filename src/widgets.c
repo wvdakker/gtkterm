@@ -83,6 +83,7 @@ static GtkWidget *hex_len_menu = NULL;
 static GtkWidget *hex_chars_menu = NULL;
 static GtkWidget *show_index_menu = NULL;
 static GtkWidget *Hex_Box;
+GtkWidget *scrolled_window;
 GtkWidget *Fenetre;
 GtkAccelGroup *shortcuts;
 GtkWidget *display = NULL;
@@ -115,8 +116,13 @@ gboolean pop_message(void);
 static gchar *translate_menu(const gchar *, gpointer);
 static void Got_Input(VteTerminal *, gchar *, guint, gpointer);
 
+gint gui_paste(void);
+gint gui_copy(void);
+gint gui_copy_all_clipboard(void);
+
+
 /* Menu */
-#define NUMBER_OF_ITEMS 34
+#define NUMBER_OF_ITEMS 37
 
 static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/_File") , NULL, NULL, 0, "<Branch>"},
@@ -125,6 +131,11 @@ static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/File/_Save raw file") , NULL, (GtkItemFactoryCallback)fichier, 2, "<StockItem>", GTK_STOCK_SAVE_AS},
   {N_("/File/Separator") , NULL, NULL, 0, "<Separator>"},
   {N_("/File/E_xit") , "<ctrl>Q", gtk_main_quit, 0, "<StockItem>", GTK_STOCK_QUIT},
+  
+  {N_("/Edit/_Paste") , "<ctrl><shift>v", (GtkItemFactoryCallback)gui_paste, 0, "<StockItem>", GTK_STOCK_PASTE},
+  {N_("/Edit/_Copy") , "<ctrl><shift>v", (GtkItemFactoryCallback)gui_copy, 0, "<StockItem>", GTK_STOCK_COPY},
+  {N_("/Edit/Copy _All") , NULL, (GtkItemFactoryCallback)gui_copy_all_clipboard, 0, "<StockItem>", GTK_STOCK_SELECT_ALL},
+
   {N_("/_Configuration"), NULL, NULL, 0, "<Branch>"},
   {N_("/Configuration/_Port"), "<ctrl>S", (GtkItemFactoryCallback)Config_Port_Fenetre, 0, "<StockItem>", GTK_STOCK_PREFERENCES},
   {N_("/Configuration/_Main window"), NULL, (GtkItemFactoryCallback)Config_Terminal, 0, "<StockItem>", GTK_STOCK_SELECT_FONT},
@@ -294,6 +305,7 @@ void create_main_window(void)
   BoiteH = gtk_hbox_new(FALSE, 0);
   gtk_box_pack_start(GTK_BOX(Boite), BoiteH, TRUE, TRUE, 0);
 
+  /* create vte window */
   display = vte_terminal_new();
 
   vte_terminal_set_backspace_binding(VTE_TERMINAL(display),
@@ -301,8 +313,19 @@ void create_main_window(void)
 
   clear_display();
 
-  gtk_box_pack_start_defaults(GTK_BOX(BoiteH), display);
+  /* make vte window scrollable - inspired by gnome-terminal package */
+  scrolled_window = gtk_scrolled_window_new(NULL, 
+					    vte_terminal_get_adjustment(VTE_TERMINAL(display)));
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
+				 GTK_POLICY_AUTOMATIC,
+				 GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolled_window),
+				      GTK_SHADOW_NONE);
+  gtk_container_add(GTK_CONTAINER(scrolled_window), GTK_WIDGET(display));
 
+  gtk_box_pack_start_defaults(GTK_BOX(BoiteH), scrolled_window);
+
+  /* status bar */
   Hex_Box = gtk_hbox_new(TRUE, 0);
   Label = gtk_label_new(_("Hexadecimal data to send (separator : ';' or space) : "));
   gtk_box_pack_start_defaults(GTK_BOX(Hex_Box), Label);
@@ -438,30 +461,7 @@ void put_hexadecimal(gchar *string, guint size)
 
 void put_text(gchar *string, guint size)
 {
-  int pos;
-  GString *buffer_tmp;
-  gchar *in_buffer;
-  
-  buffer_tmp =  g_string_new(string);
-  in_buffer=buffer_tmp->str;
-
-  in_buffer += size;
-  for(pos=size; pos>0; pos--)
-    {
-      in_buffer--;
-      if(*in_buffer=='\r' && *(in_buffer+1) != '\n') 
-	{
-	  g_string_insert_c(buffer_tmp, pos, '\n');
-	  size += 1;
-	}
-      if(*in_buffer=='\n' && *(in_buffer-1) != '\r') 
-	{
-	  g_string_insert_c(buffer_tmp, pos-1, '\r');
-	  size += 1;
-	}
-    }
-
-  vte_terminal_feed(VTE_TERMINAL(display), buffer_tmp->str, size);
+  vte_terminal_feed(VTE_TERMINAL(display), string, size);
 }
 
 gint send_serial(gchar *string, gint len)
@@ -604,12 +604,12 @@ gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointe
   guchar val;
   guint val_read;
   guint sent = 0;
-  gchar written[3];
+  gchar written[4];
   gchar *all_written;
 
   text = (gchar *)gtk_entry_get_text(GTK_ENTRY(widget));
 
-  all_written = g_malloc(strlen(text) * 2);
+  all_written = g_malloc(strlen(text) * 2 + 1);
   all_written[0] = 0;
 
   current = text;
@@ -661,4 +661,34 @@ void clear_display(void)
   initialize_hexadecimal_display();
   if(display)
     vte_terminal_reset(VTE_TERMINAL(display), TRUE, TRUE);
+}
+
+
+
+gint gui_paste(void)
+{
+    vte_terminal_paste_clipboard(VTE_TERMINAL(display));
+    return 0;
+}
+
+gint gui_copy(void)
+{
+    vte_terminal_copy_clipboard(VTE_TERMINAL(display));
+    return 0;
+}
+
+gboolean check_selection_func(VteTerminal *terminal, glong column, 
+			      glong row, gpointer data)
+{
+    return TRUE;
+}
+
+gint gui_copy_all_clipboard(void)
+{
+    /* unfortunately copies trailing whitespace as well... but works */
+    vte_terminal_select_all(VTE_TERMINAL(display));
+    gui_copy();
+    vte_terminal_select_none(VTE_TERMINAL(display));
+
+    return 0;
 }
