@@ -393,6 +393,7 @@ int lis_sig(void)
       if(ioctl(serial_port_fd, TIOCMGET, &stat_read) == -1)
 	{
 	  i18n_perror(_("Control signals read"));
+	  Ferme_Port();
 	  return -2;
 	}
 
