@@ -509,7 +509,7 @@ gint a_propos(GtkWidget *widget, guint param)
   gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->action_area), Bouton, TRUE, TRUE, 0);
 
   Label = gtk_label_new("");
-  chaine = g_strdup_printf(_("\n <big><i> GTKTerm V. %s </i></big> \n\n\t(c) Julien Schmitt : julien@jls-info.com \n\thttp://www.jls-info.com/julien/linux\n"), VERSION);
+  chaine = g_strdup_printf(_("\n <big><i> GTKTerm V. %s </i></big> \n\n\t(c) Julien Schmitt : julien@jls-info.com \n\thttp://www.jls-info.com/julien/linux\n\n\tLatest Version Available on:\n\thttps://fedorahosted.org/released/gtkterm/"), VERSION);
   gtk_label_set_markup(GTK_LABEL(Label), chaine);
   g_free(chaine);
   gtk_label_set_selectable(GTK_LABEL(Label), TRUE);
