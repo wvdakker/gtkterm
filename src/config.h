@@ -33,7 +33,7 @@ struct configuration_port {
   gint parite;                 // 0 : aucune, 1 : impaire, 2 : paire
   gint flux;                   // 0 : aucun, 1 : Xon/Xoff, 2 : RTS/CTS
   gint delai;                  // delai de fin de ligne : en ms
-  signed char car;             // caractere à attendre
+  gchar car;             // caractere à attendre
   gboolean echo;               // echo local
   gboolean crlfauto;           // line feed auto
 };

@@ -3,7 +3,9 @@ Immediate updates/changes
     - add more translations
     - add support for more/custom baudrates
     - add logging support
+    - update to latest GTK+ widgets
 
 On-down-the-road possibilities
     - scripting support
     - support for tabs
+    - refactor the code from french to english
