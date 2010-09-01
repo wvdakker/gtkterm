@@ -24,6 +24,11 @@ gint config_window(gpointer *, guint);
 void Verify_configuration(void);
 gint Load_configuration_from_file(gchar *);
 gint Check_configuration_file(void);
+void check_text_input(GtkEditable *editable,
+		       gchar       *new_text,
+		       gint         new_text_length,
+		       gint        *position,
+		       gpointer     user_data);
 
 struct configuration_port {
   gchar port[64];

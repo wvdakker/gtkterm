@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -210,6 +211,7 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     Combos[0] = Combo;
 
     Combo = gtk_combo_box_entry_new_text();
+    gtk_entry_set_max_length(GTK_ENTRY(GTK_BIN(Combo)->child), 10);
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "300");
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "600");
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "1200");
@@ -221,7 +223,12 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "57600");
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "115200");
 
-    gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 5);
+    gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 5); //default 9600
+
+    //validate input text (digits only)
+    g_signal_connect(GTK_ENTRY(GTK_BIN(Combo)->child),
+		     "insert-text", 
+		     G_CALLBACK(check_text_input), NULL);
 
     gtk_table_attach(GTK_TABLE(Table), Combo, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
     Combos[1] = Combo;
@@ -324,7 +331,6 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
 
     CheckBouton = gtk_check_button_new_with_label(_("Wait for this special character before passing to next line :"));
 
-    //gtk_signal_connect(GTK_OBJECT(CheckBouton), "clicked", GTK_SIGNAL_FUNC(Grise_Degrise), (gpointer)Spin);
     g_signal_connect(GTK_OBJECT(CheckBouton), "clicked", G_CALLBACK(Grise_Degrise), (gpointer)Spin);
 
     if(config.car != -1)
@@ -339,12 +345,9 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
 
     Bouton_OK = gtk_button_new_from_stock(GTK_STOCK_OK);
     gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->action_area), Bouton_OK, FALSE, TRUE, 0);
-    //gtk_signal_connect(GTK_OBJECT(Bouton_OK), "clicked", (GtkSignalFunc)Lis_Config, (gpointer)Combos);
     g_signal_connect(GTK_OBJECT(Bouton_OK), "clicked", G_CALLBACK(Lis_Config), (gpointer)Combos);
-    //gtk_signal_connect_object(GTK_OBJECT(Bouton_OK), "clicked", (GtkSignalFunc)gtk_widget_destroy, GTK_OBJECT(Dialogue));
     g_signal_connect_swapped(GTK_OBJECT(Bouton_OK), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(Dialogue));
     Bouton_annule = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
-    //gtk_signal_connect_object(GTK_OBJECT(Bouton_annule), "clicked", (GtkSignalFunc)gtk_widget_destroy, GTK_OBJECT(Dialogue));
     g_signal_connect_swapped(GTK_OBJECT(Bouton_annule), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(Dialogue));
     gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->action_area), Bouton_annule, FALSE, TRUE, 0);
 
@@ -414,15 +417,10 @@ gint Config_Font(GtkWidget *widget, guint param)
     GtkFontSelectionDialog *fontsel;
 
     fontsel = (GtkFontSelectionDialog *)gtk_font_selection_dialog_new(_("Font selection"));
-    //gtk_signal_connect(GTK_OBJECT(fontsel), "delete_event", (GtkSignalFunc)gtk_widget_destroy, NULL);
     g_signal_connect(GTK_OBJECT(fontsel), "delete-event", G_CALLBACK(gtk_widget_destroy), NULL);
-    //gtk_signal_connect(GTK_OBJECT(fontsel), "destroy", (GtkSignalFunc)gtk_widget_destroy, NULL);
     g_signal_connect(GTK_OBJECT(fontsel), "destroy", G_CALLBACK(gtk_widget_destroy), NULL);
-    //gtk_signal_connect_object(GTK_OBJECT(fontsel->cancel_button), "clicked", (GtkSignalFunc)gtk_widget_destroy, GTK_OBJECT(fontsel));
     g_signal_connect_swapped(GTK_OBJECT(fontsel->cancel_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(fontsel));
-    //gtk_signal_connect_object(GTK_OBJECT(fontsel->ok_button), "clicked", (GtkSignalFunc)Lis_Font, GTK_OBJECT(fontsel));
     g_signal_connect_swapped(GTK_OBJECT(fontsel->ok_button), "clicked", G_CALLBACK(Lis_Font), GTK_OBJECT(fontsel));
-    //gtk_signal_connect_object(GTK_OBJECT(fontsel->ok_button), "clicked", (GtkSignalFunc)gtk_widget_destroy, GTK_OBJECT(fontsel));
     g_signal_connect_swapped(GTK_OBJECT(fontsel->ok_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(fontsel));
     gtk_font_selection_dialog_set_font_name(fontsel, term_conf.font);
 
@@ -944,7 +942,7 @@ void Verify_configuration(void)
 	    break;
       
 	default:
-	    string = g_strdup_printf(_("Unknown rate : %d bauds\nMy not be supported by all hardware"), config.vitesse);
+	    string = g_strdup_printf(_("Unknown rate : %d bauds\nMay not be supported by all hardware"), config.vitesse);
 	    show_message(string, MSG_ERR);
 	    g_free(string);
     }
@@ -1347,7 +1345,6 @@ gint Config_Terminal(GtkWidget *widget, guint param)
 
     gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Dialog)->vbox), BoiteV);
 
-    //g_signal_connect(GTK_OBJECT(Dialog), "response", G_CALLBACK(config_term_response), 0);
     g_signal_connect_swapped(GTK_OBJECT(Dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialog));
   
     gtk_widget_show_all (Dialog);
@@ -1476,4 +1473,30 @@ static void change_scale(GtkRange *range, gpointer data)
     string = g_strdup_printf("%g", term_conf.background_saturation);
     cfgStoreValue(cfg, "term_background_saturation", string, CFG_INI, 0);
     g_free(string);  
+}
+
+void check_text_input(GtkEditable *editable,
+		  gchar       *new_text,
+		  gint         new_text_length,
+		  gint        *position,
+		  gpointer     user_data)
+{
+    int i;
+    gchar *result = g_utf8_strup(new_text, new_text_length);
+    g_signal_handlers_block_by_func(editable,
+				    (gpointer)check_text_input, user_data);
+
+    for(i = 0; i < new_text_length; i++)
+    {
+	if(!isdigit(result[i]))
+	    goto invalid_input;
+    }
+
+    gtk_editable_insert_text(editable, result, new_text_length, position);
+
+invalid_input:
+    g_signal_handlers_unblock_by_func(editable,
+				      (gpointer)check_text_input, user_data);
+    g_signal_stop_emission_by_name(editable, "insert-text");
+    g_free(result);
 }
