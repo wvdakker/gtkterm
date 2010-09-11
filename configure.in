@@ -24,9 +24,8 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 dnl Checks for library functions.
 
 dnl Checks for GTK+ and Imlib and libvte
-PKG_CHECK_MODULES(TERMINAL_WIDGET, vte >= 0.10.4)
-
-dnl CFLAGS="$TERMINAL_WIDGET_CFLAGS $CFLAGS"
+PKG_CHECK_MODULES(TERMINAL_WIDGET, vte >= 0.20)
+CFLAGS="$TERMINAL_WIDGET_CFLAGS $CFLAGS"
 
 AM_PATH_GTK_2_0(2.6.0, , AC_MSG_ERROR([*** GTK >= 2.6 not installed ***]))
 CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"
