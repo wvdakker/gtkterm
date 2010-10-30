@@ -13382,12 +13382,12 @@ if test -n "$TERMINAL_WIDGET_CFLAGS"; then
     pkg_cv_TERMINAL_WIDGET_CFLAGS="$TERMINAL_WIDGET_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { ($as_echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"vte >= 0.10.4\"") >&5
-  ($PKG_CONFIG --exists --print-errors "vte >= 0.10.4") 2>&5
+    { ($as_echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"vte >= 0.20\"") >&5
+  ($PKG_CONFIG --exists --print-errors "vte >= 0.20") 2>&5
   ac_status=$?
   $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; then
-  pkg_cv_TERMINAL_WIDGET_CFLAGS=`$PKG_CONFIG --cflags "vte >= 0.10.4" 2>/dev/null`
+  pkg_cv_TERMINAL_WIDGET_CFLAGS=`$PKG_CONFIG --cflags "vte >= 0.20" 2>/dev/null`
 else
   pkg_failed=yes
 fi
@@ -13398,12 +13398,12 @@ if test -n "$TERMINAL_WIDGET_LIBS"; then
     pkg_cv_TERMINAL_WIDGET_LIBS="$TERMINAL_WIDGET_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { ($as_echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"vte >= 0.10.4\"") >&5
-  ($PKG_CONFIG --exists --print-errors "vte >= 0.10.4") 2>&5
+    { ($as_echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"vte >= 0.20\"") >&5
+  ($PKG_CONFIG --exists --print-errors "vte >= 0.20") 2>&5
   ac_status=$?
   $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; then
-  pkg_cv_TERMINAL_WIDGET_LIBS=`$PKG_CONFIG --libs "vte >= 0.10.4" 2>/dev/null`
+  pkg_cv_TERMINAL_WIDGET_LIBS=`$PKG_CONFIG --libs "vte >= 0.20" 2>/dev/null`
 else
   pkg_failed=yes
 fi
@@ -13421,14 +13421,14 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        TERMINAL_WIDGET_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "vte >= 0.10.4" 2>&1`
+	        TERMINAL_WIDGET_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "vte >= 0.20" 2>&1`
         else
-	        TERMINAL_WIDGET_PKG_ERRORS=`$PKG_CONFIG --print-errors "vte >= 0.10.4" 2>&1`
+	        TERMINAL_WIDGET_PKG_ERRORS=`$PKG_CONFIG --print-errors "vte >= 0.20" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$TERMINAL_WIDGET_PKG_ERRORS" >&5
 
-	{ { $as_echo "$as_me:$LINENO: error: Package requirements (vte >= 0.10.4) were not met:
+	{ { $as_echo "$as_me:$LINENO: error: Package requirements (vte >= 0.20) were not met:
 
 $TERMINAL_WIDGET_PKG_ERRORS
 
@@ -13439,7 +13439,7 @@ Alternatively, you may set the environment variables TERMINAL_WIDGET_CFLAGS
 and TERMINAL_WIDGET_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details.
 " >&5
-$as_echo "$as_me: error: Package requirements (vte >= 0.10.4) were not met:
+$as_echo "$as_me: error: Package requirements (vte >= 0.20) were not met:
 
 $TERMINAL_WIDGET_PKG_ERRORS
 
@@ -13482,7 +13482,7 @@ else
 $as_echo "yes" >&6; }
 	:
 fi
-
+CFLAGS="$TERMINAL_WIDGET_CFLAGS $CFLAGS"
 
 # Check whether --enable-gtktest was given.
 if test "${enable_gtktest+set}" = set; then

@@ -11,6 +11,7 @@
 /*      Serial port access functions                                   */
 /*                                                                     */
 /*   ChangeLog                                                         */
+/*      - 0.99.7 : Removed auto crlf stuff - (use macros instead)      */
 /*      - 0.99.5 : changed all calls to strerror() by strerror_utf8()  */
 /*      - 0.99.2 : Internationalization                                */
 /*      - 0.98.6 : new sendbreak() function                            */
@@ -73,7 +74,6 @@ void Lis_port(gpointer data, gint source, GdkInputCondition condition)
 	bytes_read = read(serial_port_fd, c, BUFFER_RECEPTION);
 	if(bytes_read > 0)
 	{
-	    put_chars(c, bytes_read, config.crlfauto);
 
 	    if(config.car != -1 && waiting_for_char == TRUE)
 	    {
@@ -100,98 +100,15 @@ void Lis_port(gpointer data, gint source, GdkInputCondition condition)
 }
 
 
-static inline int Send_crlf(void)
-{
-    const char crlf_seq[2] = {'\r', '\n'};
-
-    if(write(serial_port_fd, crlf_seq, 2) != 2)
-	return (-1);
-    else
-	return 1;
-}
-
 int Send_chars(char *string, int length)
 {
-    char *buffer /*, *start_buffer */;
-/*  int i, size_written, buf_length; */
     int bytes_written = 0;
 
     /* Normally it never happens, but it is better not to segfault ;) */
     if(length == 0)
 	return 0;
 
-    buffer=string;
-  
-    /* HDG <j.w.r.degoede@hhs.nl> this is non sense, when sending enter it
-       should be just '\r' and not "\r\n", disabling */
-
-/*  if(config.crlfauto)
-    {
-    if(length == 1)
-    {
-    if(*string == '\n' || *string == '\r')
-    {
-    bytes_written = Send_crlf();
-    }
-    else
-    {
-    bytes_written = write(serial_port_fd, string, length);	      
-    }
-    }
-    else
-    {
-    start_buffer = buffer;
-    buf_length = 1;
-    for(i = 0; i < length; i++)
-    {
-    if(*buffer == '\n' && *(buffer - 1) != '\r')
-    {
-    size_written = write(serial_port_fd, start_buffer, buf_length - 1);
-
-    if(size_written == -1)
-    return bytes_written;
-    bytes_written += size_written;
-		  
-    size_written = Send_crlf();
-    if(size_written == -1)
-    return bytes_written;
-    bytes_written += size_written;
-
-    start_buffer = buffer + 1;
-    buf_length = 0;
-    }
-    else if(*(buffer - 1) == '\r' && *buffer != '\n')
-    {
-    if(buf_length > 2)
-    size_written = write(serial_port_fd, start_buffer, buf_length - 2);
-    else
-    size_written =0;
-
-    if(size_written == -1)
-    return bytes_written;
-    bytes_written += size_written;
-
-    size_written = Send_crlf();
-    if(size_written == -1)
-    return bytes_written;
-    bytes_written += size_written;
-
-    start_buffer = buffer;
-    buf_length = 1;
-    }
-    buffer++;
-    buf_length++;
-    }
-    if(buf_length>1)
-    bytes_written += write(serial_port_fd, start_buffer, buf_length-1);
-    if(start_buffer[buf_length-2] == '\r')
-    bytes_written += write(serial_port_fd, "\n", 1);
-    }
-    }
-    else */
-    {
-	bytes_written = write(serial_port_fd, buffer, length);
-    }
+    bytes_written = write(serial_port_fd, string, length);
 
     return bytes_written;
 }
@@ -338,10 +255,6 @@ void configure_echo(gboolean echo)
     config.echo = echo;
 }
 
-void configure_crlfauto(gboolean crlfauto)
-{
-    config.crlfauto = crlfauto;
-}
 
 void Ferme_Port(void)
 {

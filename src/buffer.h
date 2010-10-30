@@ -12,6 +12,7 @@
 /*      - Header file -                                                */
 /*                                                                     */
 /*   ChangeLog                                                         */
+/*      - 0.99.7 : removed auto crlf stuff - (use macros instead)      */
 /*      - 0.98.4 : file creation by Julien                             */
 /*                                                                     */
 /***********************************************************************/
@@ -23,7 +24,7 @@
 
 void create_buffer(void);
 void delete_buffer(void);
-void put_chars(char *, unsigned int, gboolean);
+void put_chars(char *, unsigned int);
 void clear_buffer(void);
 void write_buffer(void);
 void set_display_func(void (*func)(char *, unsigned int));

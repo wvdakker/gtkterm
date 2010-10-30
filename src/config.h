@@ -40,7 +40,6 @@ struct configuration_port {
   gint delai;                  // delai de fin de ligne : en ms
   gchar car;             // caractere à attendre
   gboolean echo;               // echo local
-  gboolean crlfauto;           // line feed auto
 };
 
 typedef struct {

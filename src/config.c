@@ -13,6 +13,7 @@
 /*   ChangeLog                                                         */
 /*      - 0.99.7 : Refactor to use newer gtk widgets                   */
 /*                 Add ability to use arbitrary baud                   */
+/*                 Remove auto cr/lf stuff - (use macros instead)      */
 /*      - 0.99.5 : Make the combo list for the device editable         */
 /*      - 0.99.3 : Configuration for VTE terminal                      */
 /*      - 0.99.2 : Internationalization                                */
@@ -79,7 +80,6 @@ gchar **flow;
 gint *wait_delay;
 gint *wait_char;
 gint *echo;
-gint *crlfauto;
 cfgList **macro_list = NULL;
 gchar **font;
 
@@ -108,7 +108,6 @@ cfgStruct cfg[] = {
     {"wait_delay", CFG_INT, &wait_delay},
     {"wait_char", CFG_INT, &wait_char},
     {"echo", CFG_BOOL, &echo},
-    {"crlfauto", CFG_BOOL, &crlfauto},
     {"font", CFG_STRING, &font},
     {"macros", CFG_STRING_LIST, &macro_list},
     {"term_transparency", CFG_BOOL, &transparency},
@@ -794,11 +793,6 @@ gint Load_configuration_from_file(gchar *config_name)
 		else
 		    config.echo = FALSE;
 
-		if(crlfauto[i] != -1)
-		    config.crlfauto = (gboolean)crlfauto[i];
-		else
-		    config.crlfauto = FALSE;
-
 		g_free(term_conf.font);
 		term_conf.font = g_strdup(font[i]);
 
@@ -1017,7 +1011,6 @@ void Hard_default_configuration(void)
     config.delai = DEFAULT_DELAY;
     config.car = DEFAULT_CHAR;
     config.echo = DEFAULT_ECHO;
-    config.crlfauto = FALSE;
  
     term_conf.font = g_strdup_printf(DEFAULT_FONT);
 
@@ -1106,13 +1099,6 @@ void Copy_configuration(int pos)
     cfgStoreValue(cfg, "echo", string, CFG_INI, pos);
     g_free(string);
 
-    if(config.crlfauto == FALSE)
-	string = g_strdup_printf("False");
-    else
-	string = g_strdup_printf("True");
-
-    cfgStoreValue(cfg, "crlfauto", string, CFG_INI, pos);
-    g_free(string);
   
     string = g_strdup(term_conf.font);
     cfgStoreValue(cfg, "font", string, CFG_INI, pos);

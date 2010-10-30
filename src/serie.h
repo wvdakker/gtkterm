@@ -25,7 +25,6 @@ void Set_signals(guint);
 int lis_sig(void);
 void Close_port_and_remove_lockfile(void);
 void configure_echo(gboolean);
-void configure_crlfauto(gboolean);
 void sendbreak(void);
 gint set_custom_speed(struct termios, int, int);
 
