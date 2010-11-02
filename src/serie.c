@@ -317,8 +317,15 @@ int lis_sig(void)
     {
 	if(ioctl(serial_port_fd, TIOCMGET, &stat_read) == -1)
 	{
-	    i18n_perror(_("Control signals read"));
-	    Ferme_Port();
+            /* Ignore EINVAL, as some serial ports 
+	       genuinely lack these lines */
+	    /* Thanks to Elie De Brauwer on ubuntu launchpad */
+	    if (errno != EINVAL)
+	    {
+		i18n_perror(_("Control signals read"));
+		Ferme_Port();
+	    }
+
 	    return -2;
 	}
 

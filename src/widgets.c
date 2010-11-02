@@ -592,6 +592,14 @@ gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointe
 
   text = (gchar *)gtk_entry_get_text(GTK_ENTRY(widget));
 
+  if(strlen(text) == 0){
+      message = g_strdup_printf(_("0 byte(s) sent !"));
+      Put_temp_message(message, 1500);
+      gtk_entry_set_text(GTK_ENTRY(widget), "");
+      g_free(message);
+      return FALSE;
+  }
+
   all_written = g_malloc(strlen(text) * 2 + 1);
   all_written[0] = 0;
 
