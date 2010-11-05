@@ -3,7 +3,6 @@
 /* --------                                                            */
 /*           GTKTerm Software                                          */
 /*                      (c) Julien Schmitt                             */
-/*                      julien@jls-info.com                            */                      
 /*                                                                     */
 /* ------------------------------------------------------------------- */
 /*                                                                     */
@@ -13,6 +12,7 @@
 /*   ChangeLog                                                         */
 /*      - 0.99.7 : Refactor to use newer gtk widgets                   */
 /*                 Add ability to use arbitrary baud                   */
+/*                 Add rs458 capability - Marc Le Douarain             */
 /*                 Remove auto cr/lf stuff - (use macros instead)      */
 /*      - 0.99.5 : Make the combo list for the device editable         */
 /*      - 0.99.3 : Configuration for VTE terminal                      */
@@ -79,6 +79,8 @@ gchar **parity;
 gchar **flow;
 gint *wait_delay;
 gint *wait_char;
+gint *rts_time_before_tx;
+gint *rts_time_after_tx;
 gint *echo;
 cfgList **macro_list = NULL;
 gchar **font;
@@ -107,6 +109,8 @@ cfgStruct cfg[] = {
     {"flow", CFG_STRING, &flow},
     {"wait_delay", CFG_INT, &wait_delay},
     {"wait_char", CFG_INT, &wait_char},
+    {"rs485_rts_time_before_tx", CFG_INT, &rts_time_before_tx},
+    {"rs485_rts_time_after_tx", CFG_INT, &rts_time_after_tx},
     {"echo", CFG_BOOL, &echo},
     {"font", CFG_STRING, &font},
     {"macros", CFG_STRING_LIST, &macro_list},
@@ -156,8 +160,8 @@ extern GtkWidget *display;
 
 gint Config_Port_Fenetre(GtkWidget *widget, guint param)
 {
-    GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule, *Combo, *Dialogue, *Frame, *CheckBouton, *Spin;
-    static GtkWidget *Combos[8];
+    GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule, *Combo, *Dialogue, *Frame, *CheckBouton, *Spin, *Expander, *ExpanderVbox;
+    static GtkWidget *Combos[10];
     GList *liste;
     gchar *chaine = NULL;
     GtkObject *adj;
@@ -289,6 +293,7 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "none");
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "RTS/CTS");
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "Xon/Xoff");
+    gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "RS485-HalfDuplex(RTS)");
     gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
 
     switch(config.flux)
@@ -302,12 +307,21 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
 	case 2:
 	    gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 1);
 	    break;
+	case 3:
+	    gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 3);
+	    break;
     }
     gtk_table_attach(GTK_TABLE(Table), Combo, 2, 3, 3, 4, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
     Combos[5] = Combo;
 
+    /* create an expander widget to hide the 'Advanced features' */
+    Expander = gtk_expander_new_with_mnemonic(_("Advanced Configuration Options"));
+    ExpanderVbox = gtk_vbox_new(FALSE, 0);
+    gtk_container_add(GTK_CONTAINER(Expander), ExpanderVbox);
+    gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Dialogue)->vbox), Expander);
+
     Frame = gtk_frame_new(_("ASCII file transfer"));
-    gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->vbox), Frame, FALSE, TRUE, 5);
+    gtk_container_add(GTK_CONTAINER(ExpanderVbox), Frame);
 
     Table = gtk_table_new(2, 2, FALSE);
     gtk_container_add(GTK_CONTAINER(Frame), Table);
@@ -341,6 +355,32 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     Combos[7] = CheckBouton;
 
 
+    Frame = gtk_frame_new(_("RS485 half-duplex parameters (RTS signal used to send)"));
+    
+    gtk_container_add(GTK_CONTAINER(ExpanderVbox), Frame);
+
+    Table = gtk_table_new(2, 2, FALSE);
+    gtk_container_add(GTK_CONTAINER(Frame), Table);
+
+    Label = gtk_label_new(_("Time with RTS 'on' before transmit (milliseconds) :"));
+    gtk_table_attach_defaults(GTK_TABLE(Table), Label, 0, 1, 0, 1);
+    Label = gtk_label_new(_("Time with RTS 'on' after transmit (milliseconds) :"));
+    gtk_table_attach_defaults(GTK_TABLE(Table), Label, 0, 1, 1, 2);
+
+    adj = gtk_adjustment_new(0.0, 0.0, 500.0, 10.0, 20.0, 0.0);
+    Spin = gtk_spin_button_new(GTK_ADJUSTMENT(adj), 0, 0);
+    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(Spin), TRUE);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(Spin), (gfloat)config.rs485_rts_time_before_transmit);
+    gtk_table_attach(GTK_TABLE(Table), Spin, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
+    Combos[8] = Spin;
+
+    adj = gtk_adjustment_new(0.0, 0.0, 500.0, 10.0, 20.0, 0.0);
+    Spin = gtk_spin_button_new(GTK_ADJUSTMENT(adj), 0, 0);
+    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(Spin), TRUE);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(Spin), (gfloat)config.rs485_rts_time_after_transmit);
+    gtk_table_attach(GTK_TABLE(Table), Spin, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
+    Combos[9] = Spin;
+
 
     Bouton_OK = gtk_button_new_from_stock(GTK_STOCK_OK);
     gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->action_area), Bouton_OK, FALSE, TRUE, 0);
@@ -364,6 +404,9 @@ gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos)
     config.vitesse = atoi(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[1])));
     config.bits = atoi(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[3])));
     config.delai = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(Combos[6]));
+    config.rs485_rts_time_before_transmit = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(Combos[8]));
+    config.rs485_rts_time_after_transmit = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(Combos[9]));
+
 
     if(!strcmp(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[2])), "odd"))
 	config.parite = 1;
@@ -371,11 +414,14 @@ gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos)
 	config.parite = 2;
     else
 	config.parite = 0;
+
     config.stops = atoi(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[4])));
     if(!strcmp(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[5])), "Xon/Xoff"))
 	config.flux = 1;
     else if(!strcmp(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[5])), "RTS/CTS"))
 	config.flux = 2;
+    else if(!strncmp(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(Combos[5])->entry)), "RS485",5))
+	config.flux = 3;
     else
 	config.flux = 0;
 
@@ -579,6 +625,7 @@ void Save_config_file(void)
 
     box = gtk_hbox_new(FALSE, 0);
     entry = gtk_entry_new();
+    gtk_entry_set_text(GTK_ENTRY(entry), "default");
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(box), entry, FALSE, TRUE, 0);
 
@@ -773,12 +820,14 @@ gint Load_configuration_from_file(gchar *config_name)
 		}
 		if(flow[i] != NULL)
 		{
-		    if(!g_ascii_strcasecmp(parity[i], "none"))
+		    if(!g_ascii_strcasecmp(flow[i], "none"))
 			config.flux = 0;
-		    else if(!g_ascii_strcasecmp(parity[i], "xon"))
+		    else if(!g_ascii_strcasecmp(flow[i], "xon"))
 			config.flux = 1;
-		    else if(!g_ascii_strcasecmp(parity[i], "rts"))
+		    else if(!g_ascii_strcasecmp(flow[i], "rts"))
 			config.flux = 2;
+		    else if(!g_ascii_strcasecmp(flow[i], "rs485"))
+			config.flux = 3;
 		}
 
 		config.delai = wait_delay[i];
@@ -787,6 +836,9 @@ gint Load_configuration_from_file(gchar *config_name)
 		    config.car = (signed char)wait_char[i];
 		else
 		    config.car = -1;
+
+		config.rs485_rts_time_before_transmit = rts_time_before_tx[i];
+		config.rs485_rts_time_after_transmit = rts_time_after_tx[i];
 
 		if(echo[i] != -1)
 		    config.echo = (gboolean)echo[i];
@@ -1009,6 +1061,8 @@ void Hard_default_configuration(void)
     config.stops = DEFAULT_STOP;
     config.flux = DEFAULT_FLOW;
     config.delai = DEFAULT_DELAY;
+    config.rs485_rts_time_before_transmit = DEFAULT_DELAY_RS485;
+    config.rs485_rts_time_after_transmit = DEFAULT_DELAY_RS485;
     config.car = DEFAULT_CHAR;
     config.echo = DEFAULT_ECHO;
  
@@ -1077,9 +1131,13 @@ void Copy_configuration(int pos)
 	case 2:
 	    string = g_strdup_printf("rts");
 	    break;
+	case 3:
+	    string = g_strdup_printf("rs485");
+	    break;
 	default:
 	    string = g_strdup_printf("none");
     }
+
     cfgStoreValue(cfg, "flow", string, CFG_INI, pos);
     g_free(string);
 
@@ -1089,6 +1147,13 @@ void Copy_configuration(int pos)
 
     string = g_strdup_printf("%d", config.car);
     cfgStoreValue(cfg, "wait_char", string, CFG_INI, pos);
+    g_free(string);
+
+    string = g_strdup_printf("%d", config.rs485_rts_time_before_transmit);
+    cfgStoreValue(cfg, "rs485_rts_time_before_tx", string, CFG_INI, pos);
+    g_free(string);
+    string = g_strdup_printf("%d", config.rs485_rts_time_after_transmit);
+    cfgStoreValue(cfg, "rs485_rts_time_after_tx", string, CFG_INI, pos);
     g_free(string);
   
     if(config.echo == FALSE)

@@ -3,7 +3,6 @@
 /* -------                                                             */
 /*           GTKTerm Software                                          */
 /*                      (c) Julien Schmitt                             */
-/*                      julien@jls-info.com                            */                      
 /*                                                                     */
 /* ------------------------------------------------------------------- */
 /*                                                                     */
@@ -108,6 +107,17 @@ int Send_chars(char *string, int length)
     if(length == 0)
 	return 0;
 
+    /* RS485 half-duplex mode ? */
+    if ( config.flux==3 )
+    {
+	/* wait all chars are send */
+	tcdrain( serial_port_fd );
+	if ( config.rs485_rts_time_after_transmit>0 )
+	    usleep(config.rs485_rts_time_after_transmit*1000);
+	/* reset RTS (end of send, now receiving back) */
+	Set_signals( 1 );
+    }
+
     bytes_written = write(serial_port_fd, string, length);
 
     return bytes_written;
@@ -126,7 +136,8 @@ gchar *Config_port(void)
     Ferme_Port();
     remove_lockfile();
 
-    Ouvre_Port(config.port);
+    Ouvre_Port(config.port); 
+
 
     if(serial_port_fd == -1)
     {
@@ -312,6 +323,12 @@ int lis_sig(void)
 {
     static int stat = 0;
     int stat_read;
+
+  if ( config.flux==3 )
+  {
+    //reset RTS (default = receive)
+    Set_signals( 1 );
+  }
 
     if(serial_port_fd != -1)
     {

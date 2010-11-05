@@ -3,7 +3,6 @@
 /* --------                                                            */
 /*           GTKTerm Software                                          */
 /*                      (c) Julien Schmitt                             */
-/*                      julien@jls-info.com                            */                      
 /*                                                                     */
 /* ------------------------------------------------------------------- */
 /*                                                                     */
@@ -36,8 +35,10 @@ struct configuration_port {
   gint bits;                   // 5 - 6 - 7 - 8
   gint stops;                  // 1 - 2
   gint parite;                 // 0 : aucune, 1 : impaire, 2 : paire
-  gint flux;                   // 0 : aucun, 1 : Xon/Xoff, 2 : RTS/CTS
+  gint flux;                   // 0 : aucun, 1 : Xon/Xoff, 2 : RTS/CTS, 3 : RS485halfduplex
   gint delai;                  // delai de fin de ligne : en ms
+  gint rs485_rts_time_before_transmit;
+  gint rs485_rts_time_after_transmit;
   gchar car;             // caractere à attendre
   gboolean echo;               // echo local
 };
@@ -66,6 +67,7 @@ typedef struct {
 #define DEFAULT_FLOW 0
 #define DEFAULT_DELAY 0
 #define DEFAULT_CHAR -1
+#define DEFAULT_DELAY_RS485 30
 #define DEFAULT_ECHO FALSE
 
 extern gchar *config_file;

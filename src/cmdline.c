@@ -3,7 +3,6 @@
 /* ---------                                                           */
 /*           GTKTerm Software                                          */
 /*                      (c) Julien Schmitt                             */
-/*                      julien@jls-info.com                            */                      
 /*                                                                     */
 /* ------------------------------------------------------------------- */
 /*                                                                     */
@@ -34,8 +33,7 @@ extern struct configuration_port config;
 void display_help(void)
 {
   i18n_printf(_("\nGTKTerm version %s\n"), VERSION);
-  i18n_printf(_("\t (c) Julien Schmitt - julien@jls-info.com\n"));
-  i18n_printf(_("\t http://www.jls-info.com/julien/linux\n"));
+  i18n_printf(_("\t (c) Julien Schmitt\n"));
   i18n_printf(_("\nThis program is released under the terms of the GPL V.2\n"));
   i18n_printf(_("\t ** Use at your own risks ! **\n"));
   i18n_printf(_("\nCommand line options\n"));
@@ -46,10 +44,12 @@ void display_help(void)
   i18n_printf(_("--bits <bits> or -b : number of bits (default 8)\n"));
   i18n_printf(_("--stopbits <stopbits> or -t : number of stopbits (default 1)\n"));
   i18n_printf(_("--parity <odd | even> or -a : partity (default none)\n"));
-  i18n_printf(_("--flow <Xon | CTS> or -w : flow control (default none)\n"));
+  i18n_printf(_("--flow <Xon | RTS | RS485> or -w : flow control (default none)\n"));
   i18n_printf(_("--delay <ms> or -d : end of line delay in ms (default none)\n"));
   i18n_printf(_("--char <char> or -r : wait for a special char at end of line (default none)\n"));
   i18n_printf(_("--file <filename> or -f : default file to send (default none)\n"));
+  i18n_printf(_("--rts_time_before <ms> or -x : for rs485, time in ms before transmit with rts on\n"));
+  i18n_printf(_("--rts_time_after <ms> or -y : for rs485, time in ms after transmit with rts on\n"));
   i18n_printf(_("--echo or -e : switch on local echo\n"));
   i18n_printf("\n");
 }
@@ -71,6 +71,8 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
     {"char", 1, 0, 'r'},
     {"help", 0, 0, 'h'},
     {"echo", 0, 0, 'e'},
+    {"rts_time_before", 1, 0, 'x'},
+    {"rts_time_after", 1, 0, 'y'},
     {"config", 1, 0, 'c'},
     {0, 0, 0, 0}
   };
@@ -79,7 +81,7 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
   Check_configuration_file();
 
   while(1) {
-    c = getopt_long (argc, argv, "s:a:t:b:f:p:w:d:r:hec:", long_options, &option_index);
+    c = getopt_long (argc, argv, "s:a:t:b:f:p:w:d:r:hec:x:y:", long_options, &option_index);
     
     if(c == -1)
       break;
@@ -122,6 +124,8 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 	  config.flux = 1;
 	else if(!strcmp(optarg, "RTS"))
 	  config.flux = 2;
+	else if(!strcmp(optarg, "RS485"))
+	  config.flux = 3;
 	break;
 	
       case 'd':
@@ -134,6 +138,14 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 
       case 'e':
 	config.echo = TRUE;
+	break;
+
+      case 'x':
+	config.rs485_rts_time_before_transmit = atoi(optarg);
+	break;
+
+      case 'y':
+	config.rs485_rts_time_after_transmit = atoi(optarg);
 	break;
 
       case 'h':
