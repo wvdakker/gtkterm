@@ -196,7 +196,9 @@ gchar *Config_port(void)
 	    break;
 
 	default:
-	    set_custom_speed(termios_p, config.vitesse, serial_port_fd);
+	    set_custom_speed(config.vitesse, serial_port_fd);
+	    termios_p.c_cflag |= B38400;
+
     }
 
     switch(config.bits)
@@ -478,7 +480,7 @@ void sendbreak(void)
 	tcsendbreak(serial_port_fd, 0);
 }
 
-gint set_custom_speed(struct termios t, int speed, int port_fd)
+gint set_custom_speed(int speed, int port_fd)
 {
 
     struct serial_struct ser;
@@ -494,7 +496,6 @@ gint set_custom_speed(struct termios t, int speed, int port_fd)
     ser.flags |= ASYNC_SPD_CUST;
 
     ioctl(port_fd, TIOCSSERIAL, &ser);
-    t.c_cflag |= B38400;
 
     return 0;
 }

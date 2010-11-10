@@ -133,7 +133,7 @@ static void shortcut_callback(gpointer *number)
 		}
 	      i++;
 	    }
-	  send_serial(&a, 1);
+	  send_serial((gchar*)&a, 1);
 	}
       else
 	{

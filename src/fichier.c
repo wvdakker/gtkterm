@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
+#include <glib.h>
 
 #include "term_config.h"
 #include "widgets.h"
@@ -93,71 +94,71 @@ gint fichier(GtkWidget *widget, guint param)
 
 gint Envoie_fichier(GtkFileSelection *FS)
 {
-  gchar *NomFichier;
-  gchar *msg;
-  GtkWidget *Bouton_annuler, *Box;
+    gchar *NomFichier;
+    gchar *msg;
+    GtkWidget *Bouton_annuler, *Box;
 
-  NomFichier = g_strdup(gtk_file_selection_get_filename(FS));
+    NomFichier = g_strdup(gtk_file_selection_get_filename(FS));
 
-  if (!NomFichier || !strcmp(NomFichier, "") || NomFichier[strlen(NomFichier) - 1] == (gchar)"/")
+    if(g_file_test(NomFichier, G_FILE_TEST_IS_REGULAR))
     {
-      g_free(str);
-      str = g_strdup_printf(_("Error opening file\n"));
-      show_message(str, MSG_ERR);
-      return FALSE;
+	g_free(str);
+	str = g_strdup_printf(_("Error opening file\n"));
+	show_message(str, MSG_ERR);
+	return FALSE;
     }
-  Fichier = open(NomFichier, O_RDONLY);
-  if(Fichier != -1)
-  {
-    fic_defaut = g_strdup(NomFichier);
-    msg = g_strdup_printf(_("%s : transfer in progress..."), NomFichier);
+    Fichier = open(NomFichier, O_RDONLY);
+    if(Fichier != -1)
+    {
+	fic_defaut = g_strdup(NomFichier);
+	msg = g_strdup_printf(_("%s : transfer in progress..."), NomFichier);
 
-    gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, msg);
-    car_written = 0;
-    current_buffer_position = 0;
-    bytes_read = 0;
-    nb_car = lseek(Fichier, 0L, SEEK_END);
-    lseek(Fichier, 0L, SEEK_SET);
+	gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, msg);
+	car_written = 0;
+	current_buffer_position = 0;
+	bytes_read = 0;
+	nb_car = lseek(Fichier, 0L, SEEK_END);
+	lseek(Fichier, 0L, SEEK_SET);
 
-    Window = gtk_dialog_new();
-    gtk_window_set_title(GTK_WINDOW(Window), msg);
-    Box = gtk_vbox_new(TRUE, 10);
-    gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Window)->vbox), Box);
-    if(nb_car > 5000)
-      {
-	adj = (GtkAdjustment *)gtk_adjustment_new(0, 0, (gfloat)nb_car / 1024, 0, 0, 0);
-	ProgressBar = gtk_progress_bar_new_with_adjustment(adj);
-	gtk_progress_set_format_string(GTK_PROGRESS(ProgressBar), _("%v / %u Kb (%p %%)"));
-      }
+	Window = gtk_dialog_new();
+	gtk_window_set_title(GTK_WINDOW(Window), msg);
+	Box = gtk_vbox_new(TRUE, 10);
+	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Window)->vbox), Box);
+	if(nb_car > 5000)
+	{
+	    adj = (GtkAdjustment *)gtk_adjustment_new(0, 0, (gfloat)nb_car / 1024, 0, 0, 0);
+	    ProgressBar = gtk_progress_bar_new_with_adjustment(adj);
+	    gtk_progress_set_format_string(GTK_PROGRESS(ProgressBar), _("%v / %u Kb (%p %%)"));
+	}
+	else
+	{
+	    adj = (GtkAdjustment *)gtk_adjustment_new(0, 0, (gfloat)nb_car, 0, 0, 0);
+	    ProgressBar = gtk_progress_bar_new_with_adjustment(adj);
+	    gtk_progress_set_format_string(GTK_PROGRESS(ProgressBar), _("%v / %u bytes (%p %%)"));
+	}
+	gtk_progress_set_show_text(GTK_PROGRESS(ProgressBar), TRUE);
+	gtk_box_pack_start(GTK_BOX(Box), ProgressBar, FALSE, FALSE, 5);
+
+	Bouton_annuler = gtk_button_new_with_label(_("Cancel"));
+	gtk_signal_connect_object(GTK_OBJECT(Bouton_annuler), "clicked", GTK_SIGNAL_FUNC(close_all), NULL);
+
+	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Window)->action_area), Bouton_annuler);
+
+	gtk_signal_connect_object(GTK_OBJECT(Window), "delete_event", GTK_SIGNAL_FUNC(close_all), NULL);
+
+	gtk_window_set_default_size(GTK_WINDOW(Window), 250, 100);
+	gtk_window_set_modal(GTK_WINDOW(Window), TRUE);
+	gtk_widget_show_all(Window);
+
+	add_input();
+    }
     else
-      {
-	adj = (GtkAdjustment *)gtk_adjustment_new(0, 0, (gfloat)nb_car, 0, 0, 0);
-	ProgressBar = gtk_progress_bar_new_with_adjustment(adj);
-	gtk_progress_set_format_string(GTK_PROGRESS(ProgressBar), _("%v / %u bytes (%p %%)"));
-      }
-    gtk_progress_set_show_text(GTK_PROGRESS(ProgressBar), TRUE);
-    gtk_box_pack_start(GTK_BOX(Box), ProgressBar, FALSE, FALSE, 5);
-
-    Bouton_annuler = gtk_button_new_with_label(_("Cancel"));
-    gtk_signal_connect_object(GTK_OBJECT(Bouton_annuler), "clicked", GTK_SIGNAL_FUNC(close_all), NULL);
-
-    gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Window)->action_area), Bouton_annuler);
-
-    gtk_signal_connect_object(GTK_OBJECT(Window), "delete_event", GTK_SIGNAL_FUNC(close_all), NULL);
-
-    gtk_window_set_default_size(GTK_WINDOW(Window), 250, 100);
-    gtk_window_set_modal(GTK_WINDOW(Window), TRUE);
-    gtk_widget_show_all(Window);
-
-    add_input();
-  }
-  else
     {
-      g_free(str);
-      str = g_strdup_printf(_("Cannot read file %s : %s\n"), NomFichier, strerror(errno));
-      show_message(str, MSG_ERR);
+	g_free(str);
+	str = g_strdup_printf(_("Cannot read file %s : %s\n"), NomFichier, strerror(errno));
+	show_message(str, MSG_ERR);
     }
-  return FALSE;
+    return FALSE;
 }
 
 void ecriture(gpointer data, gint source, GdkInputCondition condition)

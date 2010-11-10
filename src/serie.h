@@ -16,7 +16,6 @@
 #define SERIE_H_
 
 extern int serial_port_fd;
-extern struct termios; /* appease the compiler */
 
 int Send_chars(char *, int);
 gchar *Config_port(void);
@@ -25,7 +24,7 @@ int lis_sig(void);
 void Close_port_and_remove_lockfile(void);
 void configure_echo(gboolean);
 void sendbreak(void);
-gint set_custom_speed(struct termios, int, int);
+gint set_custom_speed(int, int);
 
 
 #define BUFFER_RECEPTION 8192

@@ -609,7 +609,7 @@ gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointe
       if(sscanf(current, "%02X", &val_read) == 1)
 	{
 	  val = (guchar)val_read;
-	  send_serial(&val, 1);
+	  send_serial((gchar*)&val, 1);
 	  sprintf(written, "%02X ", val);
 	  strcat(all_written, written);
 	  sent++;
