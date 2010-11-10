@@ -22,11 +22,13 @@
 #include <getopt.h>
 #include <string.h>
 
-#include "config.h"
+#include "term_config.h"
 #include "fichier.h"
-#include "gettext.h"
 #include "auto_config.h"
 #include "i18n.h"
+
+#include <config.h>
+#include <glib/gi18n.h>
 
 extern struct configuration_port config;
 
@@ -76,13 +78,13 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
     {"config", 1, 0, 'c'},
     {0, 0, 0, 0}
   };
-  
+
   /* need a working configuration file ! */
   Check_configuration_file();
 
   while(1) {
     c = getopt_long (argc, argv, "s:a:t:b:f:p:w:d:r:hec:x:y:", long_options, &option_index);
-    
+
     if(c == -1)
       break;
 
@@ -110,15 +112,15 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
       case 'b':
 	config.bits = atoi(optarg);
 	break;
-	
+
       case 'f':
 	fic_defaut = g_strdup(optarg);
 	break;
-	
+
       case 'p':
 	strcpy(config.port, optarg);
 	break;
-	
+
       case 'w':
 	if(!strcmp(optarg, "Xon"))
 	  config.flux = 1;
@@ -127,7 +129,7 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 	else if(!strcmp(optarg, "RS485"))
 	  config.flux = 3;
 	break;
-	
+
       case 'd':
 	config.delai = atoi(optarg);
 	break;

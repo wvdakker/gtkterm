@@ -12,8 +12,8 @@
 /*                                                                     */
 /***********************************************************************/
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#ifndef TERM_CONFIG_H_
+#define TERM_CONFIG_H_
 
 gint Config_Port_Fenetre(GtkWidget *widget, guint param);
 gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos);

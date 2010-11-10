@@ -22,13 +22,15 @@
 
 #include "widgets.h"
 #include "serie.h"
-#include "config.h"
+#include "term_config.h"
 #include "cmdline.h"
 #include "parsecfg.h"
 #include "buffer.h"
 #include "macros.h"
 #include "auto_config.h"
-#include "gettext.h"
+
+#include <config.h>
+#include <glib/gi18n.h>
 
 int main(int argc, char *argv[])
 {
@@ -36,17 +38,16 @@ int main(int argc, char *argv[])
 
   config_file = g_strdup_printf("%s/.gtktermrc", getenv("HOME"));
 
-  gtk_set_locale();
-  (void)bindtextdomain(PACKAGE, LOCALEDIR);
-  (void)bind_textdomain_codeset(PACKAGE, "UTF-8");
-  (void)textdomain(PACKAGE);
+  bindtextdomain(PACKAGE, LOCALEDIR);
+  bind_textdomain_codeset(PACKAGE, "UTF-8");
+  textdomain(PACKAGE);
 
   gtk_init(&argc, &argv);
 
   create_buffer();
- 
+
   create_main_window();
-  
+
   if(read_command_line(argc, argv) < 0)
     {
       delete_buffer();

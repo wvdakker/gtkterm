@@ -42,12 +42,14 @@
 #include <vte/vte.h>
 
 #include "serie.h"
-#include "config.h"
+#include "term_config.h"
 #include "widgets.h"
 #include "parsecfg.h"
 #include "macros.h"
-#include "gettext.h"
 #include "i18n.h"
+#include "config.h"
+
+#include <glib/gi18n.h>
 
 #define NUMBER_OF_DEVICES 16
 
@@ -185,13 +187,13 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     Dialogue = gtk_dialog_new();
     gtk_window_set_title(GTK_WINDOW(Dialogue), _("Configuration"));
     gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(Dialogue)->vbox), 5);
-  
+
     Frame = gtk_frame_new(_("Serial port"));
     gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->vbox), Frame, FALSE, TRUE, 5);
 
     Table = gtk_table_new(4, 3, FALSE);
     gtk_container_add(GTK_CONTAINER(Frame), Table);
-  
+
     Label = gtk_label_new(_("Port :"));
     gtk_table_attach(GTK_TABLE(Table), Label, 0, 1, 0, 1, 0, 0, 10, 5);
     Label = gtk_label_new(_("Baud Rate :"));
@@ -230,12 +232,12 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
 
     //validate input text (digits only)
     g_signal_connect(GTK_ENTRY(GTK_BIN(Combo)->child),
-		     "insert-text", 
+		     "insert-text",
 		     G_CALLBACK(check_text_input), NULL);
 
     gtk_table_attach(GTK_TABLE(Table), Combo, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
     Combos[1] = Combo;
- 
+
     Combo = gtk_combo_box_new_text();
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "none");
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "odd");
@@ -356,7 +358,7 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
 
 
     Frame = gtk_frame_new(_("RS485 half-duplex parameters (RTS signal used to send)"));
-    
+
     gtk_container_add(GTK_CONTAINER(ExpanderVbox), Frame);
 
     Table = gtk_table_new(2, 2, FALSE);
@@ -432,7 +434,7 @@ gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos)
     }
     else
 	config.car = -1;
-	
+
     message = Config_port();
     if(message == NULL)
 	message = g_strdup_printf(_("No open port"));
@@ -487,7 +489,7 @@ void Set_Font(void)
     }
 
     if(term_conf.font != NULL)
-	vte_terminal_set_font_from_string(VTE_TERMINAL(display), term_conf.font);   
+	vte_terminal_set_font_from_string(VTE_TERMINAL(display), term_conf.font);
 }
 
 gint Lis_Font(GtkFontSelectionDialog *fontsel)
@@ -529,10 +531,10 @@ void Select_config(gchar *title, void *callback)
     GtkTreeViewColumn *Colonne;
     GtkTreeSelection *Selection_Liste;
 
-    enum 
+    enum
     {
 	N_texte,
-	N_COLONNES        
+	N_COLONNES
     };
 
     /* Parse the config file */
@@ -546,9 +548,9 @@ void Select_config(gchar *title, void *callback)
     }
 
     else
-    { 
+    {
 	gchar *Titre[]= {_("Configurations")};
-      
+
 	dialog = gtk_dialog_new_with_buttons (title,
 					      NULL,
 					      GTK_DIALOG_DESTROY_WITH_PARENT,
@@ -557,35 +559,35 @@ void Select_config(gchar *title, void *callback)
 					      GTK_STOCK_OK,
 					      GTK_RESPONSE_ACCEPT,
 					      NULL);
-      
+
 	Modele_Liste = gtk_list_store_new(N_COLONNES, G_TYPE_STRING);
-      
+
 	Liste = gtk_tree_view_new_with_model(GTK_TREE_MODEL(Modele_Liste));
 	gtk_tree_view_set_search_column(GTK_TREE_VIEW(Liste), N_texte);
-      
+
 	Selection_Liste = gtk_tree_view_get_selection(GTK_TREE_VIEW(Liste));
 	gtk_tree_selection_set_mode(Selection_Liste, GTK_SELECTION_SINGLE);
-      
+
 	Frame = gtk_frame_new(NULL);
-      
+
 	Scroll = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(Scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_container_add(GTK_CONTAINER(Frame), Scroll);
 	gtk_container_add(GTK_CONTAINER(Scroll), Liste);
-      
+
 	renderer = gtk_cell_renderer_text_new();
-      
+
 	g_object_set(G_OBJECT(renderer), "xalign", (gfloat)0.5, NULL);
 	Colonne = gtk_tree_view_column_new_with_attributes(Titre[0], renderer, "text", 0, NULL);
 	gtk_tree_view_column_set_sort_column_id(Colonne, 0);
-      
+
 	Label=gtk_label_new("");
 	texte_label = g_strdup_printf("<span weight=\"bold\" style=\"italic\">%s</span>", Titre[0]);
 	gtk_label_set_markup(GTK_LABEL(Label), texte_label);
 	g_free(texte_label);
-	gtk_tree_view_column_set_widget(GTK_TREE_VIEW_COLUMN(Colonne), Label); 
+	gtk_tree_view_column_set_widget(GTK_TREE_VIEW_COLUMN(Colonne), Label);
 	gtk_widget_show(Label);
-  
+
 	gtk_tree_view_column_set_alignment(GTK_TREE_VIEW_COLUMN(Colonne), 0.5f);
 	gtk_tree_view_column_set_resizable(GTK_TREE_VIEW_COLUMN(Colonne), FALSE);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(Liste), Colonne);
@@ -603,7 +605,7 @@ void Select_config(gchar *title, void *callback)
 	g_signal_connect_swapped(GTK_OBJECT(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
 
 	gtk_container_add (GTK_CONTAINER (GTK_DIALOG(dialog)->vbox), Frame);
-      
+
 	gtk_widget_show_all (dialog);
     }
 }
@@ -702,7 +704,7 @@ void save_config(GtkDialog *Fenetre, gint id, GtkWidget *edit)
 
 	if(max == -1)
 	    return;
-      
+
 	for(i = 0; i < max; i++)
 	{
 	    if(!strcmp(gtk_entry_get_text(GTK_ENTRY(edit)), cfgSectionNumberToName(i)))
@@ -722,9 +724,9 @@ void save_config(GtkDialog *Fenetre, gint id, GtkWidget *edit)
 		strcpy(text, gtk_entry_get_text(GTK_ENTRY(edit)));
 		g_signal_connect(GTK_OBJECT(dialog), "response", G_CALLBACK(really_save_config), (gpointer)text);
 		g_signal_connect_swapped(GTK_OBJECT(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
-	      
+
 		gtk_container_add(GTK_CONTAINER (GTK_DIALOG(dialog)->vbox), label);
-	      
+
 		gtk_widget_show_all (dialog);
 
 		i = max + 1;
@@ -800,7 +802,7 @@ gint Load_configuration_from_file(gchar *config_name)
 	    if(!strcmp(config_name, cfgSectionNumberToName(i)))
 	    {
 		Hard_default_configuration();
-	    
+
 		if(port[i] != NULL)
 		    strcpy(config.port, port[i]);
 		if(speed[i] != 0)
@@ -831,7 +833,7 @@ gint Load_configuration_from_file(gchar *config_name)
 		}
 
 		config.delai = wait_delay[i];
-	    
+
 		if(wait_char[i] != 0)
 		    config.car = (signed char)wait_char[i];
 		else
@@ -861,7 +863,7 @@ gint Load_configuration_from_file(gchar *config_name)
 		}
 
 		if(size != 0)
-		{	      
+		{
 		    t = macro_list[i];
 		    macros = g_malloc(size * sizeof(macro_t));
 		    if(macros == NULL)
@@ -879,7 +881,7 @@ gint Load_configuration_from_file(gchar *config_name)
 			macros[j].shortcut = g_strndup(t->str, k);
 			str = &(t->str[k + 2]);
 			macros[j].action = g_strdup(str);
-		    
+
 			t = t->next;
 		    }
 		}
@@ -915,18 +917,18 @@ gint Load_configuration_from_file(gchar *config_name)
 		term_conf.foreground_color.red = foreground_red[i];
 		term_conf.foreground_color.green = foreground_green[i];
 		term_conf.foreground_color.blue = foreground_blue[i];
-		
+
 		term_conf.background_color.red = background_red[i];
 		term_conf.background_color.green = background_green[i];
 		term_conf.background_color.blue = background_blue[i];
-	    
+
 		if(background_saturation[i] != 0)
 		    term_conf.background_saturation = background_saturation[i];
 
-		/* rows and columns are empty when the conf is autogenerate in the 
+		/* rows and columns are empty when the conf is autogenerate in the
 		   first save; so set term to default */
 		if(rows[i] == 0 || columns[i] == 0)
-		{	   
+		{
 		    term_conf.transparency = FALSE;
 		    term_conf.show_cursor = TRUE;
 		    term_conf.rows = 80;
@@ -937,11 +939,11 @@ gint Load_configuration_from_file(gchar *config_name)
 		    term_conf.foreground_color.red = 43253;
 		    term_conf.foreground_color.green = 43253;
 		    term_conf.foreground_color.blue = 43253;
-		
+
 		    term_conf.background_color.red = 0;
 		    term_conf.background_color.green = 0;
 		    term_conf.background_color.blue = 0;
-	    
+
 		    term_conf.background_saturation = 0.5;
 		}
 
@@ -986,7 +988,7 @@ void Verify_configuration(void)
 	case 57600:
 	case 115200:
 	    break;
-      
+
 	default:
 	    string = g_strdup_printf(_("Unknown rate : %d bauds\nMay not be supported by all hardware"), config.vitesse);
 	    show_message(string, MSG_ERR);
@@ -1000,7 +1002,7 @@ void Verify_configuration(void)
 	config.stops = DEFAULT_STOP;
 	g_free(string);
     }
-  
+
     if(config.bits < 5 || config.bits > 8)
     {
 	string = g_strdup_printf(_("Impossible bits number : %d\nFalling back to default stop bits : %d\n"), config.bits, DEFAULT_BITS);
@@ -1008,7 +1010,7 @@ void Verify_configuration(void)
 	config.bits = DEFAULT_BITS;
 	g_free(string);
     }
-  
+
     if(config.delai < 0 || config.delai > 500)
     {
 	string = g_strdup_printf(_("Impossible delay : %d ms\nFalling back to default delay : %d ms\n"), config.delai, DEFAULT_DELAY);
@@ -1037,7 +1039,7 @@ gint Check_configuration_file(void)
 	    return -1;
 	}
     }
-  
+
     /* if not, create it, with the [default] section */
     else
     {
@@ -1065,7 +1067,7 @@ void Hard_default_configuration(void)
     config.rs485_rts_time_after_transmit = DEFAULT_DELAY_RS485;
     config.car = DEFAULT_CHAR;
     config.echo = DEFAULT_ECHO;
- 
+
     term_conf.font = g_strdup_printf(DEFAULT_FONT);
 
     term_conf.transparency = FALSE;
@@ -1155,7 +1157,7 @@ void Copy_configuration(int pos)
     string = g_strdup_printf("%d", config.rs485_rts_time_after_transmit);
     cfgStoreValue(cfg, "rs485_rts_time_after_tx", string, CFG_INI, pos);
     g_free(string);
-  
+
     if(config.echo == FALSE)
 	string = g_strdup_printf("False");
     else
@@ -1164,7 +1166,7 @@ void Copy_configuration(int pos)
     cfgStoreValue(cfg, "echo", string, CFG_INI, pos);
     g_free(string);
 
-  
+
     string = g_strdup(term_conf.font);
     cfgStoreValue(cfg, "font", string, CFG_INI, pos);
     g_free(string);
@@ -1176,7 +1178,7 @@ void Copy_configuration(int pos)
 	cfgStoreValue(cfg, "macros", string, CFG_INI, pos);
 	g_free(string);
     }
-  
+
     if(term_conf.transparency == FALSE)
 	string = g_strdup_printf("False");
     else
@@ -1190,7 +1192,7 @@ void Copy_configuration(int pos)
 	string = g_strdup_printf("True");
     cfgStoreValue(cfg, "term_show_cursor", string, CFG_INI, pos);
     g_free(string);
-  
+
     string = g_strdup_printf("%d", term_conf.rows);
     cfgStoreValue(cfg, "term_rows", string, CFG_INI, pos);
     g_free(string);
@@ -1198,7 +1200,7 @@ void Copy_configuration(int pos)
     string = g_strdup_printf("%d", term_conf.columns);
     cfgStoreValue(cfg, "term_columns", string, CFG_INI, pos);
     g_free(string);
-  
+
     if(term_conf.visual_bell == FALSE)
 	string = g_strdup_printf("False");
     else
@@ -1228,7 +1230,7 @@ void Copy_configuration(int pos)
 
     string = g_strdup_printf("%g", term_conf.background_saturation);
     cfgStoreValue(cfg, "term_background_saturation", string, CFG_INI, pos);
-    g_free(string);  
+    g_free(string);
 }
 
 
@@ -1276,7 +1278,7 @@ gint remove_section(gchar *cfg_file, gchar *section)
 	if(j == length)
 	    break;
     }
-  
+
     if(i == size - length)
     {
 	i18n_printf(_("Cannot find section %s\n"), to_search);
@@ -1300,13 +1302,13 @@ gint remove_section(gchar *cfg_file, gchar *section)
     }
 
     fwrite(buffer, 1, sect, f);
-    buf = buffer + i; 
+    buf = buffer + i;
     fwrite(buf, 1, size - i, f);
     fclose(f);
 
     g_free(to_search);
     g_free(buffer);
-  
+
     return 0;
 }
 
@@ -1345,7 +1347,7 @@ gint Config_Terminal(GtkWidget *widget, guint param)
 
     Label = gtk_label_new(NULL);
     gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
-    gtk_label_set_markup(GTK_LABEL(Label), "<b>Colors : </b>");  
+    gtk_label_set_markup(GTK_LABEL(Label), "<b>Colors : </b>");
     gtk_box_pack_start(GTK_BOX(BoiteV), Label, FALSE, TRUE, 10);
 
 
@@ -1379,7 +1381,7 @@ gint Config_Terminal(GtkWidget *widget, guint param)
 
     Label = gtk_label_new(NULL);
     gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
-    gtk_label_set_markup(GTK_LABEL(Label), "<b>Transparency : </b>");  
+    gtk_label_set_markup(GTK_LABEL(Label), "<b>Transparency : </b>");
     gtk_box_pack_start(GTK_BOX(BoiteV), Label, FALSE, TRUE, 10);
 
     Check_Bouton = gtk_check_button_new_with_label("Transparency enable");
@@ -1397,7 +1399,7 @@ gint Config_Terminal(GtkWidget *widget, guint param)
     gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Dialog)->vbox), BoiteV);
 
     g_signal_connect_swapped(GTK_OBJECT(Dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialog));
-  
+
     gtk_widget_show_all (Dialog);
 
     return FALSE;
@@ -1405,7 +1407,7 @@ gint Config_Terminal(GtkWidget *widget, guint param)
 
 void Curseur_OnOff(GtkWidget *Check_Bouton, gpointer data)
 {
-    term_conf.show_cursor = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(Check_Bouton));  
+    term_conf.show_cursor = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(Check_Bouton));
 }
 
 void Selec_couleur(GdkColor *Couleur, gfloat R, gfloat V, gfloat B)
@@ -1423,7 +1425,7 @@ gint config_color_fg(GtkWidget *bouton, gpointer data)
     gchar *string;
 
     Fenetre = gtk_color_selection_dialog_new ("Changing text color");
-    colorsel = GTK_COLOR_SELECTION (GTK_COLOR_SELECTION_DIALOG (Fenetre)->colorsel);      
+    colorsel = GTK_COLOR_SELECTION (GTK_COLOR_SELECTION_DIALOG (Fenetre)->colorsel);
     gtk_color_selection_set_previous_color (colorsel, &term_conf.foreground_color);
     gtk_color_selection_set_current_color (colorsel, &term_conf.foreground_color);
 
@@ -1466,7 +1468,7 @@ gint config_color_bg(GtkWidget *bouton, gpointer data)
     Fenetre = gtk_color_selection_dialog_new ("Changing background color");
     colorsel = GTK_COLOR_SELECTION (GTK_COLOR_SELECTION_DIALOG (Fenetre)->colorsel);
     gtk_color_selection_set_previous_color (colorsel, &term_conf.background_color);
-    gtk_color_selection_set_current_color (colorsel, &term_conf.background_color);  
+    gtk_color_selection_set_current_color (colorsel, &term_conf.background_color);
 
     gtk_color_selection_set_has_palette (colorsel, TRUE);
     gtk_widget_set_size_request(GTK_WIDGET(Fenetre), 465, 315);
@@ -1489,7 +1491,7 @@ gint config_color_bg(GtkWidget *bouton, gpointer data)
 	g_free(string);
 	string = g_strdup_printf("%d", term_conf.background_color.blue);
 	cfgStoreValue(cfg, "term_background_blue", string, CFG_INI, 0);
-	g_free(string);      
+	g_free(string);
     }
 
     gtk_widget_destroy(Fenetre);
@@ -1502,7 +1504,7 @@ static void Transparency_OnOff(GtkWidget *Check_Bouton, gpointer data)
 {
     gchar *string;
 
-    term_conf.transparency = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(Check_Bouton));  
+    term_conf.transparency = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(Check_Bouton));
     vte_terminal_set_background_transparent(VTE_TERMINAL(display), term_conf.transparency);
     gtk_widget_set_sensitive(GTK_WIDGET(data), term_conf.transparency);
 
@@ -1510,7 +1512,7 @@ static void Transparency_OnOff(GtkWidget *Check_Bouton, gpointer data)
 	string = g_strdup_printf("False");
     else
 	string = g_strdup_printf("True");
-  
+
     cfgStoreValue(cfg, "term_transparency", string, CFG_INI, 1);
     g_free(string);
 }
@@ -1523,7 +1525,7 @@ static void change_scale(GtkRange *range, gpointer data)
 
     string = g_strdup_printf("%g", term_conf.background_saturation);
     cfgStoreValue(cfg, "term_background_saturation", string, CFG_INI, 0);
-    g_free(string);  
+    g_free(string);
 }
 
 void check_text_input(GtkEditable *editable,

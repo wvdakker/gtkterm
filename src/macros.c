@@ -22,9 +22,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "gettext.h"
 #include "widgets.h"
 #include "macros.h"
+
+#include <config.h>
+#include <glib/gi18n.h>
 
 enum
   {
@@ -39,7 +41,7 @@ static GtkWidget *window = NULL;
 macro_t *get_shortcuts(gint *size)
 {
   gint i = 0;
-  
+
   if(macros != NULL)
     {
       while(macros[i].shortcut != NULL)
@@ -51,16 +53,16 @@ macro_t *get_shortcuts(gint *size)
 
 
 static void shortcut_callback(gpointer *number)
-{ 
+{
   gchar *string;
   gchar *str;
   gint i, length;
   guchar a;
   guint val_read;
-  
+
   string = macros[(long)number].action;
   length = strlen(string);
-  
+
   for(i = 0; i < length; i++)
     {
       if(string[i] == '\\')
@@ -202,7 +204,7 @@ void remove_shortcuts(void)
 
   if(macros == NULL)
     return;
-  
+
   while(macros[i].shortcut != NULL)
     {
       gtk_accel_group_disconnect(shortcuts, macros[i].closure);
@@ -254,11 +256,11 @@ shortcut_edited (GtkCellRendererText *cell,
   GtkTreePath *path = gtk_tree_path_new_from_string (path_string);
   GtkTreeIter iter;
 
-  gtk_tree_model_get_iter(model, &iter, path); 
-  
+  gtk_tree_model_get_iter(model, &iter, path);
+
   gtk_list_store_set(GTK_LIST_STORE(model), &iter, COLUMN_ACTION, new_text, -1);
   gtk_tree_path_free (path);
- 
+
   return TRUE;
 }
 
@@ -290,7 +292,7 @@ static gint Add_shortcut(GtkWidget *button, gpointer pointer)
 {
   GtkTreeIter iter;
   GtkTreeModel *model = (GtkTreeModel *)pointer;
-  
+
 
   gtk_list_store_append(GTK_LIST_STORE(model), &iter);
 
@@ -395,7 +397,7 @@ static gboolean key_pressed(GtkWidget *window, GdkEventKey *key, gpointer pointe
     {
       gint i;
       GtkTreePath *path;
-      
+
       path = gtk_tree_model_get_path(model, &iter);
       i = gtk_tree_path_get_indices(path)[0];
       str = gtk_accelerator_name(key->keyval, key->state & ~GDK_MOD2_MASK);
@@ -457,14 +459,14 @@ gint Config_macros(GtkWidget *wid, guint param)
   /* create window, etc */
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title (GTK_WINDOW (window), _("Configure Macros"));
-  
+
   g_signal_connect (window, "destroy",
 		    G_CALLBACK (gtk_widget_destroyed), &window);
   gtk_container_set_border_width (GTK_CONTAINER (window), 8);
 
   vbox = gtk_vbox_new (FALSE, 8);
   gtk_container_add (GTK_CONTAINER (window), vbox);
-  
+
   sw = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (sw),
 				       GTK_SHADOW_ETCHED_IN);
@@ -475,23 +477,23 @@ gint Config_macros(GtkWidget *wid, guint param)
 
   /* create tree model */
   model = create_model ();
-  
+
   /* create tree view */
   treeview = gtk_tree_view_new_with_model (model);
   gtk_tree_view_set_rules_hint (GTK_TREE_VIEW (treeview), TRUE);
   gtk_tree_view_set_search_column (GTK_TREE_VIEW (treeview),
 				   COLUMN_SHORTCUT);
-  
+
   g_object_unref (model);
-  
+
   gtk_container_add (GTK_CONTAINER (sw), treeview);
-  
+
   /* add columns to the tree view */
   add_columns (GTK_TREE_VIEW (treeview));
 
   hbox = gtk_hbox_new (TRUE, 4);
   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
-  
+
   button = gtk_button_new_with_mnemonic (_("_Add"));
   g_signal_connect(button, "clicked", G_CALLBACK(Add_shortcut), (gpointer)model);
   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
@@ -499,7 +501,7 @@ gint Config_macros(GtkWidget *wid, guint param)
   button = gtk_button_new_with_mnemonic (_("_Delete"));
   g_signal_connect(button, "clicked", G_CALLBACK(Delete_shortcut), (gpointer)treeview);
   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
-  
+
   button = gtk_button_new_with_mnemonic (_("_Capture Shortcut"));
   g_signal_connect(button, "clicked", G_CALLBACK(Capture_shortcut), (gpointer)treeview);
   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
@@ -509,7 +511,7 @@ gint Config_macros(GtkWidget *wid, guint param)
 
   hbox = gtk_hbox_new (TRUE, 4);
   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
-  
+
   button = gtk_button_new_from_stock (GTK_STOCK_HELP);
   g_signal_connect(button, "clicked", G_CALLBACK(Help_screen), NULL);
   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
@@ -524,7 +526,7 @@ gint Config_macros(GtkWidget *wid, guint param)
   gtk_box_pack_end (GTK_BOX (hbox), button, TRUE, TRUE, 0);
 
   gtk_window_set_default_size (GTK_WINDOW(window), 300, 400);
-  
+
   gtk_widget_show_all(window);
 
   return FALSE;

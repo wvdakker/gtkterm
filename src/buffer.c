@@ -21,9 +21,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "buffer.h"
-#include "gettext.h"
 #include "i18n.h"
 #include "serie.h"
+
+#include <config.h>
+#include <glib/gi18n.h>
 
 static char *buffer = NULL;
 static char *current_buffer;
@@ -60,7 +62,7 @@ void put_chars(char *chars, unsigned int size)
 	i18n_printf(_("ERROR : Buffer is not initialized !\n"));
 	return;
     }
-  
+
     if(size > BUFFER_SIZE)
     {
 	characters = chars + (size - BUFFER_SIZE);
@@ -84,7 +86,7 @@ void put_chars(char *chars, unsigned int size)
 	pointer += size;
 	current_buffer += size;
     }
-  
+
     if(write_func != NULL)
 	write_func(characters, size);
 }
@@ -93,7 +95,7 @@ void write_buffer(void)
 {
   if(write_func == NULL)
     return;
-  
+
   if(overlapped == 0)
     write_func(buffer, pointer);
   else
@@ -106,7 +108,7 @@ void write_buffer(void)
 void write_buffer_with_func(void (*func)(char *, unsigned int))
 {
   void (*write_func_backup)(char *, unsigned int);
- 
+
   write_func_backup = write_func;
   write_func = func;
   write_buffer();

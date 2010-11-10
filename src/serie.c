@@ -35,13 +35,15 @@
 #include <errno.h>
 #include <pwd.h>
 
-#include "gettext.h"
-#include "config.h"
+#include "term_config.h"
 #include "serie.h"
 #include "widgets.h"
 #include "fichier.h"
 #include "buffer.h"
 #include "i18n.h"
+
+#include <config.h>
+#include <glib/gi18n.h>
 
 struct termios termios_save;
 int serial_port_fd = -1;
@@ -136,7 +138,7 @@ gchar *Config_port(void)
     Ferme_Port();
     remove_lockfile();
 
-    Ouvre_Port(config.port); 
+    Ouvre_Port(config.port);
 
 
     if(serial_port_fd == -1)
@@ -153,8 +155,8 @@ gchar *Config_port(void)
 	return NULL;
     }
 
-    msg = g_strdup_printf("%s : %d,%d", 
-			  config.port, 
+    msg = g_strdup_printf("%s : %d,%d",
+			  config.port,
 			  config.vitesse,
 			  config.bits);
     tcgetattr(serial_port_fd, &termios_p);
@@ -250,7 +252,7 @@ gchar *Config_port(void)
     termios_p.c_cc[VTIME] = 0;
     termios_p.c_cc[VMIN] = 1;
     tcsetattr(serial_port_fd, TCSANOW, &termios_p);
-    tcflush(serial_port_fd, TCOFLUSH);  
+    tcflush(serial_port_fd, TCOFLUSH);
     tcflush(serial_port_fd, TCIFLUSH);
 
     callback_handler = gtk_input_add_full(serial_port_fd, GDK_INPUT_READ, (GdkInputFunction)Lis_port, NULL, NULL, NULL);
@@ -277,7 +279,7 @@ void Ferme_Port(void)
 	    callback_activated = FALSE;
 	}
 	tcsetattr(serial_port_fd, TCSANOW, &termios_save);
-	tcflush(serial_port_fd, TCOFLUSH);  
+	tcflush(serial_port_fd, TCOFLUSH);
 	tcflush(serial_port_fd, TCIFLUSH);
 	close(serial_port_fd);
 	serial_port_fd = -1;
@@ -334,7 +336,7 @@ int lis_sig(void)
     {
 	if(ioctl(serial_port_fd, TIOCMGET, &stat_read) == -1)
 	{
-            /* Ignore EINVAL, as some serial ports 
+            /* Ignore EINVAL, as some serial ports
 	       genuinely lack these lines */
 	    /* Thanks to Elie De Brauwer on ubuntu launchpad */
 	    if (errno != EINVAL)
@@ -362,7 +364,7 @@ int lis_sig(void)
 char *mbasename(char *s, char *res, int reslen)
 {
     char *p;
-  
+
     if (strncmp(s, "/dev/", 5) == 0) {
 	/* In /dev */
 	strncpy(res, s + 5, reslen - 1);
@@ -398,16 +400,16 @@ gint create_lockfile(char *port)
     username = (getpwuid(real_uid))->pw_name;
 
     /* First see if the lock file directory is present. */
-    if(P_LOCK[0] && stat(P_LOCK, &stt) == 0) 
+    if(P_LOCK[0] && stat(P_LOCK, &stt) == 0)
 	snprintf(lockfile, sizeof(lockfile), "%s/LCK..%s", P_LOCK, mbasename(port, buf, sizeof(buf)));
     else
 	lockfile[0] = 0;
 
-    if(lockfile[0] && (fd = open(lockfile, O_RDONLY)) >= 0) 
+    if(lockfile[0] && (fd = open(lockfile, O_RDONLY)) >= 0)
     {
 	n = read(fd, buf, 127);
 	close(fd);
-	if(n > 0) 
+	if(n > 0)
 	{
 	    pid = -1;
 	    if(n == 4)
@@ -418,7 +420,7 @@ gint create_lockfile(char *port)
 		buf[n] = 0;
 		sscanf(buf, "%d", &pid);
 	    }
-	    if(pid > 0 && kill((pid_t)pid, 0) < 0 && errno == ESRCH) 
+	    if(pid > 0 && kill((pid_t)pid, 0) < 0 && errno == ESRCH)
 	    {
 		i18n_fprintf(stderr, _("Lockfile is stale. Overriding it..\n"));
 		sleep(1);
@@ -428,7 +430,7 @@ gint create_lockfile(char *port)
 		n = 0;
         }
 
-	if(n == 0) 
+	if(n == 0)
 	{
 	    i18n_fprintf(stderr, _("Device %s is locked.\n"), port);
 	    lockfile[0] = 0;
@@ -436,11 +438,11 @@ gint create_lockfile(char *port)
 	}
     }
 
-    if(lockfile[0]) 
+    if(lockfile[0])
     {
 	/* Create lockfile compatible with UUCP-1.2 */
 	mask = umask(022);
-	if((fd = open(lockfile, O_WRONLY | O_CREAT | O_EXCL, 0666)) < 0) 
+	if((fd = open(lockfile, O_WRONLY | O_CREAT | O_EXCL, 0666)) < 0)
 	{
 	    i18n_fprintf(stderr, _("Cannot create lockfile. Sorry.\n"));
 	    lockfile[0] = 0;
@@ -484,7 +486,7 @@ gint set_custom_speed(struct termios t, int speed, int port_fd)
 
     ioctl(port_fd, TIOCGSERIAL, &ser);
     ser.custom_divisor = ser.baud_base / speed;
-    if(!(ser.custom_divisor)) 
+    if(!(ser.custom_divisor))
 	ser.custom_divisor = 1;
 
     arby = ser.baud_base / ser.custom_divisor;

@@ -48,28 +48,28 @@
 /***********************************************************************/
 
 #include <gtk/gtk.h>
-#include <gdk/gdk.h>
-#include <gdk/gdkkeysyms.h>
 #if defined (__linux__)
 #  include <asm/termios.h>       /* For control signals */
 #endif
 #if defined (__FreeBSD__) || defined (__FreeBSD_kernel__) \
      || defined (__NetBSD__) || defined (__NetBSD_kernel__) \
-     || defined (__OpenBSD__) || defined (__OpenBSD_kernel__) 
+     || defined (__OpenBSD__) || defined (__OpenBSD_kernel__)
 #  include <sys/ttycom.h>        /* For control signals */
 #endif
 #include <vte/vte.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "config.h"
+#include "term_config.h"
 #include "fichier.h"
 #include "serie.h"
 #include "widgets.h"
 #include "buffer.h"
 #include "macros.h"
-#include "gettext.h"
 #include "auto_config.h"
+
+#include <config.h>
+#include <glib/gi18n.h>
 
 guint id;
 gboolean echo_on;
@@ -129,7 +129,7 @@ static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/File/_Save raw file") , NULL, (GtkItemFactoryCallback)fichier, 2, "<StockItem>", GTK_STOCK_SAVE_AS},
   {N_("/File/Separator") , NULL, NULL, 0, "<Separator>"},
   {N_("/File/E_xit") , "<ctrl>Q", gtk_main_quit, 0, "<StockItem>", GTK_STOCK_QUIT},
-  
+
   {N_("/Edit/_Paste") , "<ctrl><shift>v", (GtkItemFactoryCallback)gui_paste, 0, "<StockItem>", GTK_STOCK_PASTE},
   {N_("/Edit/_Copy") , "<ctrl><shift>v", (GtkItemFactoryCallback)gui_copy, 0, "<StockItem>", GTK_STOCK_COPY},
   {N_("/Edit/Copy _All") , NULL, (GtkItemFactoryCallback)gui_copy_all_clipboard, 0, "<StockItem>", GTK_STOCK_SELECT_ALL},
@@ -164,7 +164,7 @@ static GtkItemFactoryEntry Tableau_Menu[] = {
 };
 
 static gchar *translate_menu(const gchar *path, gpointer data)
-{  
+{
   return _(path);
 }
 
@@ -182,7 +182,7 @@ gint toggle_index(gpointer *pointer, guint param, GtkWidget *widget)
 {
   show_index = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget));
   set_view(HEXADECIMAL_VIEW);
-  return FALSE;  
+  return FALSE;
 }
 
 gint hexadecimal_chars_to_display(gpointer *pointer, guint param, GtkWidget *widget)
@@ -224,7 +224,7 @@ gint view(gpointer *pointer, guint param, GtkWidget *widget)
 {
   if(!gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget)))
     return FALSE;
-  
+
   set_view(param);
 
   return FALSE;
@@ -261,10 +261,10 @@ void create_main_window(void)
   gtk_signal_connect(GTK_OBJECT(Fenetre), "destroy", (GtkSignalFunc)gtk_main_quit, NULL);
   gtk_signal_connect(GTK_OBJECT(Fenetre), "delete_event", (GtkSignalFunc)gtk_main_quit, NULL);
   gtk_window_set_title(GTK_WINDOW(Fenetre), "GtkTerm");
-  
+
   Boite = gtk_vbox_new(FALSE, 0);
   gtk_container_add(GTK_CONTAINER(Fenetre), Boite);
-  
+
   accel_group = gtk_accel_group_new();
   item_factory = gtk_item_factory_new(GTK_TYPE_MENU_BAR, "<main>", accel_group);
   gtk_item_factory_set_translate_func(item_factory, translate_menu, "<main>", NULL);
@@ -283,7 +283,7 @@ void create_main_window(void)
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(hex_len_menu), TRUE);
 
   gtk_box_pack_start(GTK_BOX(Boite), Menu, FALSE, TRUE, 0);
-  
+
   BoiteH = gtk_hbox_new(FALSE, 0);
   gtk_box_pack_start(GTK_BOX(Boite), BoiteH, TRUE, TRUE, 0);
 
@@ -296,7 +296,7 @@ void create_main_window(void)
   clear_display();
 
   /* make vte window scrollable - inspired by gnome-terminal package */
-  scrolled_window = gtk_scrolled_window_new(NULL, 
+  scrolled_window = gtk_scrolled_window_new(NULL,
 					    vte_terminal_get_adjustment(VTE_TERMINAL(display)));
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
 				 GTK_POLICY_AUTOMATIC,
@@ -378,7 +378,7 @@ void put_hexadecimal(gchar *string, guint size)
     return;
 
   while(i < size)
-    {    
+    {
       while(gtk_events_pending()) gtk_main_iteration();
       vte_terminal_get_cursor_position(VTE_TERMINAL(display), &column, &row);
 
@@ -400,12 +400,12 @@ void put_hexadecimal(gchar *string, guint size)
 
       /* Print hexadecimal characters */
       data[0] = 0;
-      
+
       while(bytes < bytes_per_line && i < size)
 	{
 	  gint avance=0;
 	  gchar ascii[1];
- 
+
 	  sprintf(data_byte, "%02X ", (guchar)string[i]);
 	  vte_terminal_feed(VTE_TERMINAL(display), data_byte, 3);
 
@@ -415,17 +415,17 @@ void put_hexadecimal(gchar *string, guint size)
 	  sprintf(data_byte, "%c[%dC", 27, avance);
 	  vte_terminal_feed(VTE_TERMINAL(display), data_byte, strlen(data_byte));
 
-	  /* Print ascii characters */	  
+	  /* Print ascii characters */
 	  ascii[0] = (string[i] > 0x1F) ? string[i] : '.';
 	  vte_terminal_feed(VTE_TERMINAL(display), ascii, 1);
 
-	  /* Move backward */	      
+	  /* Move backward */
 	  sprintf(data_byte, "%c[%dD", 27, avance + 1);
 	  vte_terminal_feed(VTE_TERMINAL(display), data_byte, strlen(data_byte));
 
 	  if(bytes == bytes_per_line / 2 - 1)
 	    vte_terminal_feed(VTE_TERMINAL(display), "- ", strlen("- "));
-	  
+
 	  bytes++;
 	  i++;
 
@@ -436,8 +436,8 @@ void put_hexadecimal(gchar *string, guint size)
 	      total_bytes += bytes;
 	    }
 
-	}     
-      
+	}
+
     }
 }
 
@@ -525,7 +525,7 @@ void show_control_signals(int stat)
   if(stat & TIOCM_DTR)
     gtk_widget_set_sensitive(GTK_WIDGET(signals[5]), TRUE);
   else
-    gtk_widget_set_sensitive(GTK_WIDGET(signals[5]), FALSE);  
+    gtk_widget_set_sensitive(GTK_WIDGET(signals[5]), FALSE);
 }
 
 gint signaux(GtkWidget *widget, guint param)
@@ -560,15 +560,15 @@ void Set_status_message(gchar *msg)
 void show_message(gchar *message, gint type_msg)
 {
  GtkWidget *Fenetre_msg;
- 
+
  if(type_msg==MSG_ERR)
    {
-     Fenetre_msg = 
+     Fenetre_msg =
        gtk_message_dialog_new(GTK_WINDOW(Fenetre), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, message);
    }
  else if(type_msg==MSG_WRN)
    {
-     Fenetre_msg = 
+     Fenetre_msg =
        gtk_message_dialog_new(GTK_WINDOW(Fenetre), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, message);
    }
  else
@@ -636,7 +636,7 @@ void Put_temp_message(const gchar *text, gint time)
 {
   /* time in ms */
   gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, text);
-  gtk_timeout_add(time, (GtkFunction)pop_message, NULL);  
+  gtk_timeout_add(time, (GtkFunction)pop_message, NULL);
 }
 
 gboolean pop_message(void)

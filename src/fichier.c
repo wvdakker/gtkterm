@@ -30,11 +30,13 @@
 #include <errno.h>
 #include <string.h>
 
-#include "gettext.h"
-#include "config.h"
+#include "term_config.h"
 #include "widgets.h"
 #include "serie.h"
 #include "buffer.h"
+
+#include <config.h>
+#include <glib/gi18n.h>
 
 /* Global variables */
 gint nb_car;
@@ -135,7 +137,7 @@ gint Envoie_fichier(GtkFileSelection *FS)
       }
     gtk_progress_set_show_text(GTK_PROGRESS(ProgressBar), TRUE);
     gtk_box_pack_start(GTK_BOX(Box), ProgressBar, FALSE, FALSE, 5);
-    
+
     Bouton_annuler = gtk_button_new_with_label(_("Cancel"));
     gtk_signal_connect_object(GTK_OBJECT(Bouton_annuler), "clicked", GTK_SIGNAL_FUNC(close_all), NULL);
 
@@ -173,7 +175,7 @@ void ecriture(gpointer data, gint source, GdkInputCondition condition)
       if(current_buffer_position == bytes_read)
 	{
 	  bytes_read = read(Fichier, buffer, BUFFER_EMISSION);
-	  
+
 	  current_buffer_position = 0;
 	  current_buffer = buffer;
 	  bytes_to_write = bytes_read;
