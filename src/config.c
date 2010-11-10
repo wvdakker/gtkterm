@@ -420,7 +420,7 @@ gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos)
 	config.flux = 1;
     else if(!strcmp(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[5])), "RTS/CTS"))
 	config.flux = 2;
-    else if(!strncmp(gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(Combos[5])->entry)), "RS485",5))
+    else if(!strncmp(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[5])), "RS485",5))
 	config.flux = 3;
     else
 	config.flux = 0;
