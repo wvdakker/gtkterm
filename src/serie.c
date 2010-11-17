@@ -75,6 +75,7 @@ void Lis_port(gpointer data, gint source, GdkInputCondition condition)
 	bytes_read = read(serial_port_fd, c, BUFFER_RECEPTION);
 	if(bytes_read > 0)
 	{
+	    put_chars(c, bytes_read, config.crlfauto);
 
 	    if(config.car != -1 && waiting_for_char == TRUE)
 	    {
