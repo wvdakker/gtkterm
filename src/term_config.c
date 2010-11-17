@@ -1410,6 +1410,21 @@ gint Config_Terminal(GtkWidget *widget, guint param)
     gtk_widget_set_sensitive(GTK_WIDGET(HScale), term_conf.transparency);
     gtk_box_pack_start(GTK_BOX(BoiteV), HScale, FALSE, TRUE, 0);
 
+    Label = gtk_label_new(NULL);
+    gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
+    gtk_label_set_markup(GTK_LABEL(Label), "<b>Screen : </b>");  
+    gtk_box_pack_start(GTK_BOX(BoiteV), Label, FALSE, TRUE, 10);
+
+    BoiteH = gtk_hbox_new(FALSE, 0);
+    Label = gtk_label_new("Scrollback lines :");
+    gtk_box_pack_start(GTK_BOX(BoiteH), Label, FALSE, TRUE, 0);
+    Entry = gtk_entry_new_with_max_length(4);
+    scrollback =  g_strdup_printf("%d", term_conf.scrollback);
+    gtk_entry_set_text(GTK_ENTRY(Entry), scrollback);
+    g_free(scrollback);
+    g_signal_connect(GTK_OBJECT(Entry), "focus-out-event", G_CALLBACK(scrollback_set), 0);
+    gtk_box_pack_start(GTK_BOX(BoiteH), Entry, FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(BoiteV), BoiteH, FALSE, TRUE, 0);
 
     gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Dialog)->vbox), BoiteV);
 
