@@ -73,9 +73,11 @@
 
 guint id;
 gboolean echo_on;
+gboolean crlfauto_on;
 GtkWidget *StatusBar;
 GtkWidget *signals[6];
 static GtkWidget *echo_menu = NULL;
+static GtkWidget *crlfauto_menu = NULL;
 static GtkWidget *ascii_menu = NULL;
 static GtkWidget *hex_menu = NULL;
 static GtkWidget *hex_len_menu = NULL;
@@ -103,6 +105,7 @@ gint a_propos(GtkWidget *, guint);
 gboolean Envoie_car(GtkWidget *, GdkEventKey *, gpointer);
 gboolean control_signals_read(void);
 gint Toggle_Echo(gpointer *, guint, GtkWidget *);
+gint Toggle_Crlfauto(gpointer *, guint, GtkWidget *);
 gint view(gpointer *, guint, GtkWidget *);
 gint hexadecimal_chars_to_display(gpointer *, guint, GtkWidget *);
 gint toggle_index(gpointer *, guint, GtkWidget *);
@@ -120,7 +123,7 @@ gint gui_copy_all_clipboard(void);
 
 
 /* Menu */
-#define NUMBER_OF_ITEMS 36
+#define NUMBER_OF_ITEMS 37
 
 static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/_File") , NULL, NULL, 0, "<Branch>"},
@@ -138,6 +141,7 @@ static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/Configuration/_Port"), "<ctrl>S", (GtkItemFactoryCallback)Config_Port_Fenetre, 0, "<StockItem>", GTK_STOCK_PREFERENCES},
   {N_("/Configuration/_Main window"), NULL, (GtkItemFactoryCallback)Config_Terminal, 0, "<StockItem>", GTK_STOCK_SELECT_FONT},
   {N_("/Configuration/Local _echo"), NULL, (GtkItemFactoryCallback)Toggle_Echo, 0, "<CheckItem>"},
+  {N_("/Configuration/_CR LF auto"), NULL, (GtkItemFactoryCallback)Toggle_Crlfauto, 0, "<CheckItem>"},
   {N_("/Configuration/_Macros"), NULL, (GtkItemFactoryCallback)Config_macros, 0, "<Item>"},
   {N_("/Configuration/Separator") , NULL, NULL, 0, "<Separator>"},
   {N_("/Configuration/_Load configuration"), NULL, (GtkItemFactoryCallback)config_window, 0, "<StockItem>", GTK_STOCK_OPEN},
@@ -244,6 +248,19 @@ gint Toggle_Echo(gpointer *pointer, guint param, GtkWidget *widget)
   return 0;
 }
 
+void Set_crlfauto(gboolean crlfauto)
+{
+  crlfauto_on = crlfauto;
+  if(crlfauto_menu)
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(crlfauto_menu), crlfauto_on);
+}
+
+gint Toggle_Crlfauto(gpointer *pointer, guint param, GtkWidget *widget)
+{
+  crlfauto_on = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget));
+  configure_crlfauto(crlfauto_on);
+  return 0;
+}
 
 void create_main_window(void)
 {
@@ -272,6 +289,7 @@ void create_main_window(void)
   gtk_item_factory_create_items(item_factory, NUMBER_OF_ITEMS, Tableau_Menu, NULL);
   Menu = gtk_item_factory_get_widget(item_factory, "<main>");
   echo_menu = gtk_item_factory_get_item(item_factory, "/Configuration/Local echo");
+  crlfauto_menu = gtk_item_factory_get_item(item_factory, "/Configuration/LF auto");
   ascii_menu = gtk_item_factory_get_item(item_factory, "/View/ASCII");
   hex_menu = gtk_item_factory_get_item(item_factory, "/View/Hexadecimal");
   hex_chars_menu = gtk_item_factory_get_item(item_factory, "/View/Hexadecimal chars");
@@ -454,7 +472,7 @@ gint send_serial(gchar *string, gint len)
   if(bytes_written > 0)
     {
       if(echo_on)
-	put_chars(string, bytes_written);
+	  put_chars(string, bytes_written, crlfauto_on);
     }
 
   return bytes_written;

@@ -41,6 +41,7 @@ struct configuration_port {
   gint rs485_rts_time_after_transmit;
   gchar car;             // caractere à attendre
   gboolean echo;               // echo local
+  gboolean crlfauto;         // line feed auto
 };
 
 typedef struct {

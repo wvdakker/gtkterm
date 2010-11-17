@@ -10,7 +10,7 @@
 /*      Management of a local buffer of data received                  */
 /*                                                                     */
 /*   ChangeLog                                                         */
-/*      - 0.99.7 : removed auto crlf stuff - (use macros instead)      */
+/*      - 0.99.7 : removed (send)auto crlf stuff - (use macros instead)*/
 /*      - 0.99.5 : Corrected segfault in case of buffer overlap        */
 /*      - 0.99.2 : Internationalization                                */
 /*      - 0.98.4 : file creation by Julien                             */
@@ -53,16 +53,65 @@ void delete_buffer(void)
   return;
 }
 
-void put_chars(char *chars, unsigned int size)
+void put_chars(char *chars, unsigned int size, gboolean crlf_auto)
 {
     char *characters;
+ 
+    /* If the auto CR LF mode on, read the buffer to add \r before \n */ 
+    if(crlf_auto)
+    {
+	/* BUFFER_RECEPTION*2 for worst case scenario, all \n or \r chars */
+	char out_buffer[BUFFER_RECEPTION*2];
+	int i, out_size = 0;
+      
+	for (i=0; i<size; i++)
+        {
+	    if (chars[i] == '\r')
+            {
+		/* If the previous character was a CR too, insert a newline */
+		if (cr_received)
+                {
+		    out_buffer[out_size] = '\n';
+		    out_size++;
+                }
+		cr_received = 1;
+            }
+	    else
+            {
+		if (chars[i] == '\n')
+                {
+		    /* If we get a newline without a CR first, insert a CR */
+		    if (!cr_received)
+                    {
+			out_buffer[out_size] = '\r';
+			out_size++;
+                    }
+                }
+		else
+                {
+		    /* If we receive a normal char, and the previous one was a
+		       CR insert a newline */
+		    if (cr_received)
+                    {
+			out_buffer[out_size] = '\n';
+			out_size++;
+                    }
+                }
+		cr_received = 0;
+            }
+	    out_buffer[out_size] = chars[i];
+	    out_size++;
+        }
+	chars = out_buffer;
+	size = out_size;
+    }
 
     if(buffer == NULL)
     {
 	i18n_printf(_("ERROR : Buffer is not initialized !\n"));
 	return;
     }
-
+   
     if(size > BUFFER_SIZE)
     {
 	characters = chars + (size - BUFFER_SIZE);
@@ -70,7 +119,7 @@ void put_chars(char *chars, unsigned int size)
     }
     else
 	characters = chars;
-
+ 
     if((size + pointer) >= BUFFER_SIZE)
     {
 	memcpy(current_buffer, characters, BUFFER_SIZE - pointer);
@@ -86,7 +135,7 @@ void put_chars(char *chars, unsigned int size)
 	pointer += size;
 	current_buffer += size;
     }
-
+   
     if(write_func != NULL)
 	write_func(characters, size);
 }

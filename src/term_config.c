@@ -84,6 +84,7 @@ gint *wait_char;
 gint *rts_time_before_tx;
 gint *rts_time_after_tx;
 gint *echo;
+gint *crlfauto
 cfgList **macro_list = NULL;
 gchar **font;
 
@@ -114,6 +115,7 @@ cfgStruct cfg[] = {
     {"rs485_rts_time_before_tx", CFG_INT, &rts_time_before_tx},
     {"rs485_rts_time_after_tx", CFG_INT, &rts_time_after_tx},
     {"echo", CFG_BOOL, &echo},
+    {"crlfauto", CFG_BOOL, &crlfauto},
     {"font", CFG_STRING, &font},
     {"macros", CFG_STRING_LIST, &macro_list},
     {"term_transparency", CFG_BOOL, &transparency},
@@ -847,6 +849,11 @@ gint Load_configuration_from_file(gchar *config_name)
 		else
 		    config.echo = FALSE;
 
+		if(crlfauto[i] != -1)
+		    config.crlfauto = (gboolean)crlfauto[i];
+		else
+		    config.crlfauto = FALSE;
+
 		g_free(term_conf.font);
 		term_conf.font = g_strdup(font[i]);
 
@@ -1067,6 +1074,7 @@ void Hard_default_configuration(void)
     config.rs485_rts_time_after_transmit = DEFAULT_DELAY_RS485;
     config.car = DEFAULT_CHAR;
     config.echo = DEFAULT_ECHO;
+    config.crlfauto = FALSE;
 
     term_conf.font = g_strdup_printf(DEFAULT_FONT);
 
@@ -1166,6 +1174,13 @@ void Copy_configuration(int pos)
     cfgStoreValue(cfg, "echo", string, CFG_INI, pos);
     g_free(string);
 
+    if(config.crlfauto == FALSE)
+	string = g_strdup_printf("False");
+    else
+	string = g_strdup_printf("True");
+
+    cfgStoreValue(cfg, "crlfauto", string, CFG_INI, pos);
+    g_free(string);
 
     string = g_strdup(term_conf.font);
     cfgStoreValue(cfg, "font", string, CFG_INI, pos);
