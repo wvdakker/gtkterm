@@ -1344,7 +1344,7 @@ gint Config_Terminal(GtkWidget *widget, guint param)
 					  GTK_STOCK_CLOSE,
 					  GTK_RESPONSE_CLOSE,
 					  NULL);
-    gtk_widget_set_size_request(GTK_WIDGET(Dialog), 400, 300);
+    gtk_widget_set_size_request(GTK_WIDGET(Dialog), 400, 400);
 
 
     BoiteV = gtk_vbox_new(FALSE, 0);
