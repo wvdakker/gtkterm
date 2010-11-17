@@ -270,6 +270,10 @@ void configure_echo(gboolean echo)
     config.echo = echo;
 }
 
+void configure_crlfauto(gboolean crlfauto)
+{
+    config.crlfauto = crlfauto;
+}
 
 void Ferme_Port(void)
 {

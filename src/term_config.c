@@ -84,7 +84,7 @@ gint *wait_char;
 gint *rts_time_before_tx;
 gint *rts_time_after_tx;
 gint *echo;
-gint *crlfauto
+gint *crlfauto;
 cfgList **macro_list = NULL;
 gchar **font;
 
@@ -159,6 +159,7 @@ static gint config_color_fg(GtkWidget *, gpointer);
 static gint config_color_bg(GtkWidget *, gpointer);
 static void Transparency_OnOff(GtkWidget *, gpointer);
 static void change_scale(GtkRange *, gpointer);
+static gint scrollback_set(GtkWidget *, GdkEventFocus *, gpointer);
 
 extern GtkWidget *display;
 
@@ -1216,6 +1217,10 @@ void Copy_configuration(int pos)
     cfgStoreValue(cfg, "term_columns", string, CFG_INI, pos);
     g_free(string);
 
+    string = g_strdup_printf("%d", term_conf.scrollback);
+    cfgStoreValue(cfg, "term_scrollback", string, CFG_INI, pos);
+    g_free(string);
+
     if(term_conf.visual_bell == FALSE)
 	string = g_strdup_printf("False");
     else
@@ -1330,8 +1335,8 @@ gint remove_section(gchar *cfg_file, gchar *section)
 
 gint Config_Terminal(GtkWidget *widget, guint param)
 {
-    GtkWidget *Dialog, *BoiteH, *BoiteV, *Label, *Check_Bouton, *Bouton, *Eventbox, *Table, *HScale;
-    gchar *fonte;
+    GtkWidget *Dialog, *BoiteH, *BoiteV, *Label, *Check_Bouton, *Bouton, *Eventbox, *Table, *HScale, *Entry;
+    gchar *fonte, *scrollback;
 
     Dialog = gtk_dialog_new_with_buttons (_("Terminal configuration"),
 					  NULL,
@@ -1556,6 +1561,24 @@ static void change_scale(GtkRange *range, gpointer data)
     string = g_strdup_printf("%g", term_conf.background_saturation);
     cfgStoreValue(cfg, "term_background_saturation", string, CFG_INI, 0);
     g_free(string);
+}
+
+gint scrollback_set(GtkWidget *Entry, GdkEventFocus *event, gpointer data)
+{
+  const gchar *text;
+  gint scrollback;
+  
+  if (Entry)
+  {
+    text = gtk_entry_get_text(GTK_ENTRY(Entry));
+    scrollback = (gint)g_ascii_strtoll(text, NULL, 10);
+    if (scrollback)
+      term_conf.scrollback = scrollback;
+    else
+      term_conf.scrollback = 100;
+    vte_terminal_set_scrollback_lines (VTE_TERMINAL(display), term_conf.scrollback);
+  }
+  return FALSE;
 }
 
 void check_text_input(GtkEditable *editable,
