@@ -3,6 +3,7 @@ Immediate updates/changes
     - add more translations
     - add logging support
     - update to latest GTK+ widgets
+    - after char delay for slow devices
 
 On-down-the-road possibilities
     - support for tabs
