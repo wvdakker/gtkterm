@@ -100,7 +100,7 @@ gint Envoie_fichier(GtkFileSelection *FS)
 
     NomFichier = g_strdup(gtk_file_selection_get_filename(FS));
 
-    if(g_file_test(NomFichier, G_FILE_TEST_IS_REGULAR))
+    if(!g_file_test(NomFichier, G_FILE_TEST_IS_REGULAR))
     {
 	g_free(str);
 	str = g_strdup_printf(_("Error opening file\n"));
