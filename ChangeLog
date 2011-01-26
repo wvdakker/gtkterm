@@ -1,6 +1,13 @@
 2010-11-10  gettextize  <bug-gnu-gettext@gnu.org>
 
-	* Makefile.am (EXTRA_DIST): Add config.rpath, m4/ChangeLog.
+	* Released gtkterm 0.99.7	**-&&&-2011
+		Added software support for RS485 - see README (thanks to Marc Le Douarain)
+		Updated many of the GTK widgets
+		Cleaned up auto-crlf stuff
+		Overhauled build system
+		Arbitrary baud rates
+
+		Many bugfixes
 
 	* Released gtkterm 0.99.6	16-aug-2010
 	        Maintainership changed to https://fedorahosted.org/released/gtkterm
