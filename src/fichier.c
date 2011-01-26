@@ -57,8 +57,8 @@ gchar *str = NULL;
 FILE *Fic;
 
 /* Local functions prototype */
-gint Envoie_fichier(GtkFileSelection *FS);
-gint Sauve_fichier(GtkFileSelection *FS);
+gint Envoie_fichier(GtkFileChooser *FS);
+gint Sauve_fichier(GtkFileChooser *FS);
 gint close_all(void);
 void ecriture(gpointer data, gint source, GdkInputCondition condition);
 gboolean timer(gpointer pointer);
@@ -71,40 +71,48 @@ extern struct configuration_port config;
 
 gint fichier(GtkWidget *widget, guint param)
 {
-  GtkWidget *file_select;
+    GtkWidget *file_select;
+    gint retval;
 
-  file_select = gtk_file_selection_new(_("File selection"));
-  if(fic_defaut != NULL)
-    gtk_file_selection_set_filename(GTK_FILE_SELECTION(file_select), fic_defaut);
-  gtk_signal_connect_object(GTK_OBJECT(GTK_FILE_SELECTION(file_select)->cancel_button), "clicked", GTK_SIGNAL_FUNC(gtk_widget_destroy), GTK_OBJECT(file_select));
-  switch(param)
+    file_select = gtk_file_chooser_dialog_new(_("File selection"), GTK_WINDOW(Fenetre), 
+					      GTK_FILE_CHOOSER_ACTION_SAVE, 
+					      _("Cancel"), GTK_RESPONSE_CANCEL,
+					      _("OK"), GTK_RESPONSE_OK, NULL);
+    if(fic_defaut != NULL)
+	gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(file_select), fic_defaut);
+
+    retval = gtk_dialog_run(GTK_DIALOG(file_select));
+    if (retval == GTK_RESPONSE_OK)
     {
-    case 1:
-      gtk_signal_connect_object(GTK_OBJECT(GTK_FILE_SELECTION(file_select)->ok_button), "clicked", GTK_SIGNAL_FUNC(Envoie_fichier), GTK_OBJECT(file_select));
-      break;
-    case 2:
-      gtk_signal_connect_object(GTK_OBJECT(GTK_FILE_SELECTION(file_select)->ok_button), "clicked", GTK_SIGNAL_FUNC(Sauve_fichier), GTK_OBJECT(file_select));
-      break;
+	switch(param)
+	{
+	    case 1:
+		Envoie_fichier(GTK_FILE_CHOOSER(file_select));
+		break;
+	    case 2:
+		Sauve_fichier(GTK_FILE_CHOOSER(file_select));
+		break;
+	}
     }
-  gtk_signal_connect_object(GTK_OBJECT(GTK_FILE_SELECTION(file_select)->ok_button), "clicked", GTK_SIGNAL_FUNC(gtk_widget_destroy), GTK_OBJECT(file_select))
-;
-  gtk_widget_show(file_select);
-  return FALSE;
+
+    gtk_widget_destroy(file_select);
+    return FALSE;
 }
 
-gint Envoie_fichier(GtkFileSelection *FS)
+gint Envoie_fichier(GtkFileChooser *FS)
 {
     gchar *NomFichier;
     gchar *msg;
     GtkWidget *Bouton_annuler, *Box;
 
-    NomFichier = g_strdup(gtk_file_selection_get_filename(FS));
+    NomFichier = gtk_file_chooser_get_filename(FS);
 
     if(!g_file_test(NomFichier, G_FILE_TEST_IS_REGULAR))
     {
-	g_free(str);
 	str = g_strdup_printf(_("Error opening file\n"));
 	show_message(str, MSG_ERR);
+	g_free(NomFichier);
+	g_free(str);
 	return FALSE;
     }
     Fichier = open(NomFichier, O_RDONLY);
@@ -122,6 +130,7 @@ gint Envoie_fichier(GtkFileSelection *FS)
 
 	Window = gtk_dialog_new();
 	gtk_window_set_title(GTK_WINDOW(Window), msg);
+	g_free(msg);
 	Box = gtk_vbox_new(TRUE, 10);
 	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Window)->vbox), Box);
 	if(nb_car > 5000)
@@ -154,162 +163,165 @@ gint Envoie_fichier(GtkFileSelection *FS)
     }
     else
     {
-	g_free(str);
 	str = g_strdup_printf(_("Cannot read file %s : %s\n"), NomFichier, strerror(errno));
 	show_message(str, MSG_ERR);
+	g_free(str);
     }
+    g_free(NomFichier);
     return FALSE;
 }
 
 void ecriture(gpointer data, gint source, GdkInputCondition condition)
 {
-  static gchar buffer[BUFFER_EMISSION];
-  static gchar *current_buffer;
-  static gint bytes_to_write;
-  gint bytes_written;
+    static gchar buffer[BUFFER_EMISSION];
+    static gchar *current_buffer;
+    static gint bytes_to_write;
+    gint bytes_written;
 
-  gchar *car;
+    gchar *car;
 
-  if(car_written < nb_car)
+    if(car_written < nb_car)
     {
-      /* Read the file only if buffer totally sent or if buffer empty */
-      if(current_buffer_position == bytes_read)
+	/* Read the file only if buffer totally sent or if buffer empty */
+	if(current_buffer_position == bytes_read)
 	{
-	  bytes_read = read(Fichier, buffer, BUFFER_EMISSION);
+	    bytes_read = read(Fichier, buffer, BUFFER_EMISSION);
 
-	  current_buffer_position = 0;
-	  current_buffer = buffer;
-	  bytes_to_write = bytes_read;
+	    current_buffer_position = 0;
+	    current_buffer = buffer;
+	    bytes_to_write = bytes_read;
 	}
 
-      car = current_buffer;
+	car = current_buffer;
 
-      if(config.delai != 0 || config.car != -1)
+	if(config.delai != 0 || config.car != -1)
 	{
-	  /* search for next LF */
-	  bytes_to_write = current_buffer_position;
-	  while(*car != LINE_FEED && bytes_to_write < bytes_read)
+	    /* search for next LF */
+	    bytes_to_write = current_buffer_position;
+	    while(*car != LINE_FEED && bytes_to_write < bytes_read)
 	    {
-	      car++;
-	      bytes_to_write++;
+		car++;
+		bytes_to_write++;
 	    }
-	  if(*car == LINE_FEED)
-	    bytes_to_write++;
+	    if(*car == LINE_FEED)
+		bytes_to_write++;
 	}
 
-      /* write to serial port */
-      bytes_written = send_serial(current_buffer, bytes_to_write - current_buffer_position);
+	/* write to serial port */
+	bytes_written = send_serial(current_buffer, bytes_to_write - current_buffer_position);
 
-      if(bytes_written == -1)
+	if(bytes_written == -1)
 	{
-	  /* Problem while writing, stop file transfer */
-	  g_free(str);
-	  str = g_strdup_printf(_("Cannot write file %s\n"), strerror(errno));
-	  show_message(str, MSG_ERR);
-	  close_all();
-	  return;
+	    /* Problem while writing, stop file transfer */
+	    g_free(str);
+	    str = g_strdup_printf(_("Cannot write file %s\n"), strerror(errno));
+	    show_message(str, MSG_ERR);
+	    close_all();
+	    return;
 	}
 
-      car_written += bytes_written;
-      current_buffer_position += bytes_written;
-      current_buffer += bytes_written;
+	car_written += bytes_written;
+	current_buffer_position += bytes_written;
+	current_buffer += bytes_written;
 
-      if(nb_car > 5000)
-	gtk_progress_set_value(GTK_PROGRESS(ProgressBar), (gfloat)car_written / 1024);
-      else
-	gtk_progress_set_value(GTK_PROGRESS(ProgressBar), (gfloat)car_written);
+	if(nb_car > 5000)
+	    gtk_progress_set_value(GTK_PROGRESS(ProgressBar), (gfloat)car_written / 1024);
+	else
+	    gtk_progress_set_value(GTK_PROGRESS(ProgressBar), (gfloat)car_written);
 
-      if(config.delai != 0 && *car == LINE_FEED)
+	if(config.delai != 0 && *car == LINE_FEED)
 	{
-	  remove_input();
-	  gtk_timeout_add(config.delai, (GtkFunction)timer, NULL);
-	  waiting_for_timer = TRUE;
+	    remove_input();
+	    gtk_timeout_add(config.delai, (GtkFunction)timer, NULL);
+	    waiting_for_timer = TRUE;
 	}
-      else if(config.car != -1 && *car == LINE_FEED)
+	else if(config.car != -1 && *car == LINE_FEED)
 	{
-	  remove_input();
-	  waiting_for_char = TRUE;
+	    remove_input();
+	    waiting_for_char = TRUE;
 	}
     }
-  else
+    else
     {
-      close_all();
-      return;
+	close_all();
+	return;
     }
-  return;
+    return;
 }
 
 gboolean timer(gpointer pointer)
 {
-  if(waiting_for_timer == TRUE)
+    if(waiting_for_timer == TRUE)
     {
-      add_input();
-      waiting_for_timer = FALSE;
+	add_input();
+	waiting_for_timer = FALSE;
     }
-  return FALSE;
+    return FALSE;
 }
 
 void add_input(void)
 {
-  if(input_running == FALSE)
+    if(input_running == FALSE)
     {
-      input_running = TRUE;
-      callback_handler = gtk_input_add_full(serial_port_fd, GDK_INPUT_WRITE, (GdkInputFunction)ecriture, NULL, NULL, NULL);
+	input_running = TRUE;
+	callback_handler = gtk_input_add_full(serial_port_fd, GDK_INPUT_WRITE, (GdkInputFunction)ecriture, NULL, NULL, NULL);
     }
 }
 
 void remove_input(void)
 {
-  if(input_running == TRUE)
+    if(input_running == TRUE)
     {
-      gtk_input_remove(callback_handler);
-      input_running = FALSE;
+	gtk_input_remove(callback_handler);
+	input_running = FALSE;
     }
 }
 
 gint close_all(void)
 {
-  remove_input();
-  waiting_for_char = FALSE;
-  waiting_for_timer = FALSE;
-  gtk_statusbar_pop(GTK_STATUSBAR(StatusBar), id);
-  close(Fichier);
-  gtk_widget_destroy(Window);
+    remove_input();
+    waiting_for_char = FALSE;
+    waiting_for_timer = FALSE;
+    gtk_statusbar_pop(GTK_STATUSBAR(StatusBar), id);
+    close(Fichier);
+    gtk_widget_destroy(Window);
 
-  return FALSE;
+    return FALSE;
 }
 
 void write_file(char *data, unsigned int size)
 {
-  fwrite(data, size, 1, Fic);
+    fwrite(data, size, 1, Fic);
 }
 
-gint Sauve_fichier(GtkFileSelection *FS)
+gint Sauve_fichier(GtkFileChooser *FS)
 {
-  gchar *NomFichier;
+    gchar *NomFichier;
 
-  NomFichier = g_strdup(gtk_file_selection_get_filename(FS));
-  if ((!NomFichier || (strcmp(NomFichier, ""))) == 0)
+    NomFichier = gtk_file_chooser_get_filename(FS);
+    if ((!NomFichier || (strcmp(NomFichier, ""))) == 0)
     {
-      g_free(str);
-      str = g_strdup_printf(_("File error\n"));
-      show_message(str, MSG_ERR);
-      return FALSE;
+	str = g_strdup_printf(_("File error\n"));
+	show_message(str, MSG_ERR);
+	g_free(str);
+	g_free(NomFichier);
+	return FALSE;
     }
-  Fic = fopen(NomFichier, "w");
-  if(Fic == NULL)
+    Fic = fopen(NomFichier, "w");
+    if(Fic == NULL)
     {
-      g_free(str);
-      str = g_strdup_printf(_("Cannot open file %s : %s\n"), NomFichier, strerror(errno));
-      show_message(str, MSG_ERR);
+	str = g_strdup_printf(_("Cannot open file %s : %s\n"), NomFichier, strerror(errno));
+	show_message(str, MSG_ERR);
+	g_free(str);
     }
-  else
+    else
     {
-      fic_defaut = g_strdup(NomFichier);
+	fic_defaut = g_strdup(NomFichier);
 
-      write_buffer_with_func(write_file);
+	write_buffer_with_func(write_file);
 
-      fclose(Fic);
+	fclose(Fic);
     }
-  return FALSE;
+    g_free(NomFichier);
+    return FALSE;
 }
