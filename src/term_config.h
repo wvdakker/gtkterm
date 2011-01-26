@@ -59,6 +59,7 @@ typedef struct {
 
 
 #define DEFAULT_FONT "Nimbus Mono L, 14"
+#define DEFAULT_SCROLLBACK 200
 
 #define DEFAULT_PORT "/dev/ttyS0"
 #define DEFAULT_SPEED 9600

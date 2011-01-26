@@ -941,7 +941,7 @@ gint Load_configuration_from_file(gchar *config_name)
 		    term_conf.show_cursor = TRUE;
 		    term_conf.rows = 80;
 		    term_conf.columns = 25;
-		    term_conf.scrollback = 100;
+		    term_conf.scrollback = DEFAULT_SCROLLBACK;
 		    term_conf.visual_bell = FALSE;
 
 		    term_conf.foreground_color.red = 43253;
@@ -1083,7 +1083,7 @@ void Hard_default_configuration(void)
     term_conf.show_cursor = TRUE;
     term_conf.rows = 80;
     term_conf.columns = 25;
-    term_conf.scrollback = 100;
+    term_conf.scrollback = DEFAULT_SCROLLBACK;
     term_conf.visual_bell = TRUE;
 
     Selec_couleur(&term_conf.foreground_color, 0.66, 0.66, 0.66);
@@ -1575,7 +1575,7 @@ gint scrollback_set(GtkWidget *Entry, GdkEventFocus *event, gpointer data)
     if (scrollback)
       term_conf.scrollback = scrollback;
     else
-      term_conf.scrollback = 100;
+      term_conf.scrollback = DEFAULT_SCROLLBACK;
     vte_terminal_set_scrollback_lines (VTE_TERMINAL(display), term_conf.scrollback);
   }
   return FALSE;
