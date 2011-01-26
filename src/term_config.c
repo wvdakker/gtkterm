@@ -1423,7 +1423,8 @@ gint Config_Terminal(GtkWidget *widget, guint param)
     BoiteH = gtk_hbox_new(FALSE, 0);
     Label = gtk_label_new("Scrollback lines :");
     gtk_box_pack_start(GTK_BOX(BoiteH), Label, FALSE, TRUE, 0);
-    Entry = gtk_entry_new_with_max_length(4);
+    Entry = gtk_entry_new();
+    gtk_entry_set_max_length(GTK_ENTRY(Entry), 4);
     scrollback =  g_strdup_printf("%d", term_conf.scrollback);
     gtk_entry_set_text(GTK_ENTRY(Entry), scrollback);
     g_free(scrollback);

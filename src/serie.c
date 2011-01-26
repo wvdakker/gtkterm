@@ -267,7 +267,11 @@ gchar *Config_port(void)
     tcflush(serial_port_fd, TCOFLUSH);
     tcflush(serial_port_fd, TCIFLUSH);
 
-    callback_handler = gtk_input_add_full(serial_port_fd, GDK_INPUT_READ, (GdkInputFunction)Lis_port, NULL, NULL, NULL);
+    callback_handler = g_io_add_watch(g_io_channel_unix_new(serial_port_fd),
+				      G_IO_IN, 
+				      (GIOFunc)Lis_port, 
+				      NULL);
+
     callback_activated = TRUE;
 
     Set_local_echo(config.echo);
@@ -291,7 +295,7 @@ void Ferme_Port(void)
     {
 	if(callback_activated == TRUE)
 	{
-	    gtk_input_remove(callback_handler);
+	    g_source_remove(callback_handler);
 	    callback_activated = FALSE;
 	}
 	tcsetattr(serial_port_fd, TCSANOW, &termios_save);
