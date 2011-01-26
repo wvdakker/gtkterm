@@ -111,17 +111,26 @@ int Send_chars(char *string, int length)
 	return 0;
 
     /* RS485 half-duplex mode ? */
-    if ( config.flux==3 )
+    if( config.flux==3 )
+    {
+	/* set RTS (start to send) */
+	Set_signals( 1 );
+	if( config.rs485_rts_time_before_transmit>0 )
+	    usleep(config.rs485_rts_time_before_transmit*1000);
+    }
+
+    bytes_written = write(serial_port_fd, string, length);
+
+    /* RS485 half-duplex mode ? */
+    if( config.flux==3 )
     {
 	/* wait all chars are send */
 	tcdrain( serial_port_fd );
-	if ( config.rs485_rts_time_after_transmit>0 )
+	if( config.rs485_rts_time_after_transmit>0 )
 	    usleep(config.rs485_rts_time_after_transmit*1000);
 	/* reset RTS (end of send, now receiving back) */
 	Set_signals( 1 );
     }
-
-    bytes_written = write(serial_port_fd, string, length);
 
     return bytes_written;
 }
