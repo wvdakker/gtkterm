@@ -412,6 +412,7 @@ gint create_lockfile(char *port)
     int fd, n = 0;
     int pid;
     int mask;
+    int res;
     uid_t real_uid;
     gid_t real_gid;
 
@@ -469,9 +470,9 @@ gint create_lockfile(char *port)
 	    return -1;
         }
 	(void)umask(mask);
-	(void)chown(lockfile, real_uid, real_gid);
+	res = chown(lockfile, real_uid, real_gid);
 	snprintf(buf, sizeof(buf), "%10ld gtkterm %.20s\n", (long)getpid(), username);
-	write(fd, buf, strlen(buf));
+	res = write(fd, buf, strlen(buf));
 	close(fd);
     }
 

@@ -581,13 +581,19 @@ void show_message(gchar *message, gint type_msg)
 
  if(type_msg==MSG_ERR)
    {
-     Fenetre_msg =
-       gtk_message_dialog_new(GTK_WINDOW(Fenetre), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, message);
+     Fenetre_msg = gtk_message_dialog_new(GTK_WINDOW(Fenetre), 
+					  GTK_DIALOG_DESTROY_WITH_PARENT, 
+					  GTK_MESSAGE_ERROR, 
+					  GTK_BUTTONS_OK, 
+					  message, NULL);
    }
  else if(type_msg==MSG_WRN)
    {
-     Fenetre_msg =
-       gtk_message_dialog_new(GTK_WINDOW(Fenetre), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_WARNING, GTK_BUTTONS_OK, message);
+     Fenetre_msg = gtk_message_dialog_new(GTK_WINDOW(Fenetre), 
+					  GTK_DIALOG_DESTROY_WITH_PARENT, 
+					  GTK_MESSAGE_WARNING, 
+					  GTK_BUTTONS_OK, 
+					  message, NULL);
    }
  else
    return;

@@ -1281,8 +1281,12 @@ gint remove_section(gchar *cfg_file, gchar *section)
 	return -1;
     }
 
-    fread(buffer, 1, size, f);
-    fclose(f);
+    if(fread(buffer, 1, size, f) != 1)
+    {
+	perror(cfg_file);
+	fclose(f);
+	return -1;
+    }
 
     to_search = g_strdup_printf("[%s]", section);
     length = strlen(to_search);
