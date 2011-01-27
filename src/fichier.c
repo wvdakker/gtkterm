@@ -133,19 +133,8 @@ gint Envoie_fichier(GtkFileChooser *FS)
 	g_free(msg);
 	Box = gtk_vbox_new(TRUE, 10);
 	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Window)->vbox), Box);
-	if(nb_car > 5000)
-	{
-	    adj = (GtkAdjustment *)gtk_adjustment_new(0, 0, (gfloat)nb_car / 1024, 0, 0, 0);
-	    ProgressBar = gtk_progress_bar_new_with_adjustment(adj);
-	    gtk_progress_set_format_string(GTK_PROGRESS(ProgressBar), _("%v / %u Kb (%p %%)"));
-	}
-	else
-	{
-	    adj = (GtkAdjustment *)gtk_adjustment_new(0, 0, (gfloat)nb_car, 0, 0, 0);
-	    ProgressBar = gtk_progress_bar_new_with_adjustment(adj);
-	    gtk_progress_set_format_string(GTK_PROGRESS(ProgressBar), _("%v / %u bytes (%p %%)"));
-	}
-	gtk_progress_set_show_text(GTK_PROGRESS(ProgressBar), TRUE);
+	ProgressBar = gtk_progress_bar_new();
+	
 	gtk_box_pack_start(GTK_BOX(Box), ProgressBar, FALSE, FALSE, 5);
 
 	Bouton_annuler = gtk_button_new_with_label(_("Cancel"));
@@ -177,8 +166,9 @@ void ecriture(gpointer data, gint source, GdkInputCondition condition)
     static gchar *current_buffer;
     static gint bytes_to_write;
     gint bytes_written;
-
     gchar *car;
+
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar), (gfloat)car_written/(gfloat)nb_car );
 
     if(car_written < nb_car)
     {
@@ -224,15 +214,12 @@ void ecriture(gpointer data, gint source, GdkInputCondition condition)
 	current_buffer_position += bytes_written;
 	current_buffer += bytes_written;
 
-	if(nb_car > 5000)
-	    gtk_progress_set_value(GTK_PROGRESS(ProgressBar), (gfloat)car_written / 1024);
-	else
-	    gtk_progress_set_value(GTK_PROGRESS(ProgressBar), (gfloat)car_written);
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar), (gfloat)car_written/(gfloat)nb_car );
 
 	if(config.delai != 0 && *car == LINE_FEED)
 	{
 	    remove_input();
-	    gtk_timeout_add(config.delai, (GtkFunction)timer, NULL);
+	    g_timeout_add(config.delai, (GSourceFunc)timer, NULL);
 	    waiting_for_timer = TRUE;
 	}
 	else if(config.car != -1 && *car == LINE_FEED)
