@@ -62,7 +62,7 @@ void remove_lockfile(void);
 void Ferme_Port(void);
 void Ouvre_Port(char *);
 
-void Lis_port(gpointer data, gint source, GdkInputCondition condition)
+gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
 {
     gint bytes_read;
     static gchar c[BUFFER_RECEPTION];
@@ -98,7 +98,8 @@ void Lis_port(gpointer data, gint source, GdkInputCondition condition)
 		perror(config.port);
 	}
     }
-    return;
+
+    return TRUE;
 }
 
 
@@ -267,10 +268,11 @@ gchar *Config_port(void)
     tcflush(serial_port_fd, TCOFLUSH);
     tcflush(serial_port_fd, TCIFLUSH);
 
-    callback_handler = g_io_add_watch(g_io_channel_unix_new(serial_port_fd),
-				      G_IO_IN, 
-				      (GIOFunc)Lis_port, 
-				      NULL);
+    callback_handler = g_io_add_watch_full(g_io_channel_unix_new(serial_port_fd),
+					   10,
+					   G_IO_IN, 
+					   (GIOFunc)Lis_port, 
+					   NULL, NULL);
 
     callback_activated = TRUE;
 
