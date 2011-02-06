@@ -214,6 +214,7 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     chaine = g_strdup(config.port);
     if(g_list_find_custom(liste, chaine, (GCompareFunc)strcmp) != NULL)
 	gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), g_list_index(liste, chaine));
+    g_free(chaine);
 
     gtk_table_attach(GTK_TABLE(Table), Combo, 0, 1, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
     Combos[0] = Combo;
@@ -275,8 +276,6 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "8");
     gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 3);
 
-    g_free(chaine);
-    chaine = g_strdup_printf("%d", config.bits);
     if(config.bits >= 5 && config.bits <= 8)
 	gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), config.bits - 5);
     gtk_table_attach(GTK_TABLE(Table), Combo, 0, 1, 3, 4, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
@@ -287,8 +286,6 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "2");
     gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
 
-    g_free(chaine);
-    chaine = g_strdup_printf("%d", config.stops);
     if(config.stops == 1 || config.stops == 2)
 	gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), config.stops - 1);
     gtk_table_attach(GTK_TABLE(Table), Combo, 1, 2, 3, 4, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
@@ -404,31 +401,46 @@ gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos)
 {
     gchar *message;
 
-    strcpy(config.port, gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[0])));
+    message = gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[0]));
+    strcpy(config.port, message);
+    g_free(message);
 
-    config.vitesse = atoi(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[1])));
-    config.bits = atoi(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[3])));
+    message = gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[1]));
+    config.vitesse = atoi(message);
+    g_free(message);
+
+    message = gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[3]));
+    config.bits = atoi(message);
+    g_free(message);
+
     config.delai = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(Combos[6]));
     config.rs485_rts_time_before_transmit = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(Combos[8]));
     config.rs485_rts_time_after_transmit = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(Combos[9]));
 
 
-    if(!strcmp(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[2])), "odd"))
+    message = gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[2]));
+    if(!strcmp(message, "odd"))
 	config.parite = 1;
-    else if(!strcmp(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[2])), "even"))
+    else if(!strcmp(message, "even"))
 	config.parite = 2;
     else
 	config.parite = 0;
+    g_free(message);
 
-    config.stops = atoi(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[4])));
-    if(!strcmp(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[5])), "Xon/Xoff"))
+    message = gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[4]));
+    config.stops = atoi(message);
+    g_free(message);
+
+    message = gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[5]));
+    if(!strcmp(message, "Xon/Xoff"))
 	config.flux = 1;
-    else if(!strcmp(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[5])), "RTS/CTS"))
+    else if(!strcmp(message, "RTS/CTS"))
 	config.flux = 2;
-    else if(!strncmp(gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combos[5])), "RS485",5))
+    else if(!strncmp(message, "RS485",5))
 	config.flux = 3;
     else
 	config.flux = 0;
+    g_free(message);
 
     if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(Combos[7])))
     {
