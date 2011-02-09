@@ -100,9 +100,9 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 
       case 'a':
 	if(!strcmp(optarg, "odd"))
-	  config.parite = 2;
-	else if(!strcmp(optarg, "even"))
 	  config.parite = 1;
+	else if(!strcmp(optarg, "even"))
+	  config.parite = 2;
 	break;
 
       case 't':
