@@ -30,7 +30,7 @@ void check_text_input(GtkEditable *editable,
 		       gpointer     user_data);
 
 struct configuration_port {
-  gchar port[64];
+  gchar port[1024];
   gint vitesse;                // 300 - 600 - 1200 - ... - 115200
   gint bits;                   // 5 - 6 - 7 - 8
   gint stops;                  // 1 - 2
