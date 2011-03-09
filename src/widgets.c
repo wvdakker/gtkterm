@@ -134,7 +134,7 @@ static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/File/E_xit") , "<ctrl>Q", gtk_main_quit, 0, "<StockItem>", GTK_STOCK_QUIT},
 
   {N_("/Edit/_Paste") , "<ctrl><shift>v", (GtkItemFactoryCallback)gui_paste, 0, "<StockItem>", GTK_STOCK_PASTE},
-  {N_("/Edit/_Copy") , "<ctrl><shift>v", (GtkItemFactoryCallback)gui_copy, 0, "<StockItem>", GTK_STOCK_COPY},
+  {N_("/Edit/_Copy") , "<ctrl><shift>c", (GtkItemFactoryCallback)gui_copy, 0, "<StockItem>", GTK_STOCK_COPY},
   {N_("/Edit/Copy _All") , NULL, (GtkItemFactoryCallback)gui_copy_all_clipboard, 0, "<StockItem>", GTK_STOCK_SELECT_ALL},
 
   {N_("/_Configuration"), NULL, NULL, 0, "<Branch>"},
