@@ -112,7 +112,6 @@ gint toggle_index(gpointer *, guint, GtkWidget *);
 gint show_hide_hex(gpointer *, guint, GtkWidget *);
 void initialize_hexadecimal_display(void);
 gboolean Send_Hexadecimal(GtkWidget *, GdkEventKey *, gpointer);
-void Put_temp_message(const gchar *, gint);
 gboolean pop_message(void);
 static gchar *translate_menu(const gchar *, gpointer);
 static void Got_Input(VteTerminal *, gchar *, guint, gpointer);
