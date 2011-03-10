@@ -58,6 +58,10 @@ int main(int argc, char *argv[])
   if(message == NULL)
     message = g_strdup_printf("No open port");
 
+  message = get_port_string();
+  Set_window_title(message);
+  g_free(message);
+
   Set_Font();
   add_shortcuts();
 

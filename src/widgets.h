@@ -31,6 +31,7 @@ void clear_display(void);
 void set_view(guint);
 gint send_serial(gchar *, gint);
 void Put_temp_message(const gchar *, gint);
+void Set_window_title(gchar *msg);
 
 extern GtkWidget *Fenetre;
 extern GtkWidget *StatusBar;

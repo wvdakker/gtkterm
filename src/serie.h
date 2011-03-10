@@ -26,6 +26,7 @@ void configure_echo(gboolean);
 void configure_crlfauto(gboolean);
 void sendbreak(void);
 gint set_custom_speed(int, int);
+gchar* get_port_string(void);
 
 
 #define BUFFER_RECEPTION 8192

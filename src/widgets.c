@@ -276,7 +276,8 @@ void create_main_window(void)
 
   gtk_signal_connect(GTK_OBJECT(Fenetre), "destroy", (GtkSignalFunc)gtk_main_quit, NULL);
   gtk_signal_connect(GTK_OBJECT(Fenetre), "delete_event", (GtkSignalFunc)gtk_main_quit, NULL);
-  gtk_window_set_title(GTK_WINDOW(Fenetre), "GtkTerm");
+  
+  Set_window_title("GtkTerm");
 
   Boite = gtk_vbox_new(FALSE, 0);
   gtk_container_add(GTK_CONTAINER(Fenetre), Boite);
@@ -572,6 +573,11 @@ void Set_status_message(gchar *msg)
 {
   gtk_statusbar_pop(GTK_STATUSBAR(StatusBar), id);
   gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, msg);
+}
+
+void Set_window_title(gchar *msg)
+{
+    gtk_window_set_title(GTK_WINDOW(Fenetre), msg);
 }
 
 void show_message(gchar *message, gint type_msg)

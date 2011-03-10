@@ -520,3 +520,41 @@ gint set_custom_speed(int speed, int port_fd)
 
     return 0;
 }
+
+gchar* get_port_string(void)
+{
+    gchar* msg;
+    gchar parity;
+
+    if(serial_port_fd == -1)
+    {
+	msg = g_strdup(_("No open port"));
+    } else {
+        // 0: none, 1: odd, 2: even
+	switch(config.parite)
+	{
+	    case 0:
+		parity = 'N';
+		break;
+	    case 1:
+		parity = 'O';
+		break;
+	    case 2:
+		parity = 'E';
+		break;
+	    default:
+		parity = 'N';
+	}
+
+	/* "GtkTerm: device  baud-bits-parity-stops"  */
+	msg = g_strdup_printf("GtkTerm: %.15s  %d-%d-%c-%d",
+			      config.port,
+			      config.vitesse,
+			      config.bits,
+			      parity,
+			      config.stops
+			      );
+    }
+    
+    return msg;
+}
