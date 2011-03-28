@@ -577,7 +577,9 @@ void Set_status_message(gchar *msg)
 
 void Set_window_title(gchar *msg)
 {
-    gtk_window_set_title(GTK_WINDOW(Fenetre), msg);
+    gchar* header = g_strdup_printf("GtkTerm - %s", msg);
+    gtk_window_set_title(GTK_WINDOW(Fenetre), header);
+    g_free(header);
 }
 
 void show_message(gchar *message, gint type_msg)
