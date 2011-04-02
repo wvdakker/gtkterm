@@ -67,6 +67,7 @@
 #include "buffer.h"
 #include "macros.h"
 #include "auto_config.h"
+#include "logging.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
@@ -115,14 +116,13 @@ gboolean Send_Hexadecimal(GtkWidget *, GdkEventKey *, gpointer);
 gboolean pop_message(void);
 static gchar *translate_menu(const gchar *, gpointer);
 static void Got_Input(VteTerminal *, gchar *, guint, gpointer);
-
 gint gui_paste(void);
 gint gui_copy(void);
 gint gui_copy_all_clipboard(void);
 
 
 /* Menu */
-#define NUMBER_OF_ITEMS 37
+#define NUMBER_OF_ITEMS 40
 
 static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/_File") , NULL, NULL, 0, "<Branch>"},
@@ -131,11 +131,13 @@ static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/File/_Save raw file") , NULL, (GtkItemFactoryCallback)fichier, 2, "<StockItem>", GTK_STOCK_SAVE_AS},
   {N_("/File/Separator") , NULL, NULL, 0, "<Separator>"},
   {N_("/File/E_xit") , "<ctrl>Q", gtk_main_quit, 0, "<StockItem>", GTK_STOCK_QUIT},
-
   {N_("/Edit/_Paste") , "<ctrl><shift>v", (GtkItemFactoryCallback)gui_paste, 0, "<StockItem>", GTK_STOCK_PASTE},
   {N_("/Edit/_Copy") , "<ctrl><shift>c", (GtkItemFactoryCallback)gui_copy, 0, "<StockItem>", GTK_STOCK_COPY},
   {N_("/Edit/Copy _All") , NULL, (GtkItemFactoryCallback)gui_copy_all_clipboard, 0, "<StockItem>", GTK_STOCK_SELECT_ALL},
-
+  {N_("/_Log") , NULL, NULL, 0, "<Branch>"},
+  {N_("/Log/To File") , NULL, (GtkItemFactoryCallback)logging_start, 0, "<StockItem>", GTK_STOCK_MEDIA_RECORD},
+  {N_("/Log/Pause Resume") , NULL, (GtkItemFactoryCallback)logging_pause, 0, "<StockItem>", GTK_STOCK_MEDIA_PAUSE},
+  {N_("/Log/Stop") , NULL, (GtkItemFactoryCallback)logging_stop, 0, "<StockItem>", GTK_STOCK_MEDIA_STOP},
   {N_("/_Configuration"), NULL, NULL, 0, "<Branch>"},
   {N_("/Configuration/_Port"), "<ctrl>S", (GtkItemFactoryCallback)Config_Port_Fenetre, 0, "<StockItem>", GTK_STOCK_PREFERENCES},
   {N_("/Configuration/_Main window"), NULL, (GtkItemFactoryCallback)Config_Terminal, 0, "<StockItem>", GTK_STOCK_SELECT_FONT},
@@ -425,6 +427,7 @@ void put_hexadecimal(gchar *string, guint size)
 	  gchar ascii[1];
 
 	  sprintf(data_byte, "%02X ", (guchar)string[i]);
+	  log_chars(data_byte, 3);
 	  vte_terminal_feed(VTE_TERMINAL(display), data_byte, 3);
 
 	  avance = (bytes_per_line - bytes) * 3 + bytes + 2;
@@ -461,7 +464,8 @@ void put_hexadecimal(gchar *string, guint size)
 
 void put_text(gchar *string, guint size)
 {
-  vte_terminal_feed(VTE_TERMINAL(display), string, size);
+    log_chars(string, size);
+    vte_terminal_feed(VTE_TERMINAL(display), string, size);
 }
 
 gint send_serial(gchar *string, gint len)

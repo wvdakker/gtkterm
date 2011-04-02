@@ -48,7 +48,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_gtkterm_OBJECTS = term_config.$(OBJEXT) fichier.$(OBJEXT) \
 	gtkterm.$(OBJEXT) serie.$(OBJEXT) widgets.$(OBJEXT) \
 	cmdline.$(OBJEXT) parsecfg.$(OBJEXT) buffer.$(OBJEXT) \
-	macros.$(OBJEXT) i18n.$(OBJEXT)
+	macros.$(OBJEXT) i18n.$(OBJEXT) logging.$(OBJEXT)
 gtkterm_OBJECTS = $(am_gtkterm_OBJECTS)
 gtkterm_DEPENDENCIES =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -215,7 +215,9 @@ gtkterm_SOURCES = \
     macros.h \
     i18n.c \
     i18n.h \
-    auto_config.h
+    auto_config.h \
+    logging.c \
+    logging.h 
 
 gtkterm_LDADD = @GTK_LIBS@ @VTE_LIBS@
 CLEANFILES = *~
@@ -306,6 +308,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fichier.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkterm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/i18n.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logging.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/macros.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parsecfg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/serie.Po@am__quote@
