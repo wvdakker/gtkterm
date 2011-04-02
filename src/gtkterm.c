@@ -60,12 +60,11 @@ int main(int argc, char *argv[])
 
   message = get_port_string();
   Set_window_title(message);
+  Set_status_message(message);
   g_free(message);
 
   Set_Font();
   add_shortcuts();
-
-  Set_status_message(message);
 
   set_view(ASCII_VIEW);
 

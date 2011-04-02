@@ -48,7 +48,7 @@
 struct termios termios_save;
 int serial_port_fd = -1;
 
-guint callback_handler;
+guint callback_handler_in, callback_handler_err;
 gboolean callback_activated = FALSE;
 char lockfile[128] = {0};
 
@@ -102,6 +102,11 @@ gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
     return TRUE;
 }
 
+gboolean io_err(GIOChannel* src, GIOCondition cond, gpointer data)
+{
+    Ferme_Port();
+    return TRUE;
+}
 
 int Send_chars(char *string, int length)
 {
@@ -144,7 +149,7 @@ void Ouvre_Port(char *port)
 gchar *Config_port(void)
 {
     struct termios termios_p;
-    gchar *msg;
+    gchar *msg = NULL;
 
     Ferme_Port();
     remove_lockfile();
@@ -268,10 +273,16 @@ gchar *Config_port(void)
     tcflush(serial_port_fd, TCOFLUSH);
     tcflush(serial_port_fd, TCIFLUSH);
 
-    callback_handler = g_io_add_watch_full(g_io_channel_unix_new(serial_port_fd),
+    callback_handler_in = g_io_add_watch_full(g_io_channel_unix_new(serial_port_fd),
 					   10,
 					   G_IO_IN, 
 					   (GIOFunc)Lis_port, 
+					   NULL, NULL);
+
+    callback_handler_err = g_io_add_watch_full(g_io_channel_unix_new(serial_port_fd),
+					   10,
+					   G_IO_ERR, 
+					   (GIOFunc)io_err, 
 					   NULL, NULL);
 
     callback_activated = TRUE;
@@ -297,7 +308,8 @@ void Ferme_Port(void)
     {
 	if(callback_activated == TRUE)
 	{
-	    g_source_remove(callback_handler);
+	    g_source_remove(callback_handler_in);
+	    g_source_remove(callback_handler_err);
 	    callback_activated = FALSE;
 	}
 	tcsetattr(serial_port_fd, TCSANOW, &termios_save);
@@ -547,7 +559,7 @@ gchar* get_port_string(void)
 	}
 
 	/* "GtkTerm: device  baud-bits-parity-stops"  */
-	msg = g_strdup_printf("GtkTerm: %.15s  %d-%d-%c-%d",
+	msg = g_strdup_printf("%.15s  %d-%d-%c-%d",
 			      config.port,
 			      config.vitesse,
 			      config.bits,
