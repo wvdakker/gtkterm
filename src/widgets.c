@@ -122,7 +122,7 @@ gint gui_copy_all_clipboard(void);
 
 
 /* Menu */
-#define NUMBER_OF_ITEMS 40
+#define NUMBER_OF_ITEMS 41
 
 static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/_File") , NULL, NULL, 0, "<Branch>"},
@@ -555,7 +555,7 @@ gint signaux(GtkWidget *widget, guint param)
   if(param == 2)
     {
       sendbreak();
-      Put_temp_message(_("Break signal sent !"), 800);
+      Put_temp_message(_("Break signal sent!"), 800);
     }
   else
     Set_signals(param);
@@ -627,7 +627,7 @@ gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointe
   text = (gchar *)gtk_entry_get_text(GTK_ENTRY(widget));
 
   if(strlen(text) == 0){
-      message = g_strdup_printf(_("0 byte(s) sent !"));
+      message = g_strdup_printf(_("0 byte(s) sent!"));
       Put_temp_message(message, 1500);
       gtk_entry_set_text(GTK_ENTRY(widget), "");
       g_free(message);
@@ -658,7 +658,7 @@ gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointe
 	}
     }
   all_written[strlen(all_written) - 1] = 0;
-  message = g_strdup_printf(_("\"%s\" : %d byte(s) sent !"), all_written, sent);
+  message = g_strdup_printf(_("\"%s\" : %d byte(s) sent!"), all_written, sent);
   Put_temp_message(message, 1500);
   gtk_entry_set_text(GTK_ENTRY(widget), "");
   g_free(message);
