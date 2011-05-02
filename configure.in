@@ -41,7 +41,7 @@ AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 
 if test "$CC" = "gcc" ; then
-  GNUCFLAGS="-Wall"
+  GNUCFLAGS="-Wall -fno-omit-frame-pointer -fno-strict-aliasing -O2"
 fi
 AC_SUBST(GNUCFLAGS)
 
