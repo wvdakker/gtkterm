@@ -12,6 +12,8 @@
 /*   ChangeLog                                                         */
 /*   (All changes by Julien Schmitt except when explicitly written)    */
 /*                                                                     */
+/*      - 0.99.7 : Changed keyboard shortcuts to <ctrl><shift>         */ 
+/*	            (Ken Peek)                                         */
 /*      - 0.99.6 : Added scrollbar and copy/paste (Zach Davis)         */
 /*                                                                     */
 /*      - 0.99.5 : Make package buildable on pure *BSD by changing the */
@@ -126,11 +128,11 @@ gint gui_copy_all_clipboard(void);
 
 static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/_File") , NULL, NULL, 0, "<Branch>"},
-  {N_("/File/Clear screen") , "<ctrl>L", (GtkItemFactoryCallback)clear_buffer, 0, "<StockItem>", GTK_STOCK_CLEAR},
-  {N_("/File/Send _raw file") , "<ctrl>R", (GtkItemFactoryCallback)fichier, 1, "<StockItem>",GTK_STOCK_JUMP_TO},
+  {N_("/File/Clear screen") , "<ctrl><shift>L", (GtkItemFactoryCallback)clear_buffer, 0, "<StockItem>", GTK_STOCK_CLEAR},
+  {N_("/File/Send _raw file") , "<ctrl><shift>R", (GtkItemFactoryCallback)fichier, 1, "<StockItem>",GTK_STOCK_JUMP_TO},
   {N_("/File/_Save raw file") , NULL, (GtkItemFactoryCallback)fichier, 2, "<StockItem>", GTK_STOCK_SAVE_AS},
   {N_("/File/Separator") , NULL, NULL, 0, "<Separator>"},
-  {N_("/File/E_xit") , "<ctrl>Q", gtk_main_quit, 0, "<StockItem>", GTK_STOCK_QUIT},
+  {N_("/File/E_xit") , "<ctrl><shift>Q", gtk_main_quit, 0, "<StockItem>", GTK_STOCK_QUIT},
   {N_("/Edit/_Paste") , "<ctrl><shift>v", (GtkItemFactoryCallback)gui_paste, 0, "<StockItem>", GTK_STOCK_PASTE},
   {N_("/Edit/_Copy") , "<ctrl><shift>c", (GtkItemFactoryCallback)gui_copy, 0, "<StockItem>", GTK_STOCK_COPY},
   {N_("/Edit/Copy _All") , NULL, (GtkItemFactoryCallback)gui_copy_all_clipboard, 0, "<StockItem>", GTK_STOCK_SELECT_ALL},
@@ -139,7 +141,7 @@ static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/Log/Pause Resume") , NULL, (GtkItemFactoryCallback)logging_pause, 0, "<StockItem>", GTK_STOCK_MEDIA_PAUSE},
   {N_("/Log/Stop") , NULL, (GtkItemFactoryCallback)logging_stop, 0, "<StockItem>", GTK_STOCK_MEDIA_STOP},
   {N_("/_Configuration"), NULL, NULL, 0, "<Branch>"},
-  {N_("/Configuration/_Port"), "<ctrl>S", (GtkItemFactoryCallback)Config_Port_Fenetre, 0, "<StockItem>", GTK_STOCK_PREFERENCES},
+  {N_("/Configuration/_Port"), "<ctrl><shift>S", (GtkItemFactoryCallback)Config_Port_Fenetre, 0, "<StockItem>", GTK_STOCK_PREFERENCES},
   {N_("/Configuration/_Main window"), NULL, (GtkItemFactoryCallback)Config_Terminal, 0, "<StockItem>", GTK_STOCK_SELECT_FONT},
   {N_("/Configuration/Local _echo"), NULL, (GtkItemFactoryCallback)Toggle_Echo, 0, "<CheckItem>"},
   {N_("/Configuration/_CR LF auto"), NULL, (GtkItemFactoryCallback)Toggle_Crlfauto, 0, "<CheckItem>"},
