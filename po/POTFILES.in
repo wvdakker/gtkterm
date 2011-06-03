@@ -4,9 +4,10 @@
 # Package source files
 src/buffer.c
 src/cmdline.c
-src/config.c
 src/fichier.c
 src/macros.c
 src/parsecfg.c
 src/serie.c
 src/widgets.c
+src/logging.c
+src.term_config.c
