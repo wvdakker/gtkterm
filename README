@@ -38,6 +38,19 @@ Command line options
   --file <filename> or -f : default file to send (default none)
   --echo or -e : switch on local echo
 
+Keyboard shortcuts 
+  As Gtkterm is often used like a terminal emulator,
+  the shortcut keys are assigned to <ctrl><shift>, rather than just
+  <ctrl>.  This allows the user to send keystrokes of the form <ctrl>X
+  rather than have Gtkterm intercept them.
+
+  <ctrl><shift>L -- Clear screen
+  <ctrl><shift>R -- Send file
+  <ctrl><shift>Q -- Quit 
+  <ctrl><shift>S -- Configure port
+  <ctrl><shift>V -- Paste
+  <ctrl><shift>C -- Copy
+  <ctrl>B	 -- Send break
 
 NOTES on RS485:
      The RS485 flow control is a software user-space emulation and therefore
@@ -59,5 +72,9 @@ Building:
 
  And to install:
   make install
+
+ If you wish to install Gtkterm someplace other than the default directory, use:
+   ./configure --prefix=/install/directory
+ Then build and install as usual.
 
  See INSTALL for more detailed build and install options.
