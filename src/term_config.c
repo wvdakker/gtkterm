@@ -40,6 +40,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vte/vte.h>
+#include <glib/gi18n.h>
 
 #include "serie.h"
 #include "term_config.h"
@@ -49,27 +50,15 @@
 #include "i18n.h"
 #include "config.h"
 
-#include <glib/gi18n.h>
 
-#define NUMBER_OF_DEVICES 16
+#define DEVICE_NUMBERS_TO_CHECK 12
 
-gchar *devices_list[NUMBER_OF_DEVICES] = {
-    "/dev/ttyS0",
-    "/dev/ttyS1",
-    "/dev/ttyS2",
-    "/dev/ttyS3",
-    "/dev/tts/0",
-    "/dev/tts/1",
-    "/dev/tts/2",
-    "/dev/tts/3",
-    "/dev/ttyUSB0",
-    "/dev/ttyUSB1",
-    "/dev/ttyUSB2",
-    "/dev/ttyUSB3",
-    "/dev/usb/tts/0",
-    "/dev/usb/tts/1",
-    "/dev/usb/tts/2",
-    "/dev/usb/tts/3"
+gchar *devices_to_check[] = {
+    "/dev/ttyS%d",
+    "/dev/tts/%d",
+    "/dev/ttyUSB%d",
+    "/dev/usb/tts/%d",
+    NULL
 };
 
 /* Configuration file variables */
@@ -165,26 +154,33 @@ extern GtkWidget *display;
 
 gint Config_Port_Fenetre(GtkWidget *widget, guint param)
 {
-    GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule, *Combo, *Dialogue, *Frame, *CheckBouton, *Spin, *Expander, *ExpanderVbox;
+    GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule, 
+	      *Combo, *Dialogue, *Frame, *CheckBouton, 
+	      *Spin, *Expander, *ExpanderVbox;
     static GtkWidget *Combos[10];
-    GList *liste;
+    GList *liste = NULL;
     gchar *chaine = NULL;
+    gchar **dev = NULL;
     GtkObject *adj;
     struct stat my_stat;
     int i;
 
-    liste = NULL;
-
-    for(i = 0; i < NUMBER_OF_DEVICES; i++)
+    for(dev = devices_to_check; *dev != NULL; dev++)
     {
-	if(stat(devices_list[i], &my_stat) == 0)
-	    liste = g_list_append(liste, devices_list[i]);
+	for(i = 0; i < DEVICE_NUMBERS_TO_CHECK; i++)
+	{
+	    chaine = g_strdup_printf(*dev, i);
+	    if(stat(chaine, &my_stat) == 0)
+		liste = g_list_append(liste, chaine);
+	}
     }
 
     if(liste == NULL)
     {
-	show_message(_("No valid serial device found in /dev, sorry !\nYou should have at least one of these :\n/dev/ttyS*\n/dev/tts/*\n/dev/ttyUSB*\n/dev/usb/tts/*\n"), MSG_ERR);
-	return FALSE;
+	show_message(_("No serial devices found!\n\n"
+		       "Search all of these devices:\n"
+		       "/dev/ttyS*\n/dev/tts/*\n/dev/ttyUSB*\n/dev/usb/tts/*\n\n"
+		       "Enter a different device in the 'Port' box.\n"), MSG_WRN);
     }
 
     Dialogue = gtk_dialog_new();
@@ -204,6 +200,7 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     Label = gtk_label_new(_("Parity :"));
     gtk_table_attach(GTK_TABLE(Table), Label, 2, 3, 0, 1, 0, 0, 10, 5);
 
+    // create the devices combo box, and add device strings
     Combo = gtk_combo_box_entry_new_text();
 
     for(i = 0; i < g_list_length(liste); i++)
@@ -214,6 +211,15 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     chaine = g_strdup(config.port);
     if(g_list_find_custom(liste, chaine, (GCompareFunc)strcmp) != NULL)
 	gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), g_list_index(liste, chaine));
+
+
+    // clean up devices strings
+    //g_list_free(liste, (GDestroyNotify)g_free); // only available in glib >= 2.28
+    for(i = 0; i < g_list_length(liste); i++)
+    {
+	g_free(g_list_nth_data(liste, i));
+    }
+    g_list_free(liste);
     g_free(chaine);
 
     gtk_table_attach(GTK_TABLE(Table), Combo, 0, 1, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
