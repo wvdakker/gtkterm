@@ -152,7 +152,7 @@ gint Envoie_fichier(GtkFileChooser *FS)
     }
     else
     {
-	str = g_strdup_printf(_("Cannot read file %s : %s\n"), NomFichier, strerror(errno));
+	str = g_strdup_printf(_("Cannot read file %s: %s\n"), NomFichier, strerror(errno));
 	show_message(str, MSG_ERR);
 	g_free(str);
     }
@@ -297,7 +297,7 @@ gint Sauve_fichier(GtkFileChooser *FS)
     Fic = fopen(NomFichier, "w");
     if(Fic == NULL)
     {
-	str = g_strdup_printf(_("Cannot open file %s : %s\n"), NomFichier, strerror(errno));
+	str = g_strdup_printf(_("Cannot open file %s: %s\n"), NomFichier, strerror(errno));
 	show_message(str, MSG_ERR);
 	g_free(str);
     }

@@ -160,7 +160,7 @@ gchar *Config_port(void)
     if(serial_port_fd == -1)
     {
 	g_free(str_err);
-	str_err = g_strdup_printf(_("Cannot open %s : %s\n"), config.port, strerror_utf8(errno));
+	str_err = g_strdup_printf(_("Cannot open %s: %s\n"), config.port, strerror_utf8(errno));
 	show_message(str_err, MSG_ERR);
 	return NULL;
     }

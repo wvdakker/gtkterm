@@ -193,11 +193,11 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     Table = gtk_table_new(4, 3, FALSE);
     gtk_container_add(GTK_CONTAINER(Frame), Table);
 
-    Label = gtk_label_new(_("Port :"));
+    Label = gtk_label_new(_("Port:"));
     gtk_table_attach(GTK_TABLE(Table), Label, 0, 1, 0, 1, 0, 0, 10, 5);
-    Label = gtk_label_new(_("Baud Rate :"));
+    Label = gtk_label_new(_("Baud Rate:"));
     gtk_table_attach(GTK_TABLE(Table), Label, 1, 2, 0, 1, 0, 0, 10, 5);
-    Label = gtk_label_new(_("Parity :"));
+    Label = gtk_label_new(_("Parity:"));
     gtk_table_attach(GTK_TABLE(Table), Label, 2, 3, 0, 1, 0, 0, 10, 5);
 
     // create the devices combo box, and add device strings
@@ -268,11 +268,11 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     gtk_table_attach(GTK_TABLE(Table), Combo, 2, 3, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
     Combos[2] = Combo;
 
-    Label = gtk_label_new(_("Bits :"));
+    Label = gtk_label_new(_("Bits:"));
     gtk_table_attach(GTK_TABLE(Table), Label, 0, 1, 2, 3, 0, 0, 10, 5);
-    Label = gtk_label_new(_("Stopbits :"));
+    Label = gtk_label_new(_("Stopbits:"));
     gtk_table_attach(GTK_TABLE(Table), Label, 1, 2, 2, 3, 0, 0, 10, 5);
-    Label = gtk_label_new(_("Flow control :"));
+    Label = gtk_label_new(_("Flow control:"));
     gtk_table_attach(GTK_TABLE(Table), Label, 2, 3, 2, 3, 0, 0, 10, 5);
 
     Combo = gtk_combo_box_new_text();
@@ -334,7 +334,7 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     Table = gtk_table_new(2, 2, FALSE);
     gtk_container_add(GTK_CONTAINER(Frame), Table);
 
-    Label = gtk_label_new(_("End of line delay (milliseconds) :"));
+    Label = gtk_label_new(_("End of line delay (milliseconds):"));
     gtk_table_attach_defaults(GTK_TABLE(Table), Label, 0, 1, 0, 1);
 
     adj = gtk_adjustment_new(0.0, 0.0, 500.0, 10.0, 20.0, 0.0);
@@ -350,7 +350,7 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     gtk_widget_set_sensitive(GTK_WIDGET(Entry), FALSE);
     gtk_table_attach(GTK_TABLE(Table), Entry, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
 
-    CheckBouton = gtk_check_button_new_with_label(_("Wait for this special character before passing to next line :"));
+    CheckBouton = gtk_check_button_new_with_label(_("Wait for this special character before passing to next line:"));
 
     g_signal_connect(GTK_OBJECT(CheckBouton), "clicked", G_CALLBACK(Grise_Degrise), (gpointer)Spin);
 
@@ -370,9 +370,9 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     Table = gtk_table_new(2, 2, FALSE);
     gtk_container_add(GTK_CONTAINER(Frame), Table);
 
-    Label = gtk_label_new(_("Time with RTS 'on' before transmit (milliseconds) :"));
+    Label = gtk_label_new(_("Time with RTS 'on' before transmit (milliseconds):"));
     gtk_table_attach_defaults(GTK_TABLE(Table), Label, 0, 1, 0, 1);
-    Label = gtk_label_new(_("Time with RTS 'on' after transmit (milliseconds) :"));
+    Label = gtk_label_new(_("Time with RTS 'on' after transmit (milliseconds):"));
     gtk_table_attach_defaults(GTK_TABLE(Table), Label, 0, 1, 1, 2);
 
     adj = gtk_adjustment_new(0.0, 0.0, 500.0, 10.0, 20.0, 0.0);
@@ -568,7 +568,7 @@ void Select_config(gchar *title, void *callback)
 
     if(max == -1)
     {
-	show_message(_("Cannot read configuration file !\n"), MSG_ERR);
+	show_message(_("Cannot read configuration file!\n"), MSG_ERR);
 	return;
     }
 
@@ -696,12 +696,12 @@ void really_save_config(GtkDialog *Fenetre, gint id, gpointer data)
 	{
 	    if(remove_section(config_file, (char *)data) == -1)
 	    {
-		show_message(_("Cannot overwrite section !"), MSG_ERR);
+		show_message(_("Cannot overwrite section!"), MSG_ERR);
 		return;
 	    }
 	    if(max == cfgParse(config_file, cfg, CFG_INI))
 	    {
-		show_message(_("Cannot read configuration file !"), MSG_ERR);
+		show_message(_("Cannot read configuration file!"), MSG_ERR);
 		return;
 	    }
 	    max = cfgAllocForNewSection(cfg, (char *)data);
@@ -737,7 +737,7 @@ void save_config(GtkDialog *Fenetre, gint id, GtkWidget *edit)
 	    if(!strcmp(gtk_entry_get_text(GTK_ENTRY(edit)), cfgSectionNumberToName(i)))
 	    {
 		/* section already exists */
-		dialog = gtk_dialog_new_with_buttons (_("Warning !"),
+		dialog = gtk_dialog_new_with_buttons (_("Warning!"),
 						      NULL,
 						      GTK_DIALOG_DESTROY_WITH_PARENT,
 						      GTK_STOCK_CANCEL,
@@ -808,7 +808,7 @@ void delete_config(GtkDialog *Fenetre, gint id, GtkTreeSelection *Selection_List
 	{
 	    gtk_tree_model_get(GTK_TREE_MODEL(Modele), &iter, 0, (gint *)&txt, -1);
 	    if(remove_section(config_file, txt) == -1)
-		show_message(_("Cannot delete section !"), MSG_ERR);
+		show_message(_("Cannot delete section!"), MSG_ERR);
 	}
     }
 }
@@ -1026,14 +1026,14 @@ void Verify_configuration(void)
 	    break;
 
 	default:
-	    string = g_strdup_printf(_("Unknown rate : %d bauds\nMay not be supported by all hardware"), config.vitesse);
+	    string = g_strdup_printf(_("Unknown rate: %d baud\nMay not be supported by all hardware"), config.vitesse);
 	    show_message(string, MSG_ERR);
 	    g_free(string);
     }
 
     if(config.stops != 1 && config.stops != 2)
     {
-	string = g_strdup_printf(_("Impossible stopbits number : %d\nFalling back to default stop bits number : %d\n"), config.stops, DEFAULT_STOP);
+	string = g_strdup_printf(_("Invalid number of stop-bits: %d\nFalling back to default number of stop-bits number: %d\n"), config.stops, DEFAULT_STOP);
 	show_message(string, MSG_ERR);
 	config.stops = DEFAULT_STOP;
 	g_free(string);
@@ -1041,7 +1041,7 @@ void Verify_configuration(void)
 
     if(config.bits < 5 || config.bits > 8)
     {
-	string = g_strdup_printf(_("Impossible bits number : %d\nFalling back to default stop bits : %d\n"), config.bits, DEFAULT_BITS);
+	string = g_strdup_printf(_("Invalid number of bits: %d\nFalling back to default number of bits: %d\n"), config.bits, DEFAULT_BITS);
 	show_message(string, MSG_ERR);
 	config.bits = DEFAULT_BITS;
 	g_free(string);
@@ -1049,7 +1049,7 @@ void Verify_configuration(void)
 
     if(config.delai < 0 || config.delai > 500)
     {
-	string = g_strdup_printf(_("Impossible delay : %d ms\nFalling back to default delay : %d ms\n"), config.delai, DEFAULT_DELAY);
+	string = g_strdup_printf(_("Invalid delay: %d ms\nFalling back to default delay: %d ms\n"), config.delai, DEFAULT_DELAY);
 	show_message(string, MSG_ERR);
 	config.delai = DEFAULT_DELAY;
 	g_free(string);
@@ -1068,7 +1068,7 @@ gint Check_configuration_file(void)
     /* is configuration file present ? */
     if(stat(config_file, &my_stat) == 0)
     {
-	/* If bad configuration file, fallback to _hardcoded_ defaults ! */
+	/* If bad configuration file, fallback to _hardcoded_ defaults! */
 	if(Load_configuration_from_file("default") == -1)
 	{
 	    Hard_default_configuration();
@@ -1384,7 +1384,7 @@ gint Config_Terminal(GtkWidget *widget, guint param)
 
     BoiteH = gtk_hbox_new(FALSE, 0);
     Label = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(Label), "<b>Font selection : </b>");
+    gtk_label_set_markup(GTK_LABEL(Label), "<b>Font selection: </b>");
     gtk_box_pack_start(GTK_BOX(BoiteH), Label, FALSE, TRUE, 0);
     fonte =  g_strdup_printf("%s", term_conf.font);
     Bouton_font = gtk_button_new_with_label(fonte);
@@ -1399,17 +1399,17 @@ gint Config_Terminal(GtkWidget *widget, guint param)
 
     Label = gtk_label_new(NULL);
     gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
-    gtk_label_set_markup(GTK_LABEL(Label), "<b>Colors : </b>");
+    gtk_label_set_markup(GTK_LABEL(Label), "<b>Colors: </b>");
     gtk_box_pack_start(GTK_BOX(BoiteV), Label, FALSE, TRUE, 10);
 
 
     Table = gtk_table_new(2, 2, FALSE);
 
-    Label = gtk_label_new("Text color :");
+    Label = gtk_label_new("Text color:");
     gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
     gtk_table_attach(GTK_TABLE(Table), Label, 0, 1, 0, 1, GTK_SHRINK | GTK_FILL, GTK_SHRINK, 10, 0);
 
-    Label = gtk_label_new("Background color :");
+    Label = gtk_label_new("Background color:");
     gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
     gtk_table_attach(GTK_TABLE(Table), Label, 0, 1, 1, 2, GTK_SHRINK | GTK_FILL , GTK_SHRINK, 10, 0);
 
@@ -1433,7 +1433,7 @@ gint Config_Terminal(GtkWidget *widget, guint param)
 
     Label = gtk_label_new(NULL);
     gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
-    gtk_label_set_markup(GTK_LABEL(Label), "<b>Transparency : </b>");
+    gtk_label_set_markup(GTK_LABEL(Label), "<b>Transparency: </b>");
     gtk_box_pack_start(GTK_BOX(BoiteV), Label, FALSE, TRUE, 10);
 
     Check_Bouton = gtk_check_button_new_with_label("Transparency enable");
@@ -1449,11 +1449,11 @@ gint Config_Terminal(GtkWidget *widget, guint param)
 
     Label = gtk_label_new(NULL);
     gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
-    gtk_label_set_markup(GTK_LABEL(Label), "<b>Screen : </b>");  
+    gtk_label_set_markup(GTK_LABEL(Label), "<b>Screen: </b>");  
     gtk_box_pack_start(GTK_BOX(BoiteV), Label, FALSE, TRUE, 10);
 
     BoiteH = gtk_hbox_new(FALSE, 0);
-    Label = gtk_label_new("Scrollback lines :");
+    Label = gtk_label_new("Scrollback lines:");
     gtk_box_pack_start(GTK_BOX(BoiteH), Label, FALSE, TRUE, 0);
     Entry = gtk_entry_new();
     gtk_entry_set_max_length(GTK_ENTRY(Entry), 4);

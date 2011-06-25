@@ -64,7 +64,7 @@ gint OpenLogFile(GtkFileChooser *file_select)
     LoggingFile = fopen(LoggingFileName, "a");
     if(LoggingFile == NULL)
     {
-	str = g_strdup_printf(_("Can not open file '%s': %s\n"), LoggingFileName, strerror(errno));
+	str = g_strdup_printf(_("Cannot open file %s: %s\n"), LoggingFileName, strerror(errno));
 
 	show_message(str, MSG_ERR);
 	g_free(str);
