@@ -1303,7 +1303,7 @@ gint remove_section(gchar *cfg_file, gchar *section)
 	return -1;
     }
 
-    if(fread(buffer, 1, size, f) != 1)
+    if(fread(buffer, 1, size, f) != size)
     {
 	perror(cfg_file);
 	fclose(f);
