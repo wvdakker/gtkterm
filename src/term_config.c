@@ -57,6 +57,7 @@ gchar *devices_to_check[] = {
     "/dev/ttyS%d",
     "/dev/tts/%d",
     "/dev/ttyUSB%d",
+    "/dev/ttyACM%d",
     "/dev/usb/tts/%d",
     NULL
 };
