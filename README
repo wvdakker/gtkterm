@@ -1,13 +1,15 @@
-		GTKTerm : a GTK+ serial port terminal
-		=====================================
+                GTKTerm : a GTK+ serial port terminal
+                =====================================
 
-			  Original Code by:
-			  (c) Julien Schmitt
-		 http://www.jls-info.com/julien/linux
+                          Original Code by:
+                          (c) Julien Schmitt
+                 http://www.jls-info.com/julien/linux
 
-		       Currently Maintained At:
-		  https://fedorahosted.org/gtkterm/
-		By Zach Davis zdavkeos -at- gmail.com
+                       Currently Maintained At:
+                  https://fedorahosted.org/gtkterm/
+                By Zach Davis zdavkeos -at- gmail.com
+
+Version 0.99.7
 
 Notice:
     This program is free software: you can redistribute it and/or modify
@@ -42,7 +44,7 @@ Keyboard shortcuts
   As Gtkterm is often used like a terminal emulator,
   the shortcut keys are assigned to <ctrl><shift>, rather than just
   <ctrl>.  This allows the user to send keystrokes of the form <ctrl>X
-  rather than have Gtkterm intercept them.
+  and not have Gtkterm intercept them.
 
   <ctrl><shift>L -- Clear screen
   <ctrl><shift>R -- Send file
