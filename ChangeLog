@@ -5,9 +5,9 @@
 		Updated many of the GTK widgets
 		Cleaned up auto-crlf stuff
 		Overhauled build system
-		Arbitrary baud rates
-
-		Many bugfixes
+		Support for arbitrary baud rates
+		Added logging functionality (thanks to Brian Beattie)
+		Many many bugfixes
 
 	* Released gtkterm 0.99.6	16-aug-2010
 	        Maintainership changed to https://fedorahosted.org/released/gtkterm
@@ -25,12 +25,12 @@
 	           Fixed segfault in case of local buffer overflow (thanks to Brett Foster)
 	        Added hungarian translation (thanks to Bús József)
 		Allow user to change the port manually to an unlisted port device
-	
+
 	* Released gtkterm 0.99.4	06-sep-2003
 	        New version with VTE widget
 		New CR/LF Auto fonctionality
 		Many hacks from Seb (sebastien.bacher@laposte.net)
-	
+
 	* Released gtkterm 0.99.2	09-mar-2003
 	        Changed all source files for internationalisation
 		New i18n.* source files to print UTF-8 strings in all terminals
@@ -40,23 +40,23 @@
 	* Released gtkterm 0.99.1	21-feb-2003
 	        If no serial port is found in /dev, display an error box
 	        Possible segfault fixed in port configuration window
-	
+
 	* Released gtkterm 0.99.0       16-feb-2003
 		gtkterm now behaves more like a real ASCII terminal (SUPPR and
 		\b are OK.
 		new "macros" functionality
 		fixed major bug (memory management in config file)
-		
+
 	* Released gtkterm 0.98.6       13-feb-2003
 		bugfixes
 		possible to send breaks
-	
+
 	* Released gtkterm 0.98.5	05-feb-2003
 	        nice icons in the menu
 	        new hexadecimal separator : space
 		font saved in the configuration
 		lots of bugfixes !!
-	
+
 	* Released gtkterm 0.98.4       11-jan-2003
 		hexadecimal display
 		possibility to send hexadecimal raw data
@@ -69,7 +69,7 @@
 	        local echo in configuration menu and in command line
 		manpage from Debian maintainer Sebastien Bacher added to source tree
 		few bugfixes
-	
+
 	* Released gtkterm 0.98
 	        moved to GTK+ 2.0
 	        command line options
