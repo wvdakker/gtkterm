@@ -10,4 +10,4 @@ src/parsecfg.c
 src/serie.c
 src/widgets.c
 src/logging.c
-src.term_config.c
+src/term_config.c
