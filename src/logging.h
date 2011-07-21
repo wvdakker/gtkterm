@@ -14,10 +14,10 @@
 #ifndef LOGGING_H_
 #define LOGGING_H_
 
-
 gint logging_start(GtkWidget *);
-void logging_pause(void);
+void logging_pause_resume(void);
 void logging_stop(void);
-void log_chars(gchar *chars, unsigned int size);
+void logging_clear(void);
+void log_chars(gchar *chars, guint size);
 
 #endif /* LOGGING_H_ */

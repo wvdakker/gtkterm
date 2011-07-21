@@ -33,6 +33,9 @@ gint send_serial(gchar *, gint);
 void Put_temp_message(const gchar *, gint);
 void Set_window_title(gchar *msg);
 
+void toggle_logging_pause_resume(gboolean currentlyLogging);
+void toggle_logging_sensitivity(gboolean currentlyLogging);
+
 extern GtkWidget *Fenetre;
 extern GtkWidget *StatusBar;
 extern guint id;
