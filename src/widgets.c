@@ -372,7 +372,7 @@ void create_main_window(void)
 
   g_signal_connect_after(GTK_OBJECT(display), "commit", G_CALLBACK(Got_Input), NULL);
 
-  gtk_timeout_add(POLL_DELAY, (GtkFunction)control_signals_read, NULL);
+  g_timeout_add(POLL_DELAY, (GSourceFunc)control_signals_read, NULL);
 
   gtk_window_set_default_size(GTK_WINDOW(Fenetre), 750, 550);
   gtk_widget_show_all(Fenetre);
@@ -679,7 +679,7 @@ void Put_temp_message(const gchar *text, gint time)
 {
   /* time in ms */
   gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, text);
-  gtk_timeout_add(time, (GtkFunction)pop_message, NULL);
+  g_timeout_add(time, (GSourceFunc)pop_message, NULL);
 }
 
 gboolean pop_message(void)
