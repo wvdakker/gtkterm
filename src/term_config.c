@@ -155,9 +155,11 @@ extern GtkWidget *display;
 
 gint Config_Port_Fenetre(GtkWidget *widget, guint param)
 {
-    GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule, 
-	      *Combo, *Dialogue, *Frame, *CheckBouton, 
-	      *Spin, *Expander, *ExpanderVbox;
+	GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule, 
+	          *Combo, *Dialogue, *Frame, *CheckBouton, 
+	          *Spin, *Expander, *ExpanderVbox,
+	          *content_area, *action_area;
+
     static GtkWidget *Combos[10];
     GList *liste = NULL;
     gchar *chaine = NULL;
@@ -185,11 +187,13 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     }
 
     Dialogue = gtk_dialog_new();
+    content_area = gtk_dialog_get_content_area(GTK_DIALOG(Dialogue));
+    action_area = gtk_dialog_get_action_area(GTK_DIALOG(Dialogue));
     gtk_window_set_title(GTK_WINDOW(Dialogue), _("Configuration"));
-    gtk_container_set_border_width(GTK_CONTAINER(GTK_DIALOG(Dialogue)->vbox), 5);
+    gtk_container_set_border_width(GTK_CONTAINER(content_area), 5);
 
     Frame = gtk_frame_new(_("Serial port"));
-    gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->vbox), Frame, FALSE, TRUE, 5);
+    gtk_box_pack_start(GTK_BOX(content_area), Frame, FALSE, TRUE, 5);
 
     Table = gtk_table_new(4, 3, FALSE);
     gtk_container_add(GTK_CONTAINER(Frame), Table);
@@ -227,7 +231,7 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     Combos[0] = Combo;
 
     Combo = gtk_combo_box_entry_new_text();
-    gtk_entry_set_max_length(GTK_ENTRY(GTK_BIN(Combo)->child), 10);
+    gtk_entry_set_max_length(GTK_ENTRY(gtk_bin_get_child (GTK_BIN (Combo))), 10);
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "300");
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "600");
     gtk_combo_box_append_text(GTK_COMBO_BOX(Combo), "1200");
@@ -242,7 +246,7 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 5); //default 9600
 
     //validate input text (digits only)
-    g_signal_connect(GTK_ENTRY(GTK_BIN(Combo)->child),
+    g_signal_connect(GTK_ENTRY(gtk_bin_get_child (GTK_BIN (Combo))),
 		     "insert-text",
 		     G_CALLBACK(check_text_input), NULL);
 
@@ -327,7 +331,7 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     Expander = gtk_expander_new_with_mnemonic(_("Advanced Configuration Options"));
     ExpanderVbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add(GTK_CONTAINER(Expander), ExpanderVbox);
-    gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Dialogue)->vbox), Expander);
+    gtk_container_add(GTK_CONTAINER(content_area), Expander);
 
     Frame = gtk_frame_new(_("ASCII file transfer"));
     gtk_container_add(GTK_CONTAINER(ExpanderVbox), Frame);
@@ -392,12 +396,12 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
 
 
     Bouton_OK = gtk_button_new_from_stock(GTK_STOCK_OK);
-    gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->action_area), Bouton_OK, FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(action_area), Bouton_OK, FALSE, TRUE, 0);
     g_signal_connect(GTK_OBJECT(Bouton_OK), "clicked", G_CALLBACK(Lis_Config), (gpointer)Combos);
     g_signal_connect_swapped(GTK_OBJECT(Bouton_OK), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(Dialogue));
     Bouton_annule = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
     g_signal_connect_swapped(GTK_OBJECT(Bouton_annule), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(Dialogue));
-    gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->action_area), Bouton_annule, FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(action_area), Bouton_annule, FALSE, TRUE, 0);
 
     gtk_widget_show_all(Dialogue);
 
@@ -487,15 +491,20 @@ gint Grise_Degrise(GtkWidget *bouton, gpointer pointeur)
 
 gint Config_Font(GtkWidget *widget, guint param)
 {
-    GtkFontSelectionDialog *fontsel;
+    GtkWidget *fontsel;
+    GtkWidget *cancel_button;
+    GtkWidget *ok_button;
 
-    fontsel = (GtkFontSelectionDialog *)gtk_font_selection_dialog_new(_("Font selection"));
+    fontsel = gtk_font_selection_dialog_new(_("Font selection"));
+    cancel_button = gtk_font_selection_dialog_get_cancel_button(GTK_FONT_SELECTION_DIALOG(fontsel));
+    ok_button = gtk_font_selection_dialog_get_ok_button(GTK_FONT_SELECTION_DIALOG(fontsel));
+
     g_signal_connect(GTK_OBJECT(fontsel), "delete-event", G_CALLBACK(gtk_widget_destroy), NULL);
     g_signal_connect(GTK_OBJECT(fontsel), "destroy", G_CALLBACK(gtk_widget_destroy), NULL);
-    g_signal_connect_swapped(GTK_OBJECT(fontsel->cancel_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(fontsel));
-    g_signal_connect_swapped(GTK_OBJECT(fontsel->ok_button), "clicked", G_CALLBACK(Lis_Font), GTK_OBJECT(fontsel));
-    g_signal_connect_swapped(GTK_OBJECT(fontsel->ok_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(fontsel));
-    gtk_font_selection_dialog_set_font_name(fontsel, term_conf.font);
+    g_signal_connect_swapped(GTK_OBJECT(cancel_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(fontsel));
+    g_signal_connect_swapped(GTK_OBJECT(ok_button), "clicked", G_CALLBACK(Lis_Font), GTK_OBJECT(fontsel));
+    g_signal_connect_swapped(GTK_OBJECT(ok_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(fontsel));
+    gtk_font_selection_dialog_set_font_name(GTK_FONT_SELECTION_DIALOG(fontsel), term_conf.font);
 
     gtk_widget_show(GTK_WIDGET(fontsel));
     return FALSE;
@@ -546,6 +555,7 @@ gint config_window(gpointer *pointer, guint param)
 void Select_config(gchar *title, void *callback)
 {
     GtkWidget *dialog;
+    GtkWidget *content_area;
     gint i, max;
 
     GtkWidget *Frame, *Scroll, *Liste, *Label;
@@ -585,6 +595,8 @@ void Select_config(gchar *title, void *callback)
 					      GTK_STOCK_OK,
 					      GTK_RESPONSE_ACCEPT,
 					      NULL);
+
+	content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
 
 	Modele_Liste = gtk_list_store_new(N_COLONNES, G_TYPE_STRING);
 
@@ -630,7 +642,7 @@ void Select_config(gchar *title, void *callback)
 	g_signal_connect(GTK_OBJECT(dialog), "response", G_CALLBACK (callback), GTK_TREE_SELECTION(Selection_Liste));
 	g_signal_connect_swapped(GTK_OBJECT(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
 
-	gtk_container_add (GTK_CONTAINER (GTK_DIALOG(dialog)->vbox), Frame);
+	gtk_box_pack_start (GTK_BOX (content_area), Frame, TRUE, TRUE, 0);
 
 	gtk_widget_show_all (dialog);
     }
@@ -638,7 +650,7 @@ void Select_config(gchar *title, void *callback)
 
 void Save_config_file(void)
 {
-    GtkWidget *dialog, *label, *box, *entry;
+    GtkWidget *dialog, *content_area, *label, *box, *entry;
 
     dialog = gtk_dialog_new_with_buttons (_("Save configuration"),
 					  NULL,
@@ -648,21 +660,23 @@ void Save_config_file(void)
 					  GTK_STOCK_OK,
 					  GTK_RESPONSE_ACCEPT,
 					  NULL);
+    content_area = gtk_dialog_get_content_area (GTK_DIALOG(dialog));
+
     gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_ACCEPT);
 
-    label=gtk_label_new(_("Configuration name: "));
+    label = gtk_label_new(_("Configuration name: "));
 
     box = gtk_hbox_new(FALSE, 0);
     entry = gtk_entry_new();
     gtk_entry_set_text(GTK_ENTRY(entry), "default");
     gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(box), entry, FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(box), entry, TRUE, TRUE, 0);
 
     g_signal_connect(GTK_OBJECT(dialog), "response", G_CALLBACK(save_config), GTK_ENTRY(entry));
     g_signal_connect_swapped(GTK_OBJECT(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
 
-    gtk_container_add(GTK_CONTAINER (GTK_DIALOG(dialog)->vbox), box);
+    gtk_box_pack_start(GTK_BOX(content_area), box, TRUE, FALSE, 5);
 
     gtk_widget_show_all (dialog);
 }
@@ -722,51 +736,48 @@ void really_save_config(GtkDialog *Fenetre, gint id, gpointer data)
 
 void save_config(GtkDialog *Fenetre, gint id, GtkWidget *edit)
 {
-    int max, i;
-    GtkWidget *dialog, *label;
-    static gchar text[100];
+	int max, i;
+	const gchar *config_name;
 
-    if(id == GTK_RESPONSE_ACCEPT)
-    {
-	max = cfgParse(config_file, cfg, CFG_INI);
-
-	if(max == -1)
-	    return;
-
-	for(i = 0; i < max; i++)
+	if(id == GTK_RESPONSE_ACCEPT)
 	{
-	    if(!strcmp(gtk_entry_get_text(GTK_ENTRY(edit)), cfgSectionNumberToName(i)))
-	    {
-		/* section already exists */
-		dialog = gtk_dialog_new_with_buttons (_("Warning!"),
-						      NULL,
-						      GTK_DIALOG_DESTROY_WITH_PARENT,
-						      GTK_STOCK_CANCEL,
-						      GTK_RESPONSE_NONE,
-						      GTK_STOCK_OK,
-						      GTK_RESPONSE_ACCEPT,
-						      NULL);
+		max = cfgParse(config_file, cfg, CFG_INI);
 
-		sprintf(text, _("\nSection [%s] already exists\nDo you want to overwrite it ?\n"), gtk_entry_get_text(GTK_ENTRY(edit)));
-		label=gtk_label_new(text);
-		strcpy(text, gtk_entry_get_text(GTK_ENTRY(edit)));
-		g_signal_connect(GTK_OBJECT(dialog), "response", G_CALLBACK(really_save_config), (gpointer)text);
-		g_signal_connect_swapped(GTK_OBJECT(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
+		if(max == -1)
+			return;
 
-		gtk_container_add(GTK_CONTAINER (GTK_DIALOG(dialog)->vbox), label);
+		config_name = gtk_entry_get_text(GTK_ENTRY(edit));
 
-		gtk_widget_show_all (dialog);
+		for(i = 0; i < max; i++)
+		{
+			if(!strcmp(config_name, cfgSectionNumberToName(i)))
+			{
+				GtkWidget *message_dialog;
+				message_dialog = gtk_message_dialog_new_with_markup(GTK_WINDOW(Fenetre),
+				                     GTK_DIALOG_DESTROY_WITH_PARENT,
+				                     GTK_MESSAGE_QUESTION,
+				                     GTK_BUTTONS_NONE,
+				                     _("<b>Section [%s] already exists.</b>\n\nDo you want to overwrite it ?"),
+				                     config_name);
 
-		i = max + 1;
-	    }
+				gtk_dialog_add_buttons(GTK_DIALOG(message_dialog),
+				                       GTK_STOCK_CANCEL,
+				                       GTK_RESPONSE_NONE,
+				                       GTK_STOCK_YES,
+				                       GTK_RESPONSE_ACCEPT,
+				                       NULL);
+
+				if (gtk_dialog_run(GTK_DIALOG(message_dialog)) == GTK_RESPONSE_ACCEPT)
+					really_save_config(Fenetre, GTK_RESPONSE_ACCEPT, (gpointer)config_name);
+
+				gtk_widget_destroy(message_dialog);
+
+				i = max + 1;
+			}
+		}
+		if(i == max) /* Section does not exist */
+			really_save_config(Fenetre, GTK_RESPONSE_ACCEPT, (gpointer)config_name);
 	}
-	if(i == max)
-	    /* Section does not exist */
-	{
-	    strcpy(text, gtk_entry_get_text(GTK_ENTRY(edit)));
-	    really_save_config(Fenetre, GTK_RESPONSE_ACCEPT, (gpointer)text);
-	}
-    }
 }
 
 void load_config(GtkDialog *Fenetre, gint id, GtkTreeSelection *Selection_Liste)
@@ -1368,7 +1379,7 @@ gint remove_section(gchar *cfg_file, gchar *section)
 
 gint Config_Terminal(GtkWidget *widget, guint param)
 {
-    GtkWidget *Dialog, *BoiteH, *BoiteV, *Label, *Check_Bouton, *Bouton, *Eventbox, *Table, *HScale, *Entry;
+    GtkWidget *Dialog, *content_area, *BoiteH, *BoiteV, *Label, *Check_Bouton, *Bouton, *Eventbox, *Table, *HScale, *Entry;
     gchar *fonte, *scrollback;
 
     Dialog = gtk_dialog_new_with_buttons (_("Terminal configuration"),
@@ -1465,7 +1476,8 @@ gint Config_Terminal(GtkWidget *widget, guint param)
     gtk_box_pack_start(GTK_BOX(BoiteH), Entry, FALSE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(BoiteV), BoiteH, FALSE, TRUE, 0);
 
-    gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Dialog)->vbox), BoiteV);
+    content_area = gtk_dialog_get_content_area (GTK_DIALOG(Dialog));
+    gtk_box_pack_start(GTK_BOX(content_area), BoiteV, FALSE, TRUE, 0);
 
     g_signal_connect_swapped(GTK_OBJECT(Dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialog));
 
@@ -1494,7 +1506,7 @@ gint config_color_fg(GtkWidget *bouton, gpointer data)
     gchar *string;
 
     Fenetre = gtk_color_selection_dialog_new ("Changing text color");
-    colorsel = GTK_COLOR_SELECTION (GTK_COLOR_SELECTION_DIALOG (Fenetre)->colorsel);
+    colorsel = GTK_COLOR_SELECTION (gtk_color_selection_dialog_get_color_selection (GTK_COLOR_SELECTION_DIALOG (Fenetre)));
     gtk_color_selection_set_previous_color (colorsel, &term_conf.foreground_color);
     gtk_color_selection_set_current_color (colorsel, &term_conf.foreground_color);
 
@@ -1535,7 +1547,7 @@ gint config_color_bg(GtkWidget *bouton, gpointer data)
     gchar *string;
 
     Fenetre = gtk_color_selection_dialog_new ("Changing background color");
-    colorsel = GTK_COLOR_SELECTION (GTK_COLOR_SELECTION_DIALOG (Fenetre)->colorsel);
+    colorsel = GTK_COLOR_SELECTION (gtk_color_selection_dialog_get_color_selection (GTK_COLOR_SELECTION_DIALOG (Fenetre)));
     gtk_color_selection_set_previous_color (colorsel, &term_conf.background_color);
     gtk_color_selection_set_current_color (colorsel, &term_conf.background_color);
 
