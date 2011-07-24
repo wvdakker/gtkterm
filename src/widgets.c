@@ -278,8 +278,8 @@ void create_main_window(void)
   shortcuts = gtk_accel_group_new();
   gtk_window_add_accel_group(GTK_WINDOW(Fenetre), GTK_ACCEL_GROUP(shortcuts));
 
-  gtk_signal_connect(GTK_OBJECT(Fenetre), "destroy", (GtkSignalFunc)gtk_main_quit, NULL);
-  gtk_signal_connect(GTK_OBJECT(Fenetre), "delete_event", (GtkSignalFunc)gtk_main_quit, NULL);
+  g_signal_connect(GTK_OBJECT(Fenetre), "destroy", (GCallback)gtk_main_quit, NULL);
+  g_signal_connect(GTK_OBJECT(Fenetre), "delete_event", (GCallback)gtk_main_quit, NULL);
   
   Set_window_title("GtkTerm");
 
@@ -334,7 +334,7 @@ void create_main_window(void)
   Label = gtk_label_new(_("Hexadecimal data to send (separator : ';' or space) : "));
   gtk_box_pack_start_defaults(GTK_BOX(Hex_Box), Label);
   Hex_Send_Entry = gtk_entry_new();
-  gtk_signal_connect(GTK_OBJECT(Hex_Send_Entry), "activate", (GtkSignalFunc)Send_Hexadecimal, NULL);
+  g_signal_connect(GTK_OBJECT(Hex_Send_Entry), "activate", (GCallback)Send_Hexadecimal, NULL);
   gtk_box_pack_start(GTK_BOX(Hex_Box), Hex_Send_Entry, FALSE, TRUE, 5);
   gtk_box_pack_start(GTK_BOX(Boite), Hex_Box, FALSE, TRUE, 2);
 
