@@ -132,7 +132,7 @@ gint Envoie_fichier(GtkFileChooser *FS)
 	gtk_window_set_title(GTK_WINDOW(Window), msg);
 	g_free(msg);
 	Box = gtk_vbox_new(TRUE, 10);
-	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Window)->vbox), Box);
+	gtk_container_add(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(Window))), Box);
 	ProgressBar = gtk_progress_bar_new();
 	
 	gtk_box_pack_start(GTK_BOX(Box), ProgressBar, FALSE, FALSE, 5);
@@ -140,7 +140,7 @@ gint Envoie_fichier(GtkFileChooser *FS)
 	Bouton_annuler = gtk_button_new_with_label(_("Cancel"));
 	g_signal_connect(GTK_OBJECT(Bouton_annuler), "clicked", G_CALLBACK(close_all), NULL);
 
-	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Window)->action_area), Bouton_annuler);
+	gtk_container_add(GTK_CONTAINER(gtk_dialog_get_action_area(GTK_DIALOG(Window))), Bouton_annuler);
 
 	g_signal_connect(GTK_OBJECT(Window), "delete_event", G_CALLBACK(close_all), NULL);
 

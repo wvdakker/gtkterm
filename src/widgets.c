@@ -104,7 +104,7 @@ static gboolean show_index = FALSE;
 
 /* Local functions prototype */
 gint signaux(GtkWidget *, guint);
-gint a_propos(GtkWidget *, guint);
+gint about(GtkWidget *, guint);
 gboolean Envoie_car(GtkWidget *, GdkEventKey *, gpointer);
 gboolean control_signals_read(void);
 gint Toggle_Echo(gpointer *, guint, GtkWidget *);
@@ -124,7 +124,6 @@ gint gui_copy_all_clipboard(void);
 
 
 /* Menu */
-#define NUMBER_OF_ITEMS 41
 
 static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/_File") , NULL, NULL, 0, "<Branch>"},
@@ -167,7 +166,7 @@ static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/View/Separator") , NULL, NULL, 0, "<Separator>"},
   {N_("/View/_Send hexadecimal data") , NULL, (GtkItemFactoryCallback)show_hide_hex, 0, "<CheckItem>"},
   {N_("/_Help"), NULL, NULL, 0, "<LastBranch>"},
-  {N_("/Help/_About..."), NULL, (GtkItemFactoryCallback)a_propos, 0, "<StockItem>", GTK_STOCK_DIALOG_INFO}
+  {N_("/Help/_About..."), NULL, (GtkItemFactoryCallback)about, 0, "<StockItem>", GTK_STOCK_ABOUT}
 };
 
 static gchar *translate_menu(const gchar *path, gpointer data)
@@ -290,7 +289,7 @@ void create_main_window(void)
   item_factory = gtk_item_factory_new(GTK_TYPE_MENU_BAR, "<main>", accel_group);
   gtk_item_factory_set_translate_func(item_factory, translate_menu, "<main>", NULL);
   gtk_window_add_accel_group(GTK_WINDOW(Fenetre), accel_group);
-  gtk_item_factory_create_items(item_factory, NUMBER_OF_ITEMS, Tableau_Menu, NULL);
+  gtk_item_factory_create_items(item_factory, G_N_ELEMENTS(Tableau_Menu), Tableau_Menu, NULL);
   Menu = gtk_item_factory_get_widget(item_factory, "<main>");
   echo_menu = gtk_item_factory_get_item(item_factory, "/Configuration/Local echo");
   crlfauto_menu = gtk_item_factory_get_item(item_factory, "/Configuration/LF auto");
@@ -499,33 +498,18 @@ gboolean Envoie_car(GtkWidget *widget, GdkEventKey *event, gpointer pointer)
 }
 
 
-gint a_propos(GtkWidget *widget, guint param)
+gint about(GtkWidget *widget, guint param)
 {
-  GtkWidget *Dialogue, *Label, *Content;
-  gchar *chaine;
+  gchar *authors[] = {"Julien Schimtt", "Zach Davis", NULL};
 
-  /* create dialog box */
-  Dialogue = gtk_dialog_new_with_buttons("About",
-                                         GTK_WINDOW(widget),
-                                         GTK_DIALOG_DESTROY_WITH_PARENT,
-                                         GTK_STOCK_OK,
-                                         GTK_RESPONSE_NONE,
-                                         NULL);
-  Content = gtk_dialog_get_content_area(GTK_DIALOG(Dialogue));
-  gtk_container_set_border_width(GTK_CONTAINER(Content), 5);
-
-  /* generate message and label */
-  chaine = g_strdup_printf(_("\n<big><i> GTKTerm V. %s </i></big>\n\n\t(c) Julien Schmitt\n\t"
-                             "<a href=\"http://www.jls-info.com/julien/linux\">\n\n\t"
-                             "Latest Version Available on:\n\t<a href=\"https://fedorahosted.org/gtkterm/\">"), VERSION);
-  Label = gtk_label_new("");
-  gtk_label_set_markup(GTK_LABEL(Label), chaine);
-  g_signal_connect_swapped(Dialogue, "response", 
-                           G_CALLBACK(gtk_widget_destroy), Dialogue);
-
-  /* add label to box, show everything */
-  gtk_container_add(GTK_CONTAINER(Dialogue), Label);
-  gtk_widget_show_all(Dialogue);
+  gtk_show_about_dialog(NULL,
+                        "program-name", "GTKTerm",
+                        "version", VERSION,
+                        "comments", _("GTKTerm is a simple GTK+ terminal used to communicate with the serial port."),
+                        "copyright", "Copyright © Julien Schimtt",
+                        "authors", authors,
+                        "website", "https://fedorahosted.org/gtkterm/",
+                        NULL);
 
   return FALSE;
 }

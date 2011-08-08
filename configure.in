@@ -35,14 +35,14 @@ PKG_CHECK_MODULES(VTE, vte >= 0.20, , AC_MSG_ERROR([*** vte >= 0.20 not installe
 AC_SUBST(VTE_CFLAGS)
 AC_SUBST(VTE_LIBS)
 
-PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.6, , AC_MSG_ERROR([*** GTK >= 2.6 not installed ***]))
+PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.16, , AC_MSG_ERROR([*** GTK >= 2.16 not installed ***]))
 
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 
 if test "$CC" = "gcc" ; then
   GNUCFLAGS="-Wall -fno-omit-frame-pointer -fno-strict-aliasing -O2"
-  GNUCFLAGS+=" -DGDK_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED"
+  GNUCFLAGS+=" -DGSEAL_ENABLE -DGDK_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED"
 fi
 AC_SUBST(GNUCFLAGS)
 

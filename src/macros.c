@@ -421,27 +421,16 @@ static gboolean Capture_shortcut(GtkWidget *button, gpointer pointer)
 
 static gboolean Help_screen(GtkWidget *button, gpointer pointer)
 {
-  GtkWidget *Dialogue, *Label, *Bouton, *Frame;
+  GtkWidget *Dialog;
 
-  Dialogue = gtk_dialog_new();
-  gtk_window_set_title(GTK_WINDOW(Dialogue), _("Help on macros"));
-  Bouton = gtk_button_new_from_stock (GTK_STOCK_OK);
-  gtk_signal_connect_object(GTK_OBJECT(Bouton), "clicked", (GtkSignalFunc)gtk_widget_destroy, GTK_OBJECT(Dialogue));
-  gtk_signal_connect(GTK_OBJECT(Dialogue), "destroy", (GtkSignalFunc)gtk_widget_destroy, NULL);
-  gtk_signal_connect(GTK_OBJECT(Dialogue), "delete_event", (GtkSignalFunc)gtk_widget_destroy, NULL);
-  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->action_area), Bouton, TRUE, TRUE, 0);
+  Dialog = gtk_message_dialog_new(pointer,
+                                  GTK_DIALOG_DESTROY_WITH_PARENT,
+                                  GTK_MESSAGE_INFO,
+                                  GTK_BUTTONS_CLOSE,
+                                  _("The \"action\" field of a macro is the data to be sent on the port. Text can be entered, but also special chars, like \\n, \\t, \\r, etc. You can also enter hexadecimal data preceded by a '\\'. The hexadecimal data should not begin with a letter (eg. use \\0FF and not \\FF)\nExamples :\n\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"));
 
-  Label = gtk_label_new(_("The \"action\" field of a macro is the data to be sent on the port. Text can be entered, but also special chars, like \\n, \\t, \\r, etc. You can also enter hexadecimal data preceded by a '\\'. The hexadecimal data should not begin with a letter (eg. use \\0FF and not \\FF)\nExamples :\n\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"));
-  gtk_label_set_line_wrap(GTK_LABEL (Label), TRUE);
-  gtk_label_set_selectable(GTK_LABEL(Label), TRUE);
-  gtk_misc_set_padding(GTK_MISC(Label), 10, 10);
-
-  Frame = gtk_frame_new(NULL);
-  gtk_container_set_border_width(GTK_CONTAINER(Frame), 5);
-  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->vbox), Frame, FALSE, FALSE, 0);
-  gtk_container_add(GTK_CONTAINER(Frame), Label);
-
-  gtk_widget_show_all(Dialogue);
+  gtk_dialog_run(GTK_DIALOG (Dialog));
+  gtk_widget_destroy(Dialog);
 
   return FALSE;
 }
@@ -513,7 +502,7 @@ gint Config_macros(GtkWidget *wid, guint param)
   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
   button = gtk_button_new_from_stock (GTK_STOCK_HELP);
-  g_signal_connect(button, "clicked", G_CALLBACK(Help_screen), NULL);
+  g_signal_connect(button, "clicked", G_CALLBACK(Help_screen), (gpointer)window);
   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
 
   button = gtk_button_new_from_stock (GTK_STOCK_OK);
