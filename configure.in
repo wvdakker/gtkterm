@@ -35,7 +35,7 @@ PKG_CHECK_MODULES(VTE, vte >= 0.20, , AC_MSG_ERROR([*** vte >= 0.20 not installe
 AC_SUBST(VTE_CFLAGS)
 AC_SUBST(VTE_LIBS)
 
-PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.6, , AC_MSG_ERROR([*** GTK >= 2.6 not installed ***]))
+PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.16, , AC_MSG_ERROR([*** GTK >= 2.16 not installed ***]))
 
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
