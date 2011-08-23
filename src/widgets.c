@@ -87,6 +87,10 @@ static GtkWidget *hex_len_menu = NULL;
 static GtkWidget *hex_chars_menu = NULL;
 static GtkWidget *show_index_menu = NULL;
 static GtkWidget *Hex_Box;
+static GtkWidget *log_pause_resume_menu = NULL;
+static GtkWidget *log_start_menu = NULL;
+static GtkWidget *log_stop_menu = NULL;
+static GtkWidget *log_clear_menu = NULL;
 GtkWidget *scrolled_window;
 GtkWidget *Fenetre;
 GtkAccelGroup *shortcuts;
@@ -124,7 +128,6 @@ gint gui_copy_all_clipboard(void);
 
 
 /* Menu */
-
 static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/_File") , NULL, NULL, 0, "<Branch>"},
   {N_("/File/Clear screen") , "<ctrl><shift>L", (GtkItemFactoryCallback)clear_buffer, 0, "<StockItem>", GTK_STOCK_CLEAR},
@@ -136,9 +139,10 @@ static GtkItemFactoryEntry Tableau_Menu[] = {
   {N_("/Edit/_Copy") , "<ctrl><shift>c", (GtkItemFactoryCallback)gui_copy, 0, "<StockItem>", GTK_STOCK_COPY},
   {N_("/Edit/Copy _All") , NULL, (GtkItemFactoryCallback)gui_copy_all_clipboard, 0, "<StockItem>", GTK_STOCK_SELECT_ALL},
   {N_("/_Log") , NULL, NULL, 0, "<Branch>"},
-  {N_("/Log/To File") , NULL, (GtkItemFactoryCallback)logging_start, 0, "<StockItem>", GTK_STOCK_MEDIA_RECORD},
-  {N_("/Log/Pause Resume") , NULL, (GtkItemFactoryCallback)logging_pause, 0, "<StockItem>", GTK_STOCK_MEDIA_PAUSE},
+  {N_("/Log/To File...") , NULL, (GtkItemFactoryCallback)logging_start, 0, "<StockItem>", GTK_STOCK_MEDIA_RECORD},
+  {N_("/Log/Pause") , NULL, (GtkItemFactoryCallback)logging_pause_resume, 0, "<StockItem>", GTK_STOCK_MEDIA_PAUSE},
   {N_("/Log/Stop") , NULL, (GtkItemFactoryCallback)logging_stop, 0, "<StockItem>", GTK_STOCK_MEDIA_STOP},
+  {N_("/Log/Clear") , NULL, (GtkItemFactoryCallback)logging_clear, 0, "<StockItem>", GTK_STOCK_CLEAR},
   {N_("/_Configuration"), NULL, NULL, 0, "<Branch>"},
   {N_("/Configuration/_Port"), "<ctrl><shift>S", (GtkItemFactoryCallback)Config_Port_Fenetre, 0, "<StockItem>", GTK_STOCK_PREFERENCES},
   {N_("/Configuration/_Main window"), NULL, (GtkItemFactoryCallback)Config_Terminal, 0, "<StockItem>", GTK_STOCK_SELECT_FONT},
@@ -264,6 +268,26 @@ gint Toggle_Crlfauto(gpointer *pointer, guint param, GtkWidget *widget)
   return 0;
 }
 
+void toggle_logging_pause_resume(gboolean currentlyLogging)
+{
+    if (currentlyLogging)
+    {
+        gtk_menu_item_set_label(GTK_MENU_ITEM(log_pause_resume_menu), _("Pause"));
+    }
+    else
+    {
+        gtk_menu_item_set_label(GTK_MENU_ITEM(log_pause_resume_menu), _("Resume"));
+    }
+}
+
+void toggle_logging_sensitivity(gboolean currentlyLogging)
+{
+   gtk_widget_set_sensitive(GTK_WIDGET(log_start_menu), !currentlyLogging);
+   gtk_widget_set_sensitive(GTK_WIDGET(log_stop_menu), currentlyLogging);
+   gtk_widget_set_sensitive(GTK_WIDGET(log_pause_resume_menu), currentlyLogging);
+   gtk_widget_set_sensitive(GTK_WIDGET(log_clear_menu), currentlyLogging);
+}
+
 void create_main_window(void)
 {
   GtkWidget *Menu, *Boite, *BoiteH, *Label;
@@ -291,6 +315,10 @@ void create_main_window(void)
   gtk_window_add_accel_group(GTK_WINDOW(Fenetre), accel_group);
   gtk_item_factory_create_items(item_factory, G_N_ELEMENTS(Tableau_Menu), Tableau_Menu, NULL);
   Menu = gtk_item_factory_get_widget(item_factory, "<main>");
+  log_pause_resume_menu = gtk_item_factory_get_item(item_factory, "/Log/Pause");
+  log_start_menu = gtk_item_factory_get_item(item_factory, "/Log/To File...");
+  log_stop_menu = gtk_item_factory_get_item(item_factory, "/Log/Stop");
+  log_clear_menu = gtk_item_factory_get_item(item_factory, "/Log/Clear");
   echo_menu = gtk_item_factory_get_item(item_factory, "/Configuration/Local echo");
   crlfauto_menu = gtk_item_factory_get_item(item_factory, "/Configuration/LF auto");
   ascii_menu = gtk_item_factory_get_item(item_factory, "/View/ASCII");
@@ -327,6 +355,10 @@ void create_main_window(void)
   gtk_container_add(GTK_CONTAINER(scrolled_window), GTK_WIDGET(display));
 
   gtk_box_pack_start_defaults(GTK_BOX(BoiteH), scrolled_window);
+
+  /* set up logging buttons availability */
+  toggle_logging_pause_resume(FALSE);
+  toggle_logging_sensitivity(FALSE);
 
   /* status bar */
   Hex_Box = gtk_hbox_new(TRUE, 0);

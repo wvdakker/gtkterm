@@ -1,9 +1,8 @@
 Immediate updates/changes
     - fully debug the code
     - add more translations
-    - add logging support
     - update to latest GTK+ widgets
-    - after char delay for slow devices
+    - add inter-char delay for slow devices
 
 On-down-the-road possibilities
     - support for tabs
