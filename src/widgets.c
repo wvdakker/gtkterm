@@ -387,7 +387,7 @@ void toggle_logging_sensitivity(gboolean currentlyLogging)
 
 void create_main_window(void)
 {
-  GtkWidget *menu, *main_vbox, *hbox, *label;
+  GtkWidget *menu, *main_vbox, *label;
   GtkWidget *hex_send_entry;
   GtkUIManager *ui_manager;
   GtkAccelGroup *accel_group;
@@ -473,7 +473,7 @@ void create_main_window(void)
   toggle_logging_pause_resume(FALSE);
   toggle_logging_sensitivity(FALSE);
 
-  /* status bar */
+  /* send hex char box (hidden when not in use) */
   Hex_Box = gtk_hbox_new(FALSE, 0);
   label = gtk_label_new(_("Hexadecimal data to send (separator : ';' or space) : "));
   gtk_box_pack_start(GTK_BOX(Hex_Box), label, FALSE, FALSE, 5);
@@ -482,36 +482,34 @@ void create_main_window(void)
   gtk_box_pack_start(GTK_BOX(Hex_Box), hex_send_entry, TRUE, TRUE, 5);
   gtk_box_pack_start(GTK_BOX(main_vbox), Hex_Box, FALSE, TRUE, 2);
 
-  hbox = gtk_hbox_new(FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(main_vbox), hbox, FALSE, FALSE, 0);
-
+  /* status bar */
   StatusBar = gtk_statusbar_new();
-  gtk_box_pack_start(GTK_BOX(hbox), StatusBar, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(main_vbox), StatusBar, FALSE, FALSE, 0);
   id = gtk_statusbar_get_context_id(GTK_STATUSBAR(StatusBar), "Messages");
 
   label = gtk_label_new("RI");
-  gtk_box_pack_end(GTK_BOX(hbox), label, FALSE, TRUE, 5);
+  gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
   gtk_widget_set_sensitive(GTK_WIDGET(label), FALSE);
   signals[0] = label;
 
   label = gtk_label_new("DSR");
-  gtk_box_pack_end(GTK_BOX(hbox), label, FALSE, TRUE, 5);
+  gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
   signals[1] = label;
 
   label = gtk_label_new("CD");
-  gtk_box_pack_end(GTK_BOX(hbox), label, FALSE, TRUE, 5);
+  gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
   signals[2] = label;
 
   label = gtk_label_new("CTS");
-  gtk_box_pack_end(GTK_BOX(hbox), label, FALSE, TRUE, 5);
+  gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
   signals[3] = label;
 
   label = gtk_label_new("RTS");
-  gtk_box_pack_end(GTK_BOX(hbox), label, FALSE, TRUE, 5);
+  gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
   signals[4] = label;
 
   label = gtk_label_new("DTR");
-  gtk_box_pack_end(GTK_BOX(hbox), label, FALSE, TRUE, 5);
+  gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
   signals[5] = label;
 
   g_signal_connect_after(GTK_OBJECT(display), "commit", G_CALLBACK(Got_Input), NULL);
