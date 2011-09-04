@@ -436,7 +436,7 @@ static gboolean Help_screen(GtkWidget *button, gpointer pointer)
 }
 
 
-gint Config_macros(GtkWidget *wid, guint param)
+void Config_macros(GtkAction *action, gpointer data)
 {
   GtkWidget *vbox, *hbox;
   GtkWidget *sw;
@@ -517,7 +517,5 @@ gint Config_macros(GtkWidget *wid, guint param)
   gtk_window_set_default_size (GTK_WINDOW(window), 300, 400);
 
   gtk_widget_show_all(window);
-
-  return FALSE;
 }
 

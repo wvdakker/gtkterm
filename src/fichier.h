@@ -15,7 +15,8 @@
 #ifndef FICHIER_H_
 #define FICHIER_H_
 
-gint fichier(GtkWidget *widget, guint param);
+void send_raw_file(GtkAction *action, gpointer data);
+void save_raw_file(GtkAction *action, gpointer data);
 void add_input(void);
 
 extern gboolean waiting_for_char;

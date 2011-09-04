@@ -69,95 +69,84 @@ void write_file(char *, unsigned int);
 
 extern struct configuration_port config;
 
-gint fichier(GtkWidget *widget, guint param)
+
+void send_raw_file(GtkAction *action, gpointer data)
 {
-    GtkWidget *file_select;
-    gint retval;
+	GtkWidget *file_select;
 
-    file_select = gtk_file_chooser_dialog_new(_("File selection"), GTK_WINDOW(Fenetre), 
-					      GTK_FILE_CHOOSER_ACTION_SAVE, 
-					      _("Cancel"), GTK_RESPONSE_CANCEL,
-					      _("OK"), GTK_RESPONSE_OK, NULL);
-    if(fic_defaut != NULL)
-	gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(file_select), fic_defaut);
+	file_select = gtk_file_chooser_dialog_new(_("Send RAW File"),
+	                                          GTK_WINDOW(Fenetre), 
+	                                          GTK_FILE_CHOOSER_ACTION_OPEN, 
+	                                          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+	                                          GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+	                                          NULL);
 
-    retval = gtk_dialog_run(GTK_DIALOG(file_select));
-    if (retval == GTK_RESPONSE_OK)
-    {
-	switch(param)
+	if(fic_defaut != NULL)
+		gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(file_select), fic_defaut);
+
+	if(gtk_dialog_run(GTK_DIALOG(file_select)) == GTK_RESPONSE_ACCEPT)
 	{
-	    case 1:
-		Envoie_fichier(GTK_FILE_CHOOSER(file_select));
-		break;
-	    case 2:
-		Sauve_fichier(GTK_FILE_CHOOSER(file_select));
-		break;
+		gchar *fileName;
+		gchar *msg;
+
+		fileName = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(file_select));
+
+		if(!g_file_test(fileName, G_FILE_TEST_IS_REGULAR))
+		{
+			msg = g_strdup_printf(_("Error opening file\n"));
+			show_message(msg, MSG_ERR);
+			g_free(msg);
+			g_free(fileName);
+			gtk_widget_destroy(file_select);
+			return;
+		}
+
+		Fichier = open(fileName, O_RDONLY);
+		if(Fichier != -1)
+		{
+			GtkWidget *Bouton_annuler, *Box;
+
+			fic_defaut = g_strdup(fileName);
+			msg = g_strdup_printf(_("%s : transfer in progress..."), fileName);
+
+			gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, msg);
+			car_written = 0;
+			current_buffer_position = 0;
+			bytes_read = 0;
+			nb_car = lseek(Fichier, 0L, SEEK_END);
+			lseek(Fichier, 0L, SEEK_SET);
+
+			Window = gtk_dialog_new();
+			gtk_window_set_title(GTK_WINDOW(Window), msg);
+			g_free(msg);
+			Box = gtk_vbox_new(TRUE, 10);
+			gtk_container_add(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(Window))), Box);
+			ProgressBar = gtk_progress_bar_new();
+
+			gtk_box_pack_start(GTK_BOX(Box), ProgressBar, FALSE, FALSE, 5);
+
+			Bouton_annuler = gtk_button_new_with_label(_("Cancel"));
+			g_signal_connect(GTK_OBJECT(Bouton_annuler), "clicked", G_CALLBACK(close_all), NULL);
+
+			gtk_container_add(GTK_CONTAINER(gtk_dialog_get_action_area(GTK_DIALOG(Window))), Bouton_annuler);
+
+			g_signal_connect(GTK_OBJECT(Window), "delete_event", G_CALLBACK(close_all), NULL);
+
+			gtk_window_set_default_size(GTK_WINDOW(Window), 250, 100);
+			gtk_window_set_modal(GTK_WINDOW(Window), TRUE);
+			gtk_widget_show_all(Window);
+
+			add_input();
+		}
+		else
+		{
+			msg = g_strdup_printf(_("Cannot read file %s: %s\n"), fileName, strerror(errno));
+			show_message(msg, MSG_ERR);
+			g_free(msg);
+		}
+		g_free(fileName);
 	}
-    }
-
-    gtk_widget_destroy(file_select);
-    return FALSE;
-}
-
-gint Envoie_fichier(GtkFileChooser *FS)
-{
-    gchar *NomFichier;
-    gchar *msg;
-    GtkWidget *Bouton_annuler, *Box;
-
-    NomFichier = gtk_file_chooser_get_filename(FS);
-
-    if(!g_file_test(NomFichier, G_FILE_TEST_IS_REGULAR))
-    {
-	str = g_strdup_printf(_("Error opening file\n"));
-	show_message(str, MSG_ERR);
-	g_free(NomFichier);
-	g_free(str);
-	return FALSE;
-    }
-    Fichier = open(NomFichier, O_RDONLY);
-    if(Fichier != -1)
-    {
-	fic_defaut = g_strdup(NomFichier);
-	msg = g_strdup_printf(_("%s : transfer in progress..."), NomFichier);
-
-	gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, msg);
-	car_written = 0;
-	current_buffer_position = 0;
-	bytes_read = 0;
-	nb_car = lseek(Fichier, 0L, SEEK_END);
-	lseek(Fichier, 0L, SEEK_SET);
-
-	Window = gtk_dialog_new();
-	gtk_window_set_title(GTK_WINDOW(Window), msg);
-	g_free(msg);
-	Box = gtk_vbox_new(TRUE, 10);
-	gtk_container_add(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(Window))), Box);
-	ProgressBar = gtk_progress_bar_new();
-	
-	gtk_box_pack_start(GTK_BOX(Box), ProgressBar, FALSE, FALSE, 5);
-
-	Bouton_annuler = gtk_button_new_with_label(_("Cancel"));
-	g_signal_connect(GTK_OBJECT(Bouton_annuler), "clicked", G_CALLBACK(close_all), NULL);
-
-	gtk_container_add(GTK_CONTAINER(gtk_dialog_get_action_area(GTK_DIALOG(Window))), Bouton_annuler);
-
-	g_signal_connect(GTK_OBJECT(Window), "delete_event", G_CALLBACK(close_all), NULL);
-
-	gtk_window_set_default_size(GTK_WINDOW(Window), 250, 100);
-	gtk_window_set_modal(GTK_WINDOW(Window), TRUE);
-	gtk_widget_show_all(Window);
-
-	add_input();
-    }
-    else
-    {
-	str = g_strdup_printf(_("Cannot read file %s: %s\n"), NomFichier, strerror(errno));
-	show_message(str, MSG_ERR);
-	g_free(str);
-    }
-    g_free(NomFichier);
-    return FALSE;
+	gtk_widget_destroy(file_select);
 }
 
 void ecriture(gpointer data, gint source, GdkInputCondition condition)
@@ -286,34 +275,54 @@ void write_file(char *data, unsigned int size)
     fwrite(data, size, 1, Fic);
 }
 
-gint Sauve_fichier(GtkFileChooser *FS)
+void save_raw_file(GtkAction *action, gpointer data)
 {
-    gchar *NomFichier;
+	GtkWidget *file_select;
 
-    NomFichier = gtk_file_chooser_get_filename(FS);
-    if ((!NomFichier || (strcmp(NomFichier, ""))) == 0)
-    {
-	str = g_strdup_printf(_("File error\n"));
-	show_message(str, MSG_ERR);
-	g_free(str);
-	g_free(NomFichier);
-	return FALSE;
-    }
-    Fic = fopen(NomFichier, "w");
-    if(Fic == NULL)
-    {
-	str = g_strdup_printf(_("Cannot open file %s: %s\n"), NomFichier, strerror(errno));
-	show_message(str, MSG_ERR);
-	g_free(str);
-    }
-    else
-    {
-	fic_defaut = g_strdup(NomFichier);
+	file_select = gtk_file_chooser_dialog_new(_("Save RAW File"),
+	                                          GTK_WINDOW(Fenetre), 
+	                                          GTK_FILE_CHOOSER_ACTION_SAVE, 
+	                                          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+	                                          GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+	                                          NULL);
+	gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(file_select), TRUE);
 
-	write_buffer_with_func(write_file);
+	if(fic_defaut != NULL)
+		gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(file_select), fic_defaut);
 
-	fclose(Fic);
-    }
-    g_free(NomFichier);
-    return FALSE;
+	if(gtk_dialog_run(GTK_DIALOG(file_select)) == GTK_RESPONSE_ACCEPT)
+	{
+		gchar *fileName;
+		gchar *msg;
+
+		fileName = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(file_select));
+		if ((!fileName || (strcmp(fileName, ""))) == 0)
+		{
+			msg = g_strdup_printf(_("File error\n"));
+			show_message(msg, MSG_ERR);
+			g_free(msg);
+			g_free(fileName);
+			gtk_widget_destroy(file_select);
+			return;
+		}
+
+		Fic = fopen(fileName, "w");
+		if(Fic == NULL)
+		{
+			msg = g_strdup_printf(_("Cannot open file %s: %s\n"), fileName, strerror(errno));
+			show_message(msg, MSG_ERR);
+			g_free(msg);
+		}
+		else
+		{
+			fic_defaut = g_strdup(fileName);
+
+			write_buffer_with_func(write_file);
+
+			fclose(Fic);
+		}
+		g_free(fileName);
+	}
+	gtk_widget_destroy(file_select);
 }
+

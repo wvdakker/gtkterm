@@ -14,7 +14,7 @@
 #ifndef LOGGING_H_
 #define LOGGING_H_
 
-gint logging_start(GtkWidget *);
+void logging_start(GtkAction *action, gpointer data);
 void logging_pause_resume(void);
 void logging_stop(void);
 void logging_clear(void);

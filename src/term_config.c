@@ -153,7 +153,7 @@ static gint scrollback_set(GtkWidget *, GdkEventFocus *, gpointer);
 
 extern GtkWidget *display;
 
-gint Config_Port_Fenetre(GtkWidget *widget, guint param)
+void Config_Port_Fenetre(GtkAction *action, gpointer data)
 {
 	GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule, 
 	          *Combo, *Dialogue, *Frame, *CheckBouton, 
@@ -404,8 +404,6 @@ gint Config_Port_Fenetre(GtkWidget *widget, guint param)
     gtk_box_pack_start(GTK_BOX(action_area), Bouton_annule, FALSE, TRUE, 0);
 
     gtk_widget_show_all(Dialogue);
-
-    return FALSE;
 }
 
 gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos)
@@ -536,20 +534,20 @@ gint Lis_Font(GtkFontSelectionDialog *fontsel)
     return FALSE;
 }
 
-gint config_window(gpointer *pointer, guint param)
+
+void select_config_callback(GtkAction *action, gpointer data)
 {
-    switch(param)
-    {
-	case 0:
-	    Select_config(_("Load configuration"), G_CALLBACK(load_config));
-	    break;
-	case 1:
-	    Save_config_file();
-	    break;
-	default:
-	    Select_config(_("Delete configuration"), G_CALLBACK(delete_config));
-    }
-    return 0;
+	Select_config(_("Load configuration"), G_CALLBACK(load_config));
+}
+
+void save_config_callback(GtkAction *action, gpointer data)
+{
+	Save_config_file();
+}
+
+void delete_config_callback(GtkAction *action, gpointer data)
+{
+	Select_config(_("Delete configuration"), G_CALLBACK(delete_config));
 }
 
 void Select_config(gchar *title, void *callback)
@@ -1377,7 +1375,7 @@ gint remove_section(gchar *cfg_file, gchar *section)
 }
 
 
-gint Config_Terminal(GtkWidget *widget, guint param)
+void Config_Terminal(GtkAction *action, gpointer data)
 {
     GtkWidget *Dialog, *content_area, *BoiteH, *BoiteV, *Label, *Check_Bouton, *Bouton, *Eventbox, *Table, *HScale, *Entry;
     gchar *fonte, *scrollback;
@@ -1482,8 +1480,6 @@ gint Config_Terminal(GtkWidget *widget, guint param)
     g_signal_connect_swapped(GTK_OBJECT(Dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialog));
 
     gtk_widget_show_all (Dialog);
-
-    return FALSE;
 }
 
 void Curseur_OnOff(GtkWidget *Check_Bouton, gpointer data)

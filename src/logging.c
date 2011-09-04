@@ -78,15 +78,15 @@ static gint OpenLogFile(gchar *filename)
     return FALSE;
 }
 
-gint logging_start(GtkWidget *widget)
+void logging_start(GtkAction *action, gpointer data)
 {
     GtkWidget *file_select;
     gint retval;
 
     file_select = gtk_file_chooser_dialog_new(_("Log file selection"), GTK_WINDOW(Fenetre),
-					      GTK_FILE_CHOOSER_ACTION_OPEN,
-					      _("Cancel"), GTK_RESPONSE_CANCEL,
-					      _("OK"), GTK_RESPONSE_OK, NULL);
+					      GTK_FILE_CHOOSER_ACTION_SAVE,
+					      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+					      GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
     gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(file_select), TRUE);
 
     if(logfile_default != NULL)
@@ -104,8 +104,6 @@ gint logging_start(GtkWidget *widget)
 
     toggle_logging_sensitivity(Logging);
     toggle_logging_pause_resume(Logging);
-
-    return FALSE;
 }
 
 void logging_clear(void)
