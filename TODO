@@ -1,9 +1,11 @@
-Immediate updates/changes
-    - fully debug the code
-    - add more translations
-    - update to latest GTK+ widgets
-    - add inter-char delay for slow devices
 
-On-down-the-road possibilities
-    - support for tabs
-    - refactor the code from french to english
+* Changes for 1.00 release (2012?)
+  - Update translations
+  - Update documentation and version information
+  - Migrate completely to Gtk-3.0
+  - Refactor the code from french to english
+
+* Possible features
+  - Add inter-char delay for slow devices
+  - Support for tabs
+  - Better profile support
