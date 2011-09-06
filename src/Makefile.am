@@ -1,9 +1,10 @@
+# GtkTerm src/Makefile.am
+
+AM_CFLAGS = $(gtk2_CFLAGS) $(vte_CFLAGS)
+
 bin_PROGRAMS = gtkterm
-
-AM_CFLAGS = @GTK_CFLAGS@ @VTE_CFLAGS@ @GNUCFLAGS@
-
 gtkterm_SOURCES = \
-    term_config.c      \
+    term_config.c \
     fichier.c \
     gtkterm.c \
     serie.c \
@@ -26,9 +27,9 @@ gtkterm_SOURCES = \
     logging.c \
     logging.h 
 
-gtkterm_LDADD = @GTK_LIBS@ @VTE_LIBS@
+gtkterm_LDADD = $(gtk2_LIBS) $(vte_LIBS)
 
 CLEANFILES = *~
 
-INCLUDES = -DLOCALEDIR=\""$(localedir)"\"
 
+AM_CPPFLAGS = -DLOCALEDIR=\""$(localedir)"\"
