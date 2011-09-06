@@ -341,8 +341,12 @@ void create_main_window(void)
   /* create vte window */
   display = vte_terminal_new();
 
+  /* set terminal properties, these could probably be made user configurable */
+  vte_terminal_set_scroll_on_output(VTE_TERMINAL(display), FALSE);
+  vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(display), TRUE);
+  vte_terminal_set_mouse_autohide(VTE_TERMINAL(display), TRUE);
   vte_terminal_set_backspace_binding(VTE_TERMINAL(display),
-				     VTE_ERASE_ASCII_BACKSPACE);
+                                     VTE_ERASE_ASCII_BACKSPACE);
 
   clear_display();
 
