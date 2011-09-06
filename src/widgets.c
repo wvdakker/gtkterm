@@ -409,7 +409,7 @@ void create_main_window(void)
 
   g_signal_connect_after(GTK_OBJECT(display), "commit", G_CALLBACK(Got_Input), NULL);
 
-  gtk_timeout_add(POLL_DELAY, (GtkFunction)control_signals_read, NULL);
+  g_timeout_add(POLL_DELAY, (GSourceFunc)control_signals_read, NULL);
 
   gtk_window_set_default_size(GTK_WINDOW(Fenetre), 750, 550);
   gtk_widget_show_all(Fenetre);
@@ -538,24 +538,30 @@ gboolean Envoie_car(GtkWidget *widget, GdkEventKey *event, gpointer pointer)
 
 gint a_propos(GtkWidget *widget, guint param)
 {
-  GtkWidget *Dialogue, *Label, *Bouton;
+  GtkWidget *Dialogue, *Label, *Content;
   gchar *chaine;
 
-  Dialogue = gtk_dialog_new();
-  gtk_window_set_title(GTK_WINDOW(Dialogue), _("About..."));
-  Bouton = gtk_button_new_from_stock (GTK_STOCK_OK);
-  gtk_signal_connect_object(GTK_OBJECT(Bouton), "clicked", (GtkSignalFunc)gtk_widget_destroy, GTK_OBJECT(Dialogue));
-  gtk_signal_connect(GTK_OBJECT(Dialogue), "destroy", (GtkSignalFunc)gtk_widget_destroy, NULL);
-  gtk_signal_connect(GTK_OBJECT(Dialogue), "delete_event", (GtkSignalFunc)gtk_widget_destroy, NULL);
-  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->action_area), Bouton, TRUE, TRUE, 0);
+  /* create dialog box */
+  Dialogue = gtk_dialog_new_with_buttons("About",
+                                         GTK_WINDOW(widget),
+                                         GTK_DIALOG_DESTROY_WITH_PARENT,
+                                         GTK_STOCK_OK,
+                                         GTK_RESPONSE_NONE,
+                                         NULL);
+  Content = gtk_dialog_get_content_area(GTK_DIALOG(Dialogue));
+  gtk_container_set_border_width(GTK_CONTAINER(Content), 5);
 
+  /* generate message and label */
+  chaine = g_strdup_printf(_("\n<big><i> GTKTerm V. %s </i></big>\n\n\t(c) Julien Schmitt\n\t"
+                             "<a href=\"http://www.jls-info.com/julien/linux\">\n\n\t"
+                             "Latest Version Available on:\n\t<a href=\"https://fedorahosted.org/gtkterm/\">"), VERSION);
   Label = gtk_label_new("");
-  chaine = g_strdup_printf(_("\n <big><i> GTKTerm V. %s </i></big> \n\n\t(c) Julien Schmitt\n\thttp://www.jls-info.com/julien/linux\n\n\tLatest Version Available on:\n\thttps://fedorahosted.org/gtkterm/"), VERSION);
   gtk_label_set_markup(GTK_LABEL(Label), chaine);
-  g_free(chaine);
-  gtk_label_set_selectable(GTK_LABEL(Label), TRUE);
-  gtk_box_pack_start(GTK_BOX(GTK_DIALOG(Dialogue)->vbox), Label, TRUE, TRUE, 0);
+  g_signal_connect_swapped(Dialogue, "response", 
+                           G_CALLBACK(gtk_widget_destroy), Dialogue);
 
+  /* add label to box, show everything */
+  gtk_container_add(GTK_CONTAINER(Dialogue), Label);
   gtk_widget_show_all(Dialogue);
 
   return FALSE;
@@ -710,7 +716,7 @@ void Put_temp_message(const gchar *text, gint time)
 {
   /* time in ms */
   gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, text);
-  gtk_timeout_add(time, (GtkFunction)pop_message, NULL);
+  g_timeout_add(time, (GSourceFunc)pop_message, NULL);
 }
 
 gboolean pop_message(void)

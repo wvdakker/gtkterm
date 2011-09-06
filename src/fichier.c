@@ -138,11 +138,11 @@ gint Envoie_fichier(GtkFileChooser *FS)
 	gtk_box_pack_start(GTK_BOX(Box), ProgressBar, FALSE, FALSE, 5);
 
 	Bouton_annuler = gtk_button_new_with_label(_("Cancel"));
-	gtk_signal_connect_object(GTK_OBJECT(Bouton_annuler), "clicked", GTK_SIGNAL_FUNC(close_all), NULL);
+	g_signal_connect(GTK_OBJECT(Bouton_annuler), "clicked", G_CALLBACK(close_all), NULL);
 
 	gtk_container_add(GTK_CONTAINER(GTK_DIALOG(Window)->action_area), Bouton_annuler);
 
-	gtk_signal_connect_object(GTK_OBJECT(Window), "delete_event", GTK_SIGNAL_FUNC(close_all), NULL);
+	g_signal_connect(GTK_OBJECT(Window), "delete_event", G_CALLBACK(close_all), NULL);
 
 	gtk_window_set_default_size(GTK_WINDOW(Window), 250, 100);
 	gtk_window_set_modal(GTK_WINDOW(Window), TRUE);
@@ -251,7 +251,12 @@ void add_input(void)
     if(input_running == FALSE)
     {
 	input_running = TRUE;
-	callback_handler = gtk_input_add_full(serial_port_fd, GDK_INPUT_WRITE, (GdkInputFunction)ecriture, NULL, NULL, NULL);
+    callback_handler = g_io_add_watch_full(g_io_channel_unix_new(serial_port_fd),
+					   10,
+					   G_IO_OUT, 
+					   (GIOFunc)ecriture, 
+					   NULL, NULL);
+
     }
 }
 
@@ -259,7 +264,7 @@ void remove_input(void)
 {
     if(input_running == TRUE)
     {
-	gtk_input_remove(callback_handler);
+    g_source_remove(callback_handler);
 	input_running = FALSE;
     }
 }

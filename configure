@@ -5664,6 +5664,7 @@ fi
 
 if test "$CC" = "gcc" ; then
   GNUCFLAGS="-Wall -fno-omit-frame-pointer -fno-strict-aliasing -O2"
+  GNUCFLAGS+=" -DGDK_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED"
 fi
 
 
