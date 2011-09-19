@@ -15,11 +15,13 @@
 #ifndef TERM_CONFIG_H_
 #define TERM_CONFIG_H_
 
-gint Config_Port_Fenetre(GtkWidget *widget, guint param);
+void Config_Port_Fenetre(GtkAction *action, gpointer data);
 gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos);
-gint Config_Terminal(GtkWidget *widget, guint param);
+void Config_Terminal(GtkAction *action, gpointer data);
 void Set_Font(void);
-gint config_window(gpointer *, guint);
+void select_config_callback(GtkAction *action, gpointer data);
+void save_config_callback(GtkAction *action, gpointer data);
+void delete_config_callback(GtkAction *action, gpointer data);
 void Verify_configuration(void);
 gint Load_configuration_from_file(gchar *);
 gint Check_configuration_file(void);
