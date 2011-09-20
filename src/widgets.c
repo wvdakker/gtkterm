@@ -87,6 +87,8 @@ static GtkWidget *log_stop_menu = NULL;
 static GtkWidget *log_clear_menu = NULL;
 GtkWidget *scrolled_window;
 GtkWidget *Fenetre;
+GtkWidget *popup_menu;
+GtkUIManager *ui_manager;
 GtkAccelGroup *shortcuts;
 GtkActionGroup *action_group;
 GtkWidget *display = NULL;
@@ -250,6 +252,12 @@ static const char *ui_description =
 "      <menuitem action='HelpAbout'/>"
 "    </menu>"
 "  </menubar>"
+"  <popup name='PopupMenu'>"
+"    <menuitem action='EditCopy'/>"
+"    <menuitem action='EditPaste'/>"
+"    <separator/>"
+"    <menuitem action='EditSelectAll'/>"
+"  </popup>"
 "</ui>";
 
 static gchar *translate_menu(const gchar *path, gpointer data)
@@ -389,11 +397,33 @@ void toggle_logging_sensitivity(gboolean currentlyLogging)
   gtk_action_set_sensitive(action, currentlyLogging);
 }
 
+gboolean terminal_button_press_callback(GtkWidget *widget,
+                                        GdkEventButton *event,
+                                        gpointer *data)
+{
+
+  if(event->type == GDK_BUTTON_PRESS &&
+     event->button == 3 &&
+     (event->state & gtk_accelerator_get_default_mod_mask()) == 0)
+  {
+      gtk_menu_popup(GTK_MENU(popup_menu), NULL, NULL, NULL, NULL,
+                     event->button, event->time);
+      return TRUE;
+  }
+
+    return FALSE;
+}
+
+void terminal_popup_menu_callback(GtkWidget *widget, gpointer data)
+{
+  gtk_menu_popup(GTK_MENU(popup_menu), NULL, NULL, NULL, NULL,
+                 0, gtk_get_current_event_time());
+}
+
 void create_main_window(void)
 {
   GtkWidget *menu, *main_vbox, *label;
   GtkWidget *hex_send_entry;
-  GtkUIManager *ui_manager;
   GtkAccelGroup *accel_group;
   GError *error;
 
@@ -473,9 +503,17 @@ void create_main_window(void)
 
   gtk_box_pack_start(GTK_BOX(main_vbox), scrolled_window, TRUE, TRUE, 0);
 
+  g_signal_connect(G_OBJECT(display), "button-press-event",
+                   G_CALLBACK(terminal_button_press_callback), NULL);
+
+  g_signal_connect(G_OBJECT(display), "popup-menu",
+                   G_CALLBACK(terminal_popup_menu_callback), NULL);
+
   g_signal_connect(G_OBJECT(display), "selection-changed",
                    G_CALLBACK(update_copy_sensivity), NULL);
   update_copy_sensivity(VTE_TERMINAL(display), NULL);
+
+  popup_menu = gtk_ui_manager_get_widget(ui_manager, "/PopupMenu");
 
   /* set up logging buttons availability */
   toggle_logging_pause_resume(FALSE);
