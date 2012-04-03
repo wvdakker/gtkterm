@@ -166,6 +166,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
     gchar **dev = NULL;
     GtkObject *adj;
     struct stat my_stat;
+    gchar *string;
     int i;
 
     for(dev = devices_to_check; *dev != NULL; dev++)
@@ -210,19 +211,18 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 
     for(i = 0; i < g_list_length(liste); i++)
     {
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), g_list_nth_data(liste, i));
+        gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), g_list_nth_data(liste, i));
     }
     gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
     chaine = g_strdup(config.port);
     if(g_list_find_custom(liste, chaine, (GCompareFunc)strcmp) != NULL)
-	gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), g_list_index(liste, chaine));
-
+        gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), g_list_index(liste, chaine));
 
     // clean up devices strings
     //g_list_free(liste, (GDestroyNotify)g_free); // only available in glib >= 2.28
     for(i = 0; i < g_list_length(liste); i++)
     {
-	g_free(g_list_nth_data(liste, i));
+        g_free(g_list_nth_data(liste, i));
     }
     g_list_free(liste);
     g_free(chaine);
@@ -276,8 +276,14 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
        case 115200:
            gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 9);
            break;
-       default:
-               gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 5);
+       case 0:
+           /* no previous setting, use a default */
+           gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 5);
+        default:
+            /* custom baudrate */
+            string = g_strdup_printf("%d", config.vitesse);
+            gtk_entry_set_text(GTK_ENTRY(gtk_bin_get_child (GTK_BIN (Combo))), string);
+            g_free(string);
     }
 
     //validate input text (digits only)
