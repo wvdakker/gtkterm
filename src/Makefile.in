@@ -143,8 +143,8 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
-gtk2_CFLAGS = @gtk2_CFLAGS@
-gtk2_LIBS = @gtk2_LIBS@
+gtk_CFLAGS = @gtk_CFLAGS@
+gtk_LIBS = @gtk_LIBS@
 host_alias = @host_alias@
 htmldir = @htmldir@
 includedir = @includedir@
@@ -171,7 +171,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 vte_CFLAGS = @vte_CFLAGS@
 vte_LIBS = @vte_LIBS@
-AM_CFLAGS = $(gtk2_CFLAGS) $(vte_CFLAGS)
+AM_CFLAGS = $(gtk_CFLAGS) $(vte_CFLAGS)
 gtkterm_SOURCES = \
     term_config.c \
     fichier.c \
@@ -196,7 +196,7 @@ gtkterm_SOURCES = \
     logging.c \
     logging.h 
 
-gtkterm_LDADD = $(gtk2_LIBS) $(vte_LIBS)
+gtkterm_LDADD = $(gtk_LIBS) $(vte_LIBS)
 CLEANFILES = *~
 AM_CPPFLAGS = -DLOCALEDIR=\""$(localedir)"\"
 all: all-am
