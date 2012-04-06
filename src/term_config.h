@@ -18,7 +18,6 @@
 void Config_Port_Fenetre(GtkAction *action, gpointer data);
 gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos);
 void Config_Terminal(GtkAction *action, gpointer data);
-void Set_Font(void);
 void select_config_callback(GtkAction *action, gpointer data);
 void save_config_callback(GtkAction *action, gpointer data);
 void delete_config_callback(GtkAction *action, gpointer data);

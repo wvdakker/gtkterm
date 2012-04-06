@@ -119,7 +119,7 @@ void send_raw_file(GtkAction *action, gpointer data)
 			Window = gtk_dialog_new();
 			gtk_window_set_title(GTK_WINDOW(Window), msg);
 			g_free(msg);
-			Box = gtk_vbox_new(TRUE, 10);
+			Box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
 			gtk_container_add(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(Window))), Box);
 			ProgressBar = gtk_progress_bar_new();
 

@@ -437,7 +437,7 @@ void create_main_window(void)
   
   Set_window_title("GtkTerm");
 
-  main_vbox = gtk_vbox_new(FALSE, 0);
+  main_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add(GTK_CONTAINER(Fenetre), main_vbox);
 
   /* Create the UIManager */
@@ -492,13 +492,15 @@ void create_main_window(void)
   clear_display();
 
   /* make vte window scrollable - inspired by gnome-terminal package */
-  scrolled_window = gtk_scrolled_window_new(NULL,
-					    vte_terminal_get_adjustment(VTE_TERMINAL(display)));
+  scrolled_window = gtk_scrolled_window_new(NULL, gtk_scrollable_get_vadjustment (GTK_SCROLLABLE (display)));
+
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
-				 GTK_POLICY_AUTOMATIC,
-				 GTK_POLICY_AUTOMATIC);
+                                 GTK_POLICY_AUTOMATIC,
+                                 GTK_POLICY_AUTOMATIC);
+
   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolled_window),
-				      GTK_SHADOW_NONE);
+                                      GTK_SHADOW_NONE);
+
   gtk_container_add(GTK_CONTAINER(scrolled_window), GTK_WIDGET(display));
 
   gtk_box_pack_start(GTK_BOX(main_vbox), scrolled_window, TRUE, TRUE, 0);
@@ -520,7 +522,7 @@ void create_main_window(void)
   toggle_logging_sensitivity(FALSE);
 
   /* send hex char box (hidden when not in use) */
-  Hex_Box = gtk_hbox_new(FALSE, 0);
+  Hex_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
   label = gtk_label_new(_("Hexadecimal data to send (separator : ';' or space) : "));
   gtk_box_pack_start(GTK_BOX(Hex_Box), label, FALSE, FALSE, 5);
   hex_send_entry = gtk_entry_new();
@@ -697,6 +699,8 @@ void help_about_callback(GtkAction *action, gpointer data)
                         "copyright", "Copyright © Julien Schimtt",
                         "authors", authors,
                         "website", "https://fedorahosted.org/gtkterm/",
+                        "website-label", "https://fedorahosted.org/gtkterm/",
+                        "license-type", GTK_LICENSE_LGPL_3_0,
                         NULL);
 }
 

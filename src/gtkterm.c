@@ -63,7 +63,6 @@ int main(int argc, char *argv[])
   Set_status_message(message);
   g_free(message);
 
-  Set_Font();
   add_shortcuts();
 
   set_view(ASCII_VIEW);

@@ -129,10 +129,10 @@ gchar *config_file;
 struct configuration_port config;
 display_config_t term_conf;
 
-GtkWidget *Entry, *Bouton_font = NULL;
+GtkWidget *Entry;
 
 gint Grise_Degrise(GtkWidget *bouton, gpointer pointeur);
-gint Lis_Font(GtkFontSelectionDialog *fontsel);
+void read_font_button(GtkFontButton *fontButton);
 void Hard_default_configuration(void);
 void Copy_configuration(int);
 
@@ -145,8 +145,8 @@ static void really_save_config(GtkDialog *, gint, gpointer);
 static gint remove_section(gchar *, gchar *);
 static void Curseur_OnOff(GtkWidget *, gpointer);
 static void Selec_couleur(GdkColor *, gfloat, gfloat, gfloat);
-static gint config_color_fg(GtkWidget *, gpointer);
-static gint config_color_bg(GtkWidget *, gpointer);
+void config_fg_color(GtkWidget *button, gpointer data);
+void config_bg_color(GtkWidget *button, gpointer data);
 static void Transparency_OnOff(GtkWidget *, gpointer);
 static void change_scale(GtkRange *, gpointer);
 static gint scrollback_set(GtkWidget *, GdkEventFocus *, gpointer);
@@ -370,7 +370,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 
     /* create an expander widget to hide the 'Advanced features' */
     Expander = gtk_expander_new_with_mnemonic(_("Advanced Configuration Options"));
-    ExpanderVbox = gtk_vbox_new(FALSE, 0);
+    ExpanderVbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(Expander), ExpanderVbox);
     gtk_container_add(GTK_CONTAINER(content_area), Expander);
 
@@ -528,51 +528,13 @@ gint Grise_Degrise(GtkWidget *bouton, gpointer pointeur)
     return FALSE;
 }
 
-gint Config_Font(GtkWidget *widget, guint param)
+void read_font_button(GtkFontButton *fontButton)
 {
-    GtkWidget *fontsel;
-    GtkWidget *cancel_button;
-    GtkWidget *ok_button;
+	g_free(term_conf.font);
+	term_conf.font = g_strdup(gtk_font_button_get_font_name(fontButton));
 
-    fontsel = gtk_font_selection_dialog_new(_("Font selection"));
-    cancel_button = gtk_font_selection_dialog_get_cancel_button(GTK_FONT_SELECTION_DIALOG(fontsel));
-    ok_button = gtk_font_selection_dialog_get_ok_button(GTK_FONT_SELECTION_DIALOG(fontsel));
-
-    g_signal_connect(GTK_WIDGET(fontsel), "delete-event", G_CALLBACK(gtk_widget_destroy), NULL);
-    g_signal_connect(GTK_WIDGET(fontsel), "destroy", G_CALLBACK(gtk_widget_destroy), NULL);
-    g_signal_connect_swapped(GTK_WIDGET(cancel_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(fontsel));
-    g_signal_connect_swapped(GTK_WIDGET(ok_button), "clicked", G_CALLBACK(Lis_Font), GTK_WIDGET(fontsel));
-    g_signal_connect_swapped(GTK_WIDGET(ok_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(fontsel));
-    gtk_font_selection_dialog_set_font_name(GTK_FONT_SELECTION_DIALOG(fontsel), term_conf.font);
-
-    gtk_widget_show(GTK_WIDGET(fontsel));
-    return FALSE;
-}
-
-
-void Set_Font(void)
-{
-    if(Bouton_font != NULL)
-    {
-	gchar *string;
-
-	gtk_button_set_label(GTK_BUTTON(Bouton_font), term_conf.font);
-	string = g_strdup(term_conf.font);
-	cfgStoreValue(cfg, "font", string, CFG_INI, 0);
-	g_free(string);
-    }
-
-    if(term_conf.font != NULL)
-	vte_terminal_set_font_from_string(VTE_TERMINAL(display), term_conf.font);
-}
-
-gint Lis_Font(GtkFontSelectionDialog *fontsel)
-{
-    g_free(term_conf.font);
-    term_conf.font = gtk_font_selection_dialog_get_font_name(fontsel);
-    Set_Font();
-
-    return FALSE;
+	if(term_conf.font != NULL)
+		vte_terminal_set_font_from_string(VTE_TERMINAL(display), term_conf.font);
 }
 
 
@@ -705,7 +667,7 @@ void Save_config_file(void)
 
     label = gtk_label_new(_("Configuration name: "));
 
-    box = gtk_hbox_new(FALSE, 0);
+    box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     entry = gtk_entry_new();
     gtk_entry_set_text(GTK_ENTRY(entry), "default");
     gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
@@ -833,7 +795,6 @@ void load_config(GtkDialog *Fenetre, gint id, GtkTreeSelection *Selection_Liste)
 	    Load_configuration_from_file(txt);
 	    Verify_configuration();
 	    message = Config_port();
-	    Set_Font();
 	    add_shortcuts();
 	    if(message == NULL)
 		message = g_strdup_printf(_("No open port"));
@@ -1418,8 +1379,11 @@ gint remove_section(gchar *cfg_file, gchar *section)
 
 void Config_Terminal(GtkAction *action, gpointer data)
 {
-    GtkWidget *Dialog, *content_area, *BoiteH, *BoiteV, *Label, *Check_Bouton, *Bouton, *Eventbox, *Table, *HScale, *Entry;
-    gchar *fonte, *scrollback;
+    GtkWidget *Dialog, *content_area, *BoiteH, *BoiteV, *Label, *Check_Bouton, *Table, *HScale, *Entry;
+    gchar *font, *scrollback;
+    GtkWidget *fontButton;
+    GtkWidget *fg_color_button;
+    GtkWidget *bg_color_button;
 
     Dialog = gtk_dialog_new_with_buttons (_("Terminal configuration"),
 					  NULL,
@@ -1430,17 +1394,18 @@ void Config_Terminal(GtkAction *action, gpointer data)
     gtk_widget_set_size_request(GTK_WIDGET(Dialog), 400, 400);
 
 
-    BoiteV = gtk_vbox_new(FALSE, 0);
+    BoiteV = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_set_border_width(GTK_CONTAINER(BoiteV), 10);
 
-    BoiteH = gtk_hbox_new(FALSE, 0);
+    BoiteH = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     Label = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(Label), "<b>Font selection: </b>");
     gtk_box_pack_start(GTK_BOX(BoiteH), Label, FALSE, TRUE, 0);
-    fonte =  g_strdup_printf("%s", term_conf.font);
-    Bouton_font = gtk_button_new_with_label(fonte);
-    gtk_box_pack_start(GTK_BOX(BoiteH), Bouton_font, FALSE, TRUE, 10);
-    g_signal_connect(GTK_WIDGET(Bouton_font), "clicked", G_CALLBACK(Config_Font), 0);
+
+    font =  g_strdup (term_conf.font);
+    fontButton = gtk_font_button_new_with_font(font);
+    gtk_box_pack_start(GTK_BOX(BoiteH), fontButton, FALSE, TRUE, 10);
+    g_signal_connect(GTK_WIDGET(fontButton), "font-set", G_CALLBACK(read_font_button), 0);
     gtk_box_pack_start(GTK_BOX(BoiteV), BoiteH, FALSE, TRUE, 0);
 
     Check_Bouton = gtk_check_button_new_with_label("Show cursor");
@@ -1464,21 +1429,16 @@ void Config_Terminal(GtkAction *action, gpointer data)
     gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
     gtk_table_attach(GTK_TABLE(Table), Label, 0, 1, 1, 2, GTK_SHRINK | GTK_FILL , GTK_SHRINK, 10, 0);
 
-    Bouton = gtk_button_new();
-    Eventbox = gtk_event_box_new();
-    gtk_container_add(GTK_CONTAINER(Bouton), Eventbox);
-    gtk_widget_set_size_request(GTK_WIDGET(Bouton), 60, 25);
-    gtk_widget_modify_bg(GTK_WIDGET(Eventbox), GTK_STATE_NORMAL, &term_conf.foreground_color);
-    gtk_table_attach(GTK_TABLE(Table), Bouton, 1, 2, 0, 1, GTK_SHRINK, GTK_SHRINK, 10, 0);
-    g_signal_connect(GTK_WIDGET(Bouton), "clicked", G_CALLBACK(config_color_fg), Eventbox);
+    fg_color_button = gtk_color_button_new_with_color (&term_conf.foreground_color);
+    gtk_color_button_set_title (GTK_COLOR_BUTTON (fg_color_button), _("Text color"));
+    gtk_table_attach (GTK_TABLE (Table), fg_color_button, 1, 2, 0, 1, GTK_SHRINK, GTK_SHRINK, 10, 0);
+    g_signal_connect (GTK_WIDGET (fg_color_button), "color-set", G_CALLBACK (config_fg_color), NULL);
 
-    Bouton = gtk_button_new();
-    Eventbox = gtk_event_box_new();
-    gtk_container_add(GTK_CONTAINER(Bouton), Eventbox);
-    gtk_widget_set_size_request(GTK_WIDGET(Bouton), 60, 25);
-    gtk_widget_modify_bg(GTK_WIDGET(Eventbox), GTK_STATE_NORMAL, &term_conf.background_color);
-    gtk_table_attach(GTK_TABLE(Table), Bouton, 1, 2, 1, 2, GTK_SHRINK, GTK_SHRINK, 10, 0);
-    g_signal_connect(GTK_WIDGET(Bouton), "clicked", G_CALLBACK(config_color_bg), Eventbox);
+    bg_color_button = gtk_color_button_new_with_color (&term_conf.background_color);
+    gtk_color_button_set_title (GTK_COLOR_BUTTON (bg_color_button), _("Background color"));
+    gtk_table_attach (GTK_TABLE (Table), bg_color_button, 1, 2, 1, 2, GTK_SHRINK, GTK_SHRINK, 10, 0);
+    g_signal_connect (GTK_WIDGET (bg_color_button), "color-set", G_CALLBACK (config_bg_color), NULL);
+
     gtk_box_pack_start(GTK_BOX(BoiteV), Table, FALSE, TRUE, 0);
 
 
@@ -1491,7 +1451,7 @@ void Config_Terminal(GtkAction *action, gpointer data)
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Check_Bouton), term_conf.transparency);
     gtk_box_pack_start(GTK_BOX(BoiteV), Check_Bouton, FALSE, TRUE, 0);
 
-    HScale = gtk_hscale_new_with_range(0.0, 100.0, 1.0);
+    HScale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0.0, 100.0, 1.0);
     gtk_range_set_value(GTK_RANGE(HScale), term_conf.background_saturation*100.0);
     g_signal_connect(GTK_WIDGET(Check_Bouton), "toggled", G_CALLBACK(Transparency_OnOff), HScale);
     g_signal_connect(GTK_RANGE(HScale), "value-changed", G_CALLBACK(change_scale), 0);
@@ -1503,7 +1463,7 @@ void Config_Terminal(GtkAction *action, gpointer data)
     gtk_label_set_markup(GTK_LABEL(Label), "<b>Screen: </b>");  
     gtk_box_pack_start(GTK_BOX(BoiteV), Label, FALSE, TRUE, 10);
 
-    BoiteH = gtk_hbox_new(FALSE, 0);
+    BoiteH = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     Label = gtk_label_new("Scrollback lines:");
     gtk_box_pack_start(GTK_BOX(BoiteH), Label, FALSE, TRUE, 0);
     Entry = gtk_entry_new();
@@ -1528,93 +1488,51 @@ void Curseur_OnOff(GtkWidget *Check_Bouton, gpointer data)
     term_conf.show_cursor = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(Check_Bouton));
 }
 
-void Selec_couleur(GdkColor *Couleur, gfloat R, gfloat V, gfloat B)
+void Selec_couleur(GdkColor *color, gfloat R, gfloat G, gfloat B)
 {
-    Couleur->red=(guint16)(R*65535);
-    Couleur->green=(guint16)(V*65535);
-    Couleur->blue=(guint16)(B*65535);
+	color->red = (guint16)(65535*R);
+	color->green = (guint16)(65535*G);
+	color->blue = (guint16)(65535*B);
 }
 
-gint config_color_fg(GtkWidget *bouton, gpointer data)
+void config_fg_color(GtkWidget *button, gpointer data)
 {
-    GtkWidget *Fenetre;
-    GtkColorSelection *colorsel;
-    gint response;
-    gchar *string;
+	gchar *string;
 
-    Fenetre = gtk_color_selection_dialog_new ("Changing text color");
-    colorsel = GTK_COLOR_SELECTION (gtk_color_selection_dialog_get_color_selection (GTK_COLOR_SELECTION_DIALOG (Fenetre)));
-    gtk_color_selection_set_previous_color (colorsel, &term_conf.foreground_color);
-    gtk_color_selection_set_current_color (colorsel, &term_conf.foreground_color);
+	gtk_color_button_get_color (GTK_COLOR_BUTTON (button), &term_conf.foreground_color);
 
-    gtk_color_selection_set_has_palette (colorsel, TRUE);
-    gtk_widget_set_size_request(GTK_WIDGET(Fenetre), 465, 315);
-    gtk_window_set_position(GTK_WINDOW(Fenetre), GTK_WIN_POS_CENTER);
-
-    response = gtk_dialog_run (GTK_DIALOG (Fenetre));
-
-    if (response == GTK_RESPONSE_OK)
-    {
-	gtk_color_selection_get_current_color (colorsel, &term_conf.foreground_color);
-	gtk_widget_modify_bg(GTK_WIDGET(data), GTK_STATE_NORMAL, &term_conf.foreground_color);
 	vte_terminal_set_color_foreground (VTE_TERMINAL(display), &term_conf.foreground_color);
-	gtk_widget_queue_draw(display);
+	gtk_widget_queue_draw (display);
 
-	string = g_strdup_printf("%d", term_conf.foreground_color.red);
-	cfgStoreValue(cfg, "term_foreground_red", string, CFG_INI, 0);
-	g_free(string);
-	string = g_strdup_printf("%d", term_conf.foreground_color.green);
-	cfgStoreValue(cfg, "term_foreground_green", string, CFG_INI, 0);
-	g_free(string);
-	string = g_strdup_printf("%d", term_conf.foreground_color.blue);
-	cfgStoreValue(cfg, "term_foreground_blue", string, CFG_INI, 0);
-	g_free(string);
-    }
-
-    gtk_widget_destroy(Fenetre);
-
-    return TRUE;
+	string = g_strdup_printf ("%d", term_conf.foreground_color.red);
+	cfgStoreValue (cfg, "term_foreground_red", string, CFG_INI, 0);
+	g_free (string);
+	string = g_strdup_printf ("%d", term_conf.foreground_color.green);
+	cfgStoreValue (cfg, "term_foreground_green", string, CFG_INI, 0);
+	g_free (string);
+	string = g_strdup_printf ("%d", term_conf.foreground_color.blue);
+	cfgStoreValue (cfg, "term_foreground_blue", string, CFG_INI, 0);
+	g_free (string);
 }
 
-gint config_color_bg(GtkWidget *bouton, gpointer data)
+void config_bg_color(GtkWidget *button, gpointer data)
 {
-    GtkWidget *Fenetre;
-    GtkColorSelection *colorsel;
-    gint response;
-    gchar *string;
+	gchar *string;
 
-    Fenetre = gtk_color_selection_dialog_new ("Changing background color");
-    colorsel = GTK_COLOR_SELECTION (gtk_color_selection_dialog_get_color_selection (GTK_COLOR_SELECTION_DIALOG (Fenetre)));
-    gtk_color_selection_set_previous_color (colorsel, &term_conf.background_color);
-    gtk_color_selection_set_current_color (colorsel, &term_conf.background_color);
+	gtk_color_button_get_color (GTK_COLOR_BUTTON (button), &term_conf.background_color);
 
-    gtk_color_selection_set_has_palette (colorsel, TRUE);
-    gtk_widget_set_size_request(GTK_WIDGET(Fenetre), 465, 315);
-    gtk_window_set_position(GTK_WINDOW(Fenetre), GTK_WIN_POS_CENTER);
-
-    response = gtk_dialog_run (GTK_DIALOG (Fenetre));
-
-    if (response == GTK_RESPONSE_OK)
-    {
-	gtk_color_selection_get_current_color (colorsel, &term_conf.background_color);
-	gtk_widget_modify_bg(GTK_WIDGET(data), GTK_STATE_NORMAL, &term_conf.background_color);
 	vte_terminal_set_color_background (VTE_TERMINAL(display), &term_conf.background_color);
-	gtk_widget_queue_draw(display);
+	gtk_widget_queue_draw (display);
 
-	string = g_strdup_printf("%d", term_conf.background_color.red);
-	cfgStoreValue(cfg, "term_background_red", string, CFG_INI, 0);
-	g_free(string);
-	string = g_strdup_printf("%d", term_conf.background_color.green);
-	cfgStoreValue(cfg, "term_background_green", string, CFG_INI, 0);
-	g_free(string);
-	string = g_strdup_printf("%d", term_conf.background_color.blue);
-	cfgStoreValue(cfg, "term_background_blue", string, CFG_INI, 0);
-	g_free(string);
-    }
-
-    gtk_widget_destroy(Fenetre);
-
-    return TRUE;
+	string = g_strdup_printf ("%d", term_conf.background_color.red);
+	cfgStoreValue (cfg, "term_background_red", string, CFG_INI, 0);
+	g_free (string);
+	string = g_strdup_printf ("%d", term_conf.background_color.green);
+	cfgStoreValue (cfg, "term_background_green", string, CFG_INI, 0);
+	g_free (string);
+	string = g_strdup_printf ("%d", term_conf.background_color.blue);
+	cfgStoreValue (cfg, "term_background_blue", string, CFG_INI, 0);
+	g_free (string);
 }
 
 

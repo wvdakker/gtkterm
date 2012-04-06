@@ -453,7 +453,7 @@ void Config_macros(GtkAction *action, gpointer data)
 		    G_CALLBACK (gtk_widget_destroyed), &window);
   gtk_container_set_border_width (GTK_CONTAINER (window), 8);
 
-  vbox = gtk_vbox_new (FALSE, 8);
+  vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
   gtk_container_add (GTK_CONTAINER (window), vbox);
 
   sw = gtk_scrolled_window_new (NULL, NULL);
@@ -480,7 +480,8 @@ void Config_macros(GtkAction *action, gpointer data)
   /* add columns to the tree view */
   add_columns (GTK_TREE_VIEW (treeview));
 
-  hbox = gtk_hbox_new (TRUE, 4);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+  gtk_box_set_homogeneous (GTK_BOX (hbox), TRUE);
   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
   button = gtk_button_new_with_mnemonic (_("_Add"));
@@ -495,10 +496,11 @@ void Config_macros(GtkAction *action, gpointer data)
   g_signal_connect(button, "clicked", G_CALLBACK(Capture_shortcut), (gpointer)treeview);
   gtk_box_pack_start (GTK_BOX (hbox), button, TRUE, TRUE, 0);
 
-  separator = gtk_hseparator_new();
+  separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
   gtk_box_pack_start (GTK_BOX (vbox), separator, FALSE, TRUE, 0);
 
-  hbox = gtk_hbox_new (TRUE, 4);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+  gtk_box_set_homogeneous (GTK_BOX (hbox), TRUE);
   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
 
   button = gtk_button_new_from_stock (GTK_STOCK_HELP);
