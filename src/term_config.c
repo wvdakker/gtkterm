@@ -164,7 +164,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
     GList *liste = NULL;
     gchar *chaine = NULL;
     gchar **dev = NULL;
-    GtkObject *adj;
+    GtkAdjustment *adj;
     struct stat my_stat;
     gchar *string;
     int i;
@@ -398,7 +398,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 
     CheckBouton = gtk_check_button_new_with_label(_("Wait for this special character before passing to next line:"));
 
-    g_signal_connect(GTK_OBJECT(CheckBouton), "clicked", G_CALLBACK(Grise_Degrise), (gpointer)Spin);
+    g_signal_connect(GTK_WIDGET(CheckBouton), "clicked", G_CALLBACK(Grise_Degrise), (gpointer)Spin);
 
     if(config.car != -1)
     {
@@ -438,10 +438,10 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 
     Bouton_OK = gtk_button_new_from_stock(GTK_STOCK_OK);
     gtk_box_pack_start(GTK_BOX(action_area), Bouton_OK, FALSE, TRUE, 0);
-    g_signal_connect(GTK_OBJECT(Bouton_OK), "clicked", G_CALLBACK(Lis_Config), (gpointer)Combos);
-    g_signal_connect_swapped(GTK_OBJECT(Bouton_OK), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(Dialogue));
+    g_signal_connect(GTK_WIDGET(Bouton_OK), "clicked", G_CALLBACK(Lis_Config), (gpointer)Combos);
+    g_signal_connect_swapped(GTK_WIDGET(Bouton_OK), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialogue));
     Bouton_annule = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
-    g_signal_connect_swapped(GTK_OBJECT(Bouton_annule), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(Dialogue));
+    g_signal_connect_swapped(GTK_WIDGET(Bouton_annule), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialogue));
     gtk_box_pack_start(GTK_BOX(action_area), Bouton_annule, FALSE, TRUE, 0);
 
     gtk_widget_show_all(Dialogue);
@@ -538,11 +538,11 @@ gint Config_Font(GtkWidget *widget, guint param)
     cancel_button = gtk_font_selection_dialog_get_cancel_button(GTK_FONT_SELECTION_DIALOG(fontsel));
     ok_button = gtk_font_selection_dialog_get_ok_button(GTK_FONT_SELECTION_DIALOG(fontsel));
 
-    g_signal_connect(GTK_OBJECT(fontsel), "delete-event", G_CALLBACK(gtk_widget_destroy), NULL);
-    g_signal_connect(GTK_OBJECT(fontsel), "destroy", G_CALLBACK(gtk_widget_destroy), NULL);
-    g_signal_connect_swapped(GTK_OBJECT(cancel_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(fontsel));
-    g_signal_connect_swapped(GTK_OBJECT(ok_button), "clicked", G_CALLBACK(Lis_Font), GTK_OBJECT(fontsel));
-    g_signal_connect_swapped(GTK_OBJECT(ok_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_OBJECT(fontsel));
+    g_signal_connect(GTK_WIDGET(fontsel), "delete-event", G_CALLBACK(gtk_widget_destroy), NULL);
+    g_signal_connect(GTK_WIDGET(fontsel), "destroy", G_CALLBACK(gtk_widget_destroy), NULL);
+    g_signal_connect_swapped(GTK_WIDGET(cancel_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(fontsel));
+    g_signal_connect_swapped(GTK_WIDGET(ok_button), "clicked", G_CALLBACK(Lis_Font), GTK_WIDGET(fontsel));
+    g_signal_connect_swapped(GTK_WIDGET(ok_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(fontsel));
     gtk_font_selection_dialog_set_font_name(GTK_FONT_SELECTION_DIALOG(fontsel), term_conf.font);
 
     gtk_widget_show(GTK_WIDGET(fontsel));
@@ -678,8 +678,8 @@ void Select_config(gchar *title, void *callback)
 
 	gtk_widget_set_size_request(GTK_WIDGET(dialog), 200, 200);
 
-	g_signal_connect(GTK_OBJECT(dialog), "response", G_CALLBACK (callback), GTK_TREE_SELECTION(Selection_Liste));
-	g_signal_connect_swapped(GTK_OBJECT(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
+	g_signal_connect(GTK_WIDGET(dialog), "response", G_CALLBACK (callback), GTK_TREE_SELECTION(Selection_Liste));
+	g_signal_connect_swapped(GTK_WIDGET(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
 
 	gtk_box_pack_start (GTK_BOX (content_area), Frame, TRUE, TRUE, 0);
 
@@ -712,8 +712,8 @@ void Save_config_file(void)
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(box), entry, TRUE, TRUE, 0);
 
-    g_signal_connect(GTK_OBJECT(dialog), "response", G_CALLBACK(save_config), GTK_ENTRY(entry));
-    g_signal_connect_swapped(GTK_OBJECT(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
+    g_signal_connect(GTK_WIDGET(dialog), "response", G_CALLBACK(save_config), GTK_ENTRY(entry));
+    g_signal_connect_swapped(GTK_WIDGET(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
 
     gtk_box_pack_start(GTK_BOX(content_area), box, TRUE, FALSE, 5);
 
@@ -1440,11 +1440,11 @@ void Config_Terminal(GtkAction *action, gpointer data)
     fonte =  g_strdup_printf("%s", term_conf.font);
     Bouton_font = gtk_button_new_with_label(fonte);
     gtk_box_pack_start(GTK_BOX(BoiteH), Bouton_font, FALSE, TRUE, 10);
-    g_signal_connect(GTK_OBJECT(Bouton_font), "clicked", G_CALLBACK(Config_Font), 0);
+    g_signal_connect(GTK_WIDGET(Bouton_font), "clicked", G_CALLBACK(Config_Font), 0);
     gtk_box_pack_start(GTK_BOX(BoiteV), BoiteH, FALSE, TRUE, 0);
 
     Check_Bouton = gtk_check_button_new_with_label("Show cursor");
-    g_signal_connect(GTK_OBJECT(Check_Bouton), "toggled", G_CALLBACK(Curseur_OnOff), 0);
+    g_signal_connect(GTK_WIDGET(Check_Bouton), "toggled", G_CALLBACK(Curseur_OnOff), 0);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Check_Bouton), term_conf.show_cursor);
     gtk_box_pack_start(GTK_BOX(BoiteV), Check_Bouton, FALSE, TRUE, 5);
 
@@ -1470,7 +1470,7 @@ void Config_Terminal(GtkAction *action, gpointer data)
     gtk_widget_set_size_request(GTK_WIDGET(Bouton), 60, 25);
     gtk_widget_modify_bg(GTK_WIDGET(Eventbox), GTK_STATE_NORMAL, &term_conf.foreground_color);
     gtk_table_attach(GTK_TABLE(Table), Bouton, 1, 2, 0, 1, GTK_SHRINK, GTK_SHRINK, 10, 0);
-    g_signal_connect(GTK_OBJECT(Bouton), "clicked", G_CALLBACK(config_color_fg), Eventbox);
+    g_signal_connect(GTK_WIDGET(Bouton), "clicked", G_CALLBACK(config_color_fg), Eventbox);
 
     Bouton = gtk_button_new();
     Eventbox = gtk_event_box_new();
@@ -1478,7 +1478,7 @@ void Config_Terminal(GtkAction *action, gpointer data)
     gtk_widget_set_size_request(GTK_WIDGET(Bouton), 60, 25);
     gtk_widget_modify_bg(GTK_WIDGET(Eventbox), GTK_STATE_NORMAL, &term_conf.background_color);
     gtk_table_attach(GTK_TABLE(Table), Bouton, 1, 2, 1, 2, GTK_SHRINK, GTK_SHRINK, 10, 0);
-    g_signal_connect(GTK_OBJECT(Bouton), "clicked", G_CALLBACK(config_color_bg), Eventbox);
+    g_signal_connect(GTK_WIDGET(Bouton), "clicked", G_CALLBACK(config_color_bg), Eventbox);
     gtk_box_pack_start(GTK_BOX(BoiteV), Table, FALSE, TRUE, 0);
 
 
@@ -1493,7 +1493,7 @@ void Config_Terminal(GtkAction *action, gpointer data)
 
     HScale = gtk_hscale_new_with_range(0.0, 100.0, 1.0);
     gtk_range_set_value(GTK_RANGE(HScale), term_conf.background_saturation*100.0);
-    g_signal_connect(GTK_OBJECT(Check_Bouton), "toggled", G_CALLBACK(Transparency_OnOff), HScale);
+    g_signal_connect(GTK_WIDGET(Check_Bouton), "toggled", G_CALLBACK(Transparency_OnOff), HScale);
     g_signal_connect(GTK_RANGE(HScale), "value-changed", G_CALLBACK(change_scale), 0);
     gtk_widget_set_sensitive(GTK_WIDGET(HScale), term_conf.transparency);
     gtk_box_pack_start(GTK_BOX(BoiteV), HScale, FALSE, TRUE, 0);
@@ -1511,14 +1511,14 @@ void Config_Terminal(GtkAction *action, gpointer data)
     scrollback =  g_strdup_printf("%d", term_conf.scrollback);
     gtk_entry_set_text(GTK_ENTRY(Entry), scrollback);
     g_free(scrollback);
-    g_signal_connect(GTK_OBJECT(Entry), "focus-out-event", G_CALLBACK(scrollback_set), 0);
+    g_signal_connect(GTK_WIDGET(Entry), "focus-out-event", G_CALLBACK(scrollback_set), 0);
     gtk_box_pack_start(GTK_BOX(BoiteH), Entry, FALSE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(BoiteV), BoiteH, FALSE, TRUE, 0);
 
     content_area = gtk_dialog_get_content_area (GTK_DIALOG(Dialog));
     gtk_box_pack_start(GTK_BOX(content_area), BoiteV, FALSE, TRUE, 0);
 
-    g_signal_connect_swapped(GTK_OBJECT(Dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialog));
+    g_signal_connect_swapped(GTK_WIDGET(Dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialog));
 
     gtk_widget_show_all (Dialog);
 }

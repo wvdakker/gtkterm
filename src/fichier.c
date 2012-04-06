@@ -60,7 +60,7 @@ FILE *Fic;
 gint Envoie_fichier(GtkFileChooser *FS);
 gint Sauve_fichier(GtkFileChooser *FS);
 gint close_all(void);
-void ecriture(gpointer data, gint source, GdkInputCondition condition);
+void ecriture(gpointer data, gint source);
 gboolean timer(gpointer pointer);
 gboolean idle(gpointer pointer);
 void remove_input(void);
@@ -126,11 +126,11 @@ void send_raw_file(GtkAction *action, gpointer data)
 			gtk_box_pack_start(GTK_BOX(Box), ProgressBar, FALSE, FALSE, 5);
 
 			Bouton_annuler = gtk_button_new_with_label(_("Cancel"));
-			g_signal_connect(GTK_OBJECT(Bouton_annuler), "clicked", G_CALLBACK(close_all), NULL);
+			g_signal_connect(GTK_WIDGET(Bouton_annuler), "clicked", G_CALLBACK(close_all), NULL);
 
 			gtk_container_add(GTK_CONTAINER(gtk_dialog_get_action_area(GTK_DIALOG(Window))), Bouton_annuler);
 
-			g_signal_connect(GTK_OBJECT(Window), "delete_event", G_CALLBACK(close_all), NULL);
+			g_signal_connect(GTK_WIDGET(Window), "delete_event", G_CALLBACK(close_all), NULL);
 
 			gtk_window_set_default_size(GTK_WINDOW(Window), 250, 100);
 			gtk_window_set_modal(GTK_WINDOW(Window), TRUE);
@@ -149,7 +149,7 @@ void send_raw_file(GtkAction *action, gpointer data)
 	gtk_widget_destroy(file_select);
 }
 
-void ecriture(gpointer data, gint source, GdkInputCondition condition)
+void ecriture(gpointer data, gint source)
 {
     static gchar buffer[BUFFER_EMISSION];
     static gchar *current_buffer;

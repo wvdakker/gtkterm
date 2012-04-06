@@ -373,21 +373,21 @@ static gboolean key_pressed(GtkWidget *window, GdkEventKey *key, gpointer pointe
 
   switch(key->keyval)
     {
-    case GDK_Shift_L:
-    case GDK_Shift_R:
-    case GDK_Control_L:
-    case GDK_Control_R:
-    case GDK_Caps_Lock:
-    case GDK_Shift_Lock:
-    case GDK_Meta_L:
-    case GDK_Meta_R:
-    case GDK_Alt_L:
-    case GDK_Alt_R:
-    case GDK_Super_L:
-    case GDK_Super_R:
-    case GDK_Hyper_L:
-    case GDK_Hyper_R:
-    case GDK_Mode_switch:
+    case GDK_KEY_Shift_L:
+    case GDK_KEY_Shift_R:
+    case GDK_KEY_Control_L:
+    case GDK_KEY_Control_R:
+    case GDK_KEY_Caps_Lock:
+    case GDK_KEY_Shift_Lock:
+    case GDK_KEY_Meta_L:
+    case GDK_KEY_Meta_R:
+    case GDK_KEY_Alt_L:
+    case GDK_KEY_Alt_R:
+    case GDK_KEY_Super_L:
+    case GDK_KEY_Super_R:
+    case GDK_KEY_Hyper_L:
+    case GDK_KEY_Hyper_R:
+    case GDK_KEY_Mode_switch:
       return FALSE;
     default:
       break;
