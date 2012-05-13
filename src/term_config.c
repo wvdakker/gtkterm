@@ -213,10 +213,26 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
     {
         gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), g_list_nth_data(liste, i));
     }
-    gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
-    chaine = g_strdup(config.port);
-    if(g_list_find_custom(liste, chaine, (GCompareFunc)strcmp) != NULL)
-        gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), g_list_index(liste, chaine));
+
+    // try to restore last selected port, if any
+    if(config.port != NULL && config.port[0] != '\0')
+    {
+        GList *found_element;
+
+        chaine = g_strdup(config.port);
+        found_element = g_list_find_custom(liste, chaine, (GCompareFunc)strcmp);
+        if(found_element != NULL)
+        {
+            gint ff = g_list_index(liste, found_element->data);
+            gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), ff);
+        } else {
+            gtk_combo_box_text_prepend_text(GTK_COMBO_BOX_TEXT(Combo), chaine);
+            gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
+        }
+    } else {
+        gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
+    }
+
 
     // clean up devices strings
     //g_list_free(liste, (GDestroyNotify)g_free); // only available in glib >= 2.28
