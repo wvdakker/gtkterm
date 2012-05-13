@@ -52,8 +52,6 @@ guint callback_handler_in, callback_handler_err;
 gboolean callback_activated = FALSE;
 char lockfile[128] = {0};
 
-gchar *str_err = NULL;
-
 extern struct configuration_port config;
 
 /* Local functions prototype */
@@ -149,7 +147,7 @@ void Ouvre_Port(char *port)
     serial_port_fd = open(port, O_RDWR | O_NOCTTY | O_NDELAY);
 }
 
-gchar *Config_port(void)
+gboolean Config_port(void)
 {
     struct termios termios_p;
     gchar *msg = NULL;
@@ -162,22 +160,24 @@ gchar *Config_port(void)
 
     if(serial_port_fd == -1)
     {
-	g_free(str_err);
-	str_err = g_strdup_printf(_("Cannot open %s: %s\n"), config.port, strerror_utf8(errno));
-	show_message(str_err, MSG_ERR);
-	return NULL;
+        msg = g_strdup_printf(_("Cannot open %s: %s\n"), 
+                              config.port, strerror_utf8(errno));
+        show_message(msg, MSG_ERR);
+        g_free(msg);
+
+        return FALSE;
     }
 
     if(create_lockfile(config.port) == -1)
     {
-	Ferme_Port();
-	return NULL;
+        Ferme_Port();
+        msg = g_strdup_printf(_("Cannot open create lockfile\n"));
+        show_message(msg, MSG_ERR);
+        g_free(msg);
+
+        return FALSE;
     }
 
-    msg = g_strdup_printf("%s : %d,%d",
-			  config.port,
-			  config.vitesse,
-			  config.bits);
     tcgetattr(serial_port_fd, &termios_p);
     memcpy(&termios_save, &termios_p, sizeof(struct termios));
 
@@ -239,30 +239,24 @@ gchar *Config_port(void)
     {
 	case 1:
 	    termios_p.c_cflag |= PARODD | PARENB;
-	    msg = g_strdup_printf("%s,O", msg);
 	    break;
 	case 2:
 	    termios_p.c_cflag |= PARENB;
-	    msg = g_strdup_printf("%s,E", msg);
 	    break;
 	default:
-	    msg = g_strdup_printf("%s,N", msg);
 	    break;
     }
     if(config.stops == 2)
 	termios_p.c_cflag |= CSTOPB;
     termios_p.c_cflag |= CREAD;
-    msg = g_strdup_printf("%s,%d", msg, config.stops);
     termios_p.c_iflag = IGNPAR | IGNBRK;
     switch(config.flux)
     {
 	case 1:
 	    termios_p.c_iflag |= IXON | IXOFF;
-	    msg = g_strdup_printf("%s - Xon/Xoff", msg);
 	    break;
 	case 2:
 	    termios_p.c_cflag |= CRTSCTS;
-	    msg = g_strdup_printf("%s - RTS/CTS", msg);
 	    break;
 	default:
 	    termios_p.c_cflag |= CLOCAL;
@@ -292,7 +286,7 @@ gchar *Config_port(void)
 
     Set_local_echo(config.echo);
 
-    return msg;
+    return TRUE;
 }
 
 void configure_echo(gboolean echo)

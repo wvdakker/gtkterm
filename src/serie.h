@@ -18,7 +18,7 @@
 extern int serial_port_fd;
 
 int Send_chars(char *, int);
-gchar *Config_port(void);
+gboolean Config_port(void);
 void Set_signals(guint);
 int lis_sig(void);
 void Close_port_and_remove_lockfile(void);

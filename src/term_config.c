@@ -182,15 +182,16 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
     if(liste == NULL)
     {
 	show_message(_("No serial devices found!\n\n"
-		       "Search all of these devices:\n"
-		       "/dev/ttyS*\n/dev/tts/*\n/dev/ttyUSB*\n/dev/usb/tts/*\n\n"
-		       "Enter a different device in the 'Port' box.\n"), MSG_WRN);
+		       "Searched the following paths:\n"
+		       "\t/dev/ttyS*\n\t/dev/tts/*\n\t/dev/ttyUSB*\n\t/dev/usb/tts/*\n\n"
+		       "Enter a different device path in the 'Port' box.\n"), MSG_WRN);
     }
 
     Dialogue = gtk_dialog_new();
     content_area = gtk_dialog_get_content_area(GTK_DIALOG(Dialogue));
     action_area = gtk_dialog_get_action_area(GTK_DIALOG(Dialogue));
     gtk_window_set_title(GTK_WINDOW(Dialogue), _("Configuration"));
+    gtk_window_set_resizable(GTK_WINDOW(Dialogue), FALSE);
     gtk_container_set_border_width(GTK_CONTAINER(content_area), 5);
 
     Frame = gtk_frame_new(_("Serial port"));
@@ -516,10 +517,7 @@ gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos)
     else
 	config.car = -1;
 
-    message = Config_port();
-    if(message == NULL)
-	message = g_strdup_printf(_("No open port"));
-    g_free(message);
+    Config_port();
 
     message = get_port_string();
     Set_status_message(message);
@@ -810,11 +808,8 @@ void load_config(GtkDialog *Fenetre, gint id, GtkTreeSelection *Selection_Liste)
 	    gtk_tree_model_get(GTK_TREE_MODEL(Modele), &iter, 0, (gint *)&txt, -1);
 	    Load_configuration_from_file(txt);
 	    Verify_configuration();
-	    message = Config_port();
+	    Config_port();
 	    add_shortcuts();
-	    if(message == NULL)
-		message = g_strdup_printf(_("No open port"));
-	    g_free(message);
 
 	    message = get_port_string();
 	    Set_status_message(message);

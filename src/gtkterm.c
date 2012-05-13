@@ -54,9 +54,7 @@ int main(int argc, char *argv[])
       exit(1);
     }
 
-  message = Config_port();
-  if(message == NULL)
-    message = g_strdup_printf("No open port");
+  Config_port();
 
   message = get_port_string();
   Set_window_title(message);

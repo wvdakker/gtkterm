@@ -171,6 +171,16 @@ void ecriture(gpointer data, gint source)
 	    bytes_to_write = bytes_read;
 	}
 
+    if(current_buffer == NULL)
+    {
+        /* something went wrong... */
+        g_free(str);
+        str = g_strdup_printf(_("Error sending file\n"));
+        show_message(str, MSG_ERR);
+        close_all();
+        return;
+    }
+
 	car = current_buffer;
 
 	if(config.delai != 0 || config.car != -1)
@@ -193,7 +203,7 @@ void ecriture(gpointer data, gint source)
 	{
 	    /* Problem while writing, stop file transfer */
 	    g_free(str);
-	    str = g_strdup_printf(_("Cannot write file %s\n"), strerror(errno));
+	    str = g_strdup_printf(_("Error sending file: %s\n"), strerror(errno));
 	    show_message(str, MSG_ERR);
 	    close_all();
 	    return;
