@@ -25,7 +25,9 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
+#ifdef __linux__
 #include <linux/serial.h>
+#endif
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -215,8 +217,12 @@ gboolean Config_port(void)
 	    break;
 
 	default:
+#ifdef __linux__
 	    set_custom_speed(config.vitesse, serial_port_fd);
 	    termios_p.c_cflag |= B38400;
+#else
+             return NULL;
+#endif	    
 
     }
 
@@ -510,6 +516,7 @@ void sendbreak(void)
 	tcsendbreak(serial_port_fd, 0);
 }
 
+#ifdef __linux__
 gint set_custom_speed(int speed, int port_fd)
 {
 
@@ -529,6 +536,7 @@ gint set_custom_speed(int speed, int port_fd)
 
     return 0;
 }
+#endif
 
 gchar* get_port_string(void)
 {
