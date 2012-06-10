@@ -223,12 +223,12 @@ gboolean Config_port(void)
 	    set_custom_speed(config.vitesse, serial_port_fd);
 	    termios_p.c_cflag |= B38400;
 #else
-        msg = g_strdup_printf( _("Arbitrary baud rates not supported."));
+        Ferme_Port();
+        msg = g_strdup_printf(_("Arbitrary baud rates not supported"));
         show_message(msg, MSG_ERR);
         g_free(msg);
         return FALSE;
 #endif
-
     }
 
     switch(config.bits)

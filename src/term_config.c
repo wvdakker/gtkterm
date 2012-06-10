@@ -225,13 +225,13 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
         if(found_element != NULL)
         {
             gint ff = g_list_index(liste, found_element->data);
-            gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), ff);
+            gtk_combo_box_set_active(GTK_COMBO_BOX_TEXT(Combo), ff);
         } else {
             gtk_combo_box_text_prepend_text(GTK_COMBO_BOX_TEXT(Combo), chaine);
-            gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
+            gtk_combo_box_set_active(GTK_COMBO_BOX_TEXT(Combo), 0);
         }
     } else {
-        gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
+        gtk_combo_box_set_active(GTK_COMBO_BOX_TEXT(Combo), 0);
     }
 
 
