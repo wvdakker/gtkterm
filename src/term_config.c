@@ -218,20 +218,13 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
     // try to restore last selected port, if any
     if(config.port != NULL && config.port[0] != '\0')
     {
-        GList *found_element;
+        GtkWidget *tmp_entry;
+        tmp_entry = gtk_bin_get_child(GTK_BIN(Combo));
+        
+        gtk_entry_set_text(GTK_ENTRY(tmp_entry), config.port);
 
-        chaine = g_strdup(config.port);
-        found_element = g_list_find_custom(liste, chaine, (GCompareFunc)strcmp);
-        if(found_element != NULL)
-        {
-            gint ff = g_list_index(liste, found_element->data);
-            gtk_combo_box_set_active(GTK_COMBO_BOX_TEXT(Combo), ff);
-        } else {
-            gtk_combo_box_text_prepend_text(GTK_COMBO_BOX_TEXT(Combo), chaine);
-            gtk_combo_box_set_active(GTK_COMBO_BOX_TEXT(Combo), 0);
-        }
     } else {
-        gtk_combo_box_set_active(GTK_COMBO_BOX_TEXT(Combo), 0);
+        gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
     }
 
 
