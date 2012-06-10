@@ -18,4 +18,8 @@ if test "$CC" = "gcc" ; then
 fi
 AC_SUBST(GNUCFLAGS)
 
+# Linux is required for arbitrary baud rates
+AC_CHECK_HEADERS_ONCE([linux/serial.h])
+
+
 AC_OUTPUT
