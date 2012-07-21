@@ -299,7 +299,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
     //validate input text (digits only)
     g_signal_connect(GTK_ENTRY(gtk_bin_get_child (GTK_BIN (Combo))),
 		     "insert-text",
-		     G_CALLBACK(check_text_input), NULL);
+		     G_CALLBACK(check_text_input), isdigit);
 
     gtk_table_attach(GTK_TABLE(Table), Combo, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
     Combos[1] = Combo;
@@ -681,6 +681,10 @@ void Save_config_file(void)
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(box), entry, TRUE, TRUE, 0);
 
+    //validate input text (alpha-numeric only)
+    g_signal_connect(GTK_ENTRY(entry),
+		     "insert-text",
+		     G_CALLBACK(check_text_input), isalnum);
     g_signal_connect(GTK_WIDGET(dialog), "response", G_CALLBACK(save_config), GTK_ENTRY(entry));
     g_signal_connect_swapped(GTK_WIDGET(dialog), "response", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog));
 
@@ -1586,28 +1590,41 @@ gint scrollback_set(GtkWidget *Entry, GdkEventFocus *event, gpointer data)
   return FALSE;
 }
 
+/**
+ *  Filter user data entry on a GTK entry
+ *
+ *  user_data must be a function that takes an int and returns an int
+ *  != 0 if the input is valid.  For instance, 'isdigit()'.
+ */
 void check_text_input(GtkEditable *editable,
-		  gchar       *new_text,
-		  gint         new_text_length,
-		  gint        *position,
-		  gpointer     user_data)
+                      gchar       *new_text,
+                      gint         new_text_length,
+                      gint        *position,
+                      gpointer     user_data)
 {
     int i;
-    gchar *result = g_utf8_strup(new_text, new_text_length);
+    int (*check_func)(int) = NULL;
+
+    if(user_data == NULL)
+    {
+        return;
+    }
+
     g_signal_handlers_block_by_func(editable,
-				    (gpointer)check_text_input, user_data);
+                                    (gpointer)check_text_input, user_data);
+    check_func = (int (*)(int))user_data;
 
     for(i = 0; i < new_text_length; i++)
     {
-	if(!isdigit(result[i]))
-	    goto invalid_input;
+        if(!check_func(new_text[i]))
+            goto invalid_input;
     }
 
-    gtk_editable_insert_text(editable, result, new_text_length, position);
+    gtk_editable_insert_text(editable, new_text, new_text_length, position);
 
 invalid_input:
     g_signal_handlers_unblock_by_func(editable,
-				      (gpointer)check_text_input, user_data);
+                                      (gpointer)check_text_input, user_data);
     g_signal_stop_emission_by_name(editable, "insert-text");
-    g_free(result);
 }
+
