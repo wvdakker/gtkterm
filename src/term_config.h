@@ -59,7 +59,7 @@ typedef struct {
 } display_config_t;
 
 
-#define DEFAULT_FONT "Nimbus Mono L, 14"
+#define DEFAULT_FONT "Monospace, 12"
 #define DEFAULT_SCROLLBACK 200
 
 #define DEFAULT_PORT "/dev/ttyS0"
