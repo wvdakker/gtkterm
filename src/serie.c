@@ -25,7 +25,6 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <linux/serial.h>
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -44,6 +43,11 @@
 
 #include <config.h>
 #include <glib/gi18n.h>
+
+#ifdef HAVE_LINUX_SERIAL_H
+#include <linux/serial.h>
+#endif
+
 
 struct termios termios_save;
 int serial_port_fd = -1;
@@ -215,9 +219,16 @@ gboolean Config_port(void)
 	    break;
 
 	default:
+#ifdef HAVE_LINUX_SERIAL_H
 	    set_custom_speed(config.vitesse, serial_port_fd);
 	    termios_p.c_cflag |= B38400;
-
+#else
+        Ferme_Port();
+        msg = g_strdup_printf(_("Arbitrary baud rates not supported"));
+        show_message(msg, MSG_ERR);
+        g_free(msg);
+        return FALSE;
+#endif
     }
 
     switch(config.bits)
@@ -510,6 +521,7 @@ void sendbreak(void)
 	tcsendbreak(serial_port_fd, 0);
 }
 
+#ifdef HAVE_LINUX_SERIAL_H
 gint set_custom_speed(int speed, int port_fd)
 {
 
@@ -529,6 +541,7 @@ gint set_custom_speed(int speed, int port_fd)
 
     return 0;
 }
+#endif
 
 gchar* get_port_string(void)
 {
