@@ -801,56 +801,36 @@ void show_message(gchar *message, gint type_msg)
 
 gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointer)
 {
-  gint i;
-  gchar *text, *current;
-  gchar *message;
-  guchar val;
-  guint val_read;
-  guint sent = 0;
-  gchar written[4];
-  gchar *all_written;
+    guint i;
+    gchar *text, *message, **tokens;
+    guint scan_val;
+    guint sent = 0;
 
-  text = (gchar *)gtk_entry_get_text(GTK_ENTRY(widget));
+    text = (gchar *)gtk_entry_get_text(GTK_ENTRY(widget));
 
-  if(strlen(text) == 0){
-      message = g_strdup_printf(_("0 byte(s) sent!"));
-      Put_temp_message(message, 1500);
-      gtk_entry_set_text(GTK_ENTRY(widget), "");
-      g_free(message);
-      return FALSE;
-  }
-
-  all_written = g_malloc(strlen(text) * 2 + 1);
-  all_written[0] = 0;
-
-  current = text;
-  i = 0;
-  while(i < strlen(text))
-    {
-      if(sscanf(current, "%02X", &val_read) == 1)
-	{
-	  val = (guchar)val_read;
-	  send_serial((gchar*)&val, 1);
-	  sprintf(written, "%02X ", val);
-	  strcat(all_written, written);
-	  sent++;
-	}
-      while(i < strlen(text) && text[i] != ';' && text[i] != ' ')
-	i++;
-      if(text[i] == ';' || text[i] == ' ')
-	{
-	  i++;
-	  current = &text[i];
-	}
+    if(strlen(text) == 0){
+        message = g_strdup_printf(_("0 byte(s) sent!"));
+        Put_temp_message(message, 1500);
+        gtk_entry_set_text(GTK_ENTRY(widget), "");
+        g_free(message);
+        return FALSE;
     }
-  all_written[strlen(all_written) - 1] = 0;
-  message = g_strdup_printf(_("\"%s\" : %d byte(s) sent!"), all_written, sent);
-  Put_temp_message(message, 1500);
-  gtk_entry_set_text(GTK_ENTRY(widget), "");
-  g_free(message);
-  g_free(all_written);
 
-  return FALSE;
+    tokens = g_strsplit_set(text, " ;", -1);
+
+    for(i = 0; tokens[i] != NULL; i++){
+        if(sscanf(tokens[i], "%02X", &scan_val) == 1){
+            send_serial((gchar*)&scan_val, 1);
+            sent++;
+        }
+    }
+
+    message = g_strdup_printf(_("%d byte(s) sent!"), sent);
+    Put_temp_message(message, 2000);
+    gtk_entry_set_text(GTK_ENTRY(widget), "");
+    g_strfreev(tokens);
+
+    return FALSE;
 }
 
 void Put_temp_message(const gchar *text, gint time)
