@@ -801,10 +801,9 @@ void show_message(gchar *message, gint type_msg)
 
 gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointer)
 {
-    guint i;
-    gchar *text, *message, **tokens;
+    guint i, j = 0;
+    gchar *text, *message, **tokens, buff[50];
     guint scan_val;
-    guint sent = 0;
 
     text = (gchar *)gtk_entry_get_text(GTK_ENTRY(widget));
 
@@ -818,14 +817,15 @@ gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointe
 
     tokens = g_strsplit_set(text, " ;", -1);
 
-    for(i = 0; tokens[i] != NULL; i++){
+    for(i = 0; tokens[i] != NULL && j < 50; i++){
         if(sscanf(tokens[i], "%02X", &scan_val) == 1){
-            send_serial((gchar*)&scan_val, 1);
-            sent++;
+            buff[j++] = scan_val;
         }
     }
 
-    message = g_strdup_printf(_("%d byte(s) sent!"), sent);
+    send_serial(buff, j);
+
+    message = g_strdup_printf(_("%d byte(s) sent!"), i);
     Put_temp_message(message, 2000);
     gtk_entry_set_text(GTK_ENTRY(widget), "");
     g_strfreev(tokens);
