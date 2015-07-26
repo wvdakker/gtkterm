@@ -52,14 +52,14 @@ typedef struct {
   gint columns;
   gint scrollback;
   gboolean visual_bell;
-  GdkColor foreground_color;
-  GdkColor background_color;
+  GdkRGBA foreground_color;
+  GdkRGBA background_color;
   gdouble background_saturation;
   gchar *font;
 } display_config_t;
 
 
-#define DEFAULT_FONT "Monospace, 12"
+#define DEFAULT_FONT "Monospace 12"
 #define DEFAULT_SCROLLBACK 200
 
 #define DEFAULT_PORT "/dev/ttyS0"

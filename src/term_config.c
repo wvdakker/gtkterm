@@ -83,12 +83,14 @@ gint *rows;
 gint *columns;
 gint *scrollback;
 gint *visual_bell;
-gint *foreground_red;
-gint *foreground_blue;
-gint *foreground_green;
-gint *background_red;
-gint *background_blue;
-gint *background_green;
+gfloat *foreground_red;
+gfloat *foreground_blue;
+gfloat *foreground_green;
+gfloat *foreground_alpha;
+gfloat *background_red;
+gfloat *background_blue;
+gfloat *background_green;
+gfloat *background_alpha;
 
 
 cfgStruct cfg[] = {
@@ -111,12 +113,14 @@ cfgStruct cfg[] = {
     {"term_columns", CFG_INT, &columns},
     {"term_scrollback", CFG_INT, &scrollback},
     {"term_visual_bell", CFG_BOOL, &visual_bell},
-    {"term_foreground_red", CFG_INT, &foreground_red},
-    {"term_foreground_blue", CFG_INT, &foreground_blue},
-    {"term_foreground_green", CFG_INT, &foreground_green},
-    {"term_background_red", CFG_INT, &background_red},
-    {"term_background_blue", CFG_INT, &background_blue},
-    {"term_background_green", CFG_INT, &background_green},
+    {"term_foreground_red", CFG_FLOAT, &foreground_red},
+    {"term_foreground_blue", CFG_FLOAT, &foreground_blue},
+    {"term_foreground_green", CFG_FLOAT, &foreground_green},
+    {"term_foreground_alpha", CFG_FLOAT, &foreground_alpha},
+    {"term_background_red", CFG_FLOAT, &background_red},
+    {"term_background_blue", CFG_FLOAT, &background_blue},
+    {"term_background_green", CFG_FLOAT, &background_green},
+    {"term_background_alpha", CFG_FLOAT, &background_alpha},
     {NULL, CFG_END, NULL}
 };
 
@@ -140,7 +144,7 @@ static void save_config(GtkDialog *, gint, GtkWidget *);
 static void really_save_config(GtkDialog *, gint, gpointer);
 static gint remove_section(gchar *, gchar *);
 static void Curseur_OnOff(GtkWidget *, gpointer);
-static void Selec_couleur(GdkColor *, gfloat, gfloat, gfloat);
+static void Selec_couleur(GdkRGBA *, gfloat, gfloat, gfloat, gfloat);
 void config_fg_color(GtkWidget *button, gpointer data);
 void config_bg_color(GtkWidget *button, gpointer data);
 static gint scrollback_set(GtkWidget *, GdkEventFocus *, gpointer);
@@ -962,10 +966,12 @@ gint Load_configuration_from_file(gchar *config_name)
 		term_conf.foreground_color.red = foreground_red[i];
 		term_conf.foreground_color.green = foreground_green[i];
 		term_conf.foreground_color.blue = foreground_blue[i];
+		term_conf.foreground_color.alpha = foreground_alpha[i];
 
 		term_conf.background_color.red = background_red[i];
 		term_conf.background_color.green = background_green[i];
 		term_conf.background_color.blue = background_blue[i];
+		term_conf.background_color.alpha = background_alpha[i];
 
 		/* rows and columns are empty when the conf is autogenerate in the
 		   first save; so set term to default */
@@ -977,13 +983,15 @@ gint Load_configuration_from_file(gchar *config_name)
 		    term_conf.scrollback = DEFAULT_SCROLLBACK;
 		    term_conf.visual_bell = FALSE;
 
-		    term_conf.foreground_color.red = 43253;
-		    term_conf.foreground_color.green = 43253;
-		    term_conf.foreground_color.blue = 43253;
+		    term_conf.foreground_color.red = 0.66;
+		    term_conf.foreground_color.green = 0.66;
+		    term_conf.foreground_color.blue = 0.66;
+		    term_conf.foreground_color.alpha = 1;
 
 		    term_conf.background_color.red = 0;
 		    term_conf.background_color.green = 0;
 		    term_conf.background_color.blue = 0;
+		    term_conf.background_color.alpha = 1;
 		}
 
 		i = max + 1;
@@ -997,6 +1005,7 @@ gint Load_configuration_from_file(gchar *config_name)
 	    return -1;
 	}
     }
+
     vte_terminal_set_font(VTE_TERMINAL(display), pango_font_description_from_string(term_conf.font));
 
     vte_terminal_set_size (VTE_TERMINAL(display), term_conf.rows, term_conf.columns);
@@ -1027,7 +1036,7 @@ void Verify_configuration(void)
 	    break;
 
 	default:
-	    string = g_strdup_printf(_("Unknown rate: %d baud\nMay not be supported by all hardware"), config.vitesse);
+	    string = g_strdup_printf(_("Baudrate %d may not be supported by all hardware"), config.vitesse);
 	    show_message(string, MSG_ERR);
 	    g_free(string);
     }
@@ -1114,8 +1123,8 @@ void Hard_default_configuration(void)
     term_conf.scrollback = DEFAULT_SCROLLBACK;
     term_conf.visual_bell = TRUE;
 
-    Selec_couleur(&term_conf.foreground_color, 0.66, 0.66, 0.66);
-    Selec_couleur(&term_conf.background_color, 0, 0, 0);
+    Selec_couleur(&term_conf.foreground_color, 0.66, 0.66, 0.66, 1.0);
+    Selec_couleur(&term_conf.background_color, 0, 0, 0, 1.0);
 }
 
 void Copy_configuration(int pos)
@@ -1258,6 +1267,9 @@ void Copy_configuration(int pos)
     string = g_strdup_printf("%d", term_conf.foreground_color.blue);
     cfgStoreValue(cfg, "term_foreground_blue", string, CFG_INI, pos);
     g_free(string);
+    string = g_strdup_printf("%d", term_conf.foreground_color.alpha);
+    cfgStoreValue(cfg, "term_foreground_alpha", string, CFG_INI, pos);
+    g_free(string);
 
     string = g_strdup_printf("%d", term_conf.background_color.red);
     cfgStoreValue(cfg, "term_background_red", string, CFG_INI, pos);
@@ -1267,6 +1279,9 @@ void Copy_configuration(int pos)
     g_free(string);
     string = g_strdup_printf("%d", term_conf.background_color.blue);
     cfgStoreValue(cfg, "term_background_blue", string, CFG_INI, pos);
+    g_free(string);
+    string = g_strdup_printf("%d", term_conf.background_color.alpha);
+    cfgStoreValue(cfg, "term_background_alpha", string, CFG_INI, pos);
     g_free(string);
 }
 
@@ -1406,12 +1421,12 @@ void Config_Terminal(GtkAction *action, gpointer data)
     gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
     gtk_table_attach(GTK_TABLE(Table), Label, 0, 1, 1, 2, GTK_SHRINK | GTK_FILL , GTK_SHRINK, 10, 0);
 
-    fg_color_button = gtk_color_button_new_with_color (&term_conf.foreground_color);
+    fg_color_button = gtk_color_button_new_with_rgba (&term_conf.foreground_color);
     gtk_color_button_set_title (GTK_COLOR_BUTTON (fg_color_button), _("Text color"));
     gtk_table_attach (GTK_TABLE (Table), fg_color_button, 1, 2, 0, 1, GTK_SHRINK, GTK_SHRINK, 10, 0);
     g_signal_connect (GTK_WIDGET (fg_color_button), "color-set", G_CALLBACK (config_fg_color), NULL);
 
-    bg_color_button = gtk_color_button_new_with_color (&term_conf.background_color);
+    bg_color_button = gtk_color_button_new_with_rgba (&term_conf.background_color);
     gtk_color_button_set_title (GTK_COLOR_BUTTON (bg_color_button), _("Background color"));
     gtk_table_attach (GTK_TABLE (Table), bg_color_button, 1, 2, 1, 2, GTK_SHRINK, GTK_SHRINK, 10, 0);
     g_signal_connect (GTK_WIDGET (bg_color_button), "color-set", G_CALLBACK (config_bg_color), NULL);
@@ -1451,18 +1466,19 @@ void Curseur_OnOff(GtkWidget *Check_Bouton, gpointer data)
     term_conf.show_cursor = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(Check_Bouton));
 }
 
-void Selec_couleur(GdkColor *color, gfloat R, gfloat G, gfloat B)
+void Selec_couleur(GdkRGBA *color, gfloat R, gfloat G, gfloat B, gfloat A)
 {
-	color->red = (guint16)(65535*R);
-	color->green = (guint16)(65535*G);
-	color->blue = (guint16)(65535*B);
+	color->red = R;
+	color->green = G;
+	color->blue = B;
+	color->alpha = A;
 }
 
 void config_fg_color(GtkWidget *button, gpointer data)
 {
 	gchar *string;
 
-	gtk_color_button_get_color (GTK_COLOR_BUTTON (button), &term_conf.foreground_color);
+	gtk_color_button_get_rgba (GTK_COLOR_BUTTON (button), &term_conf.foreground_color);
 
 	vte_terminal_set_color_foreground (VTE_TERMINAL(display), &term_conf.foreground_color);
 	gtk_widget_queue_draw (display);
@@ -1476,13 +1492,17 @@ void config_fg_color(GtkWidget *button, gpointer data)
 	string = g_strdup_printf ("%d", term_conf.foreground_color.blue);
 	cfgStoreValue (cfg, "term_foreground_blue", string, CFG_INI, 0);
 	g_free (string);
+	string = g_strdup_printf ("%d", term_conf.foreground_color.alpha);
+	cfgStoreValue (cfg, "term_foreground_alpha", string, CFG_INI, 0);
+	g_free (string);
 }
 
 void config_bg_color(GtkWidget *button, gpointer data)
 {
+	printf("config_bg_color\r\n");
 	gchar *string;
 
-	gtk_color_button_get_color (GTK_COLOR_BUTTON (button), &term_conf.background_color);
+	gtk_color_button_get_rgba (GTK_COLOR_BUTTON (button), &term_conf.background_color);
 
 	vte_terminal_set_color_background (VTE_TERMINAL(display), &term_conf.background_color);
 	gtk_widget_queue_draw (display);
@@ -1495,6 +1515,9 @@ void config_bg_color(GtkWidget *button, gpointer data)
 	g_free (string);
 	string = g_strdup_printf ("%d", term_conf.background_color.blue);
 	cfgStoreValue (cfg, "term_background_blue", string, CFG_INI, 0);
+	g_free (string);
+	string = g_strdup_printf ("%d", term_conf.background_color.alpha);
+	cfgStoreValue (cfg, "term_background_alpha", string, CFG_INI, 0);
 	g_free (string);
 }
 
