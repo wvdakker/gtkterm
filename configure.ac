@@ -16,7 +16,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 PKG_CHECK_MODULES([gtk], [gtk+-3.0 >= 3.0.0])
 #PKG_CHECK_MODULES([vte], [vte-2.90 >= 0.30.0])
-PKG_CHECK_MODULES([vte], [vte-2.90 >= 0.28.0])
+PKG_CHECK_MODULES([vte], [vte-2.91 >= 0.40.0])
 
 if test "$CC" = "gcc" ; then
   GNUCFLAGS="-Wall -fno-omit-frame-pointer -fno-strict-aliasing -O2"

@@ -1,0 +1,14 @@
+*~
+Makefile
+autom4te.cache
+config.h
+config.log
+config.status
+po/POTFILES
+po/stamp-it
+po/Makefile.in
+src/.deps
+stamp-h1
+*.o
+*.gmo
+src/gtkterm

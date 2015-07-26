@@ -78,7 +78,6 @@ gint *crlfauto;
 cfgList **macro_list = NULL;
 gchar **font;
 
-gint *transparency;
 gint *show_cursor;
 gint *rows;
 gint *columns;
@@ -90,7 +89,6 @@ gint *foreground_green;
 gint *background_red;
 gint *background_blue;
 gint *background_green;
-gdouble *background_saturation;
 
 
 cfgStruct cfg[] = {
@@ -108,7 +106,6 @@ cfgStruct cfg[] = {
     {"crlfauto", CFG_BOOL, &crlfauto},
     {"font", CFG_STRING, &font},
     {"macros", CFG_STRING_LIST, &macro_list},
-    {"term_transparency", CFG_BOOL, &transparency},
     {"term_show_cursor", CFG_BOOL, &show_cursor},
     {"term_rows", CFG_INT, &rows},
     {"term_columns", CFG_INT, &columns},
@@ -120,7 +117,6 @@ cfgStruct cfg[] = {
     {"term_background_red", CFG_INT, &background_red},
     {"term_background_blue", CFG_INT, &background_blue},
     {"term_background_green", CFG_INT, &background_green},
-    {"term_background_saturation", CFG_DOUBLE, &background_saturation},
     {NULL, CFG_END, NULL}
 };
 
@@ -147,8 +143,6 @@ static void Curseur_OnOff(GtkWidget *, gpointer);
 static void Selec_couleur(GdkColor *, gfloat, gfloat, gfloat);
 void config_fg_color(GtkWidget *button, gpointer data);
 void config_bg_color(GtkWidget *button, gpointer data);
-static void Transparency_OnOff(GtkWidget *, gpointer);
-static void change_scale(GtkRange *, gpointer);
 static gint scrollback_set(GtkWidget *, GdkEventFocus *, gpointer);
 
 extern GtkWidget *display;
@@ -541,7 +535,7 @@ void read_font_button(GtkFontButton *fontButton)
 	term_conf.font = g_strdup(gtk_font_button_get_font_name(fontButton));
 
 	if(term_conf.font != NULL)
-		vte_terminal_set_font_from_string(VTE_TERMINAL(display), term_conf.font);
+		vte_terminal_set_font(VTE_TERMINAL(display), pango_font_description_from_string(term_conf.font));
 }
 
 
@@ -946,11 +940,6 @@ gint Load_configuration_from_file(gchar *config_name)
 		create_shortcuts(macros, size);
 		g_free(macros);
 
-		if(transparency[i] != -1)
-		    term_conf.transparency = (gboolean)transparency[i];
-		else
-		    term_conf.transparency = FALSE;
-
 		if(show_cursor[i] != -1)
 		    term_conf.show_cursor = (gboolean)show_cursor[i];
 		else
@@ -978,14 +967,10 @@ gint Load_configuration_from_file(gchar *config_name)
 		term_conf.background_color.green = background_green[i];
 		term_conf.background_color.blue = background_blue[i];
 
-		if(background_saturation[i] != 0)
-		    term_conf.background_saturation = background_saturation[i];
-
 		/* rows and columns are empty when the conf is autogenerate in the
 		   first save; so set term to default */
 		if(rows[i] == 0 || columns[i] == 0)
 		{
-		    term_conf.transparency = FALSE;
 		    term_conf.show_cursor = TRUE;
 		    term_conf.rows = 80;
 		    term_conf.columns = 25;
@@ -999,8 +984,6 @@ gint Load_configuration_from_file(gchar *config_name)
 		    term_conf.background_color.red = 0;
 		    term_conf.background_color.green = 0;
 		    term_conf.background_color.blue = 0;
-
-		    term_conf.background_saturation = 0.5;
 		}
 
 		i = max + 1;
@@ -1014,14 +997,12 @@ gint Load_configuration_from_file(gchar *config_name)
 	    return -1;
 	}
     }
-    vte_terminal_set_font_from_string(VTE_TERMINAL(display), term_conf.font);
+    vte_terminal_set_font(VTE_TERMINAL(display), pango_font_description_from_string(term_conf.font));
 
-    vte_terminal_set_background_transparent(VTE_TERMINAL(display), term_conf.transparency);
     vte_terminal_set_size (VTE_TERMINAL(display), term_conf.rows, term_conf.columns);
     vte_terminal_set_scrollback_lines (VTE_TERMINAL(display), term_conf.scrollback);
     vte_terminal_set_color_foreground (VTE_TERMINAL(display), &term_conf.foreground_color);
     vte_terminal_set_color_background (VTE_TERMINAL(display), &term_conf.background_color);
-    vte_terminal_set_background_saturation(VTE_TERMINAL(display), (gdouble)term_conf.background_saturation);
     gtk_widget_queue_draw(display);
 
     return 0;
@@ -1127,7 +1108,6 @@ void Hard_default_configuration(void)
 
     term_conf.font = g_strdup_printf(DEFAULT_FONT);
 
-    term_conf.transparency = FALSE;
     term_conf.show_cursor = TRUE;
     term_conf.rows = 80;
     term_conf.columns = 25;
@@ -1136,8 +1116,6 @@ void Hard_default_configuration(void)
 
     Selec_couleur(&term_conf.foreground_color, 0.66, 0.66, 0.66);
     Selec_couleur(&term_conf.background_color, 0, 0, 0);
-
-    term_conf.background_saturation = 0.50;
 }
 
 void Copy_configuration(int pos)
@@ -1243,11 +1221,6 @@ void Copy_configuration(int pos)
 	g_free(string);
     }
 
-    if(term_conf.transparency == FALSE)
-	string = g_strdup_printf("False");
-    else
-	string = g_strdup_printf("True");
-    cfgStoreValue(cfg, "term_transparency", string, CFG_INI, pos);
     g_free(string);
 
     if(term_conf.show_cursor == FALSE)
@@ -1294,10 +1267,6 @@ void Copy_configuration(int pos)
     g_free(string);
     string = g_strdup_printf("%d", term_conf.background_color.blue);
     cfgStoreValue(cfg, "term_background_blue", string, CFG_INI, pos);
-    g_free(string);
-
-    string = g_strdup_printf("%g", term_conf.background_saturation);
-    cfgStoreValue(cfg, "term_background_saturation", string, CFG_INI, pos);
     g_free(string);
 }
 
@@ -1450,21 +1419,7 @@ void Config_Terminal(GtkAction *action, gpointer data)
     gtk_box_pack_start(GTK_BOX(BoiteV), Table, FALSE, TRUE, 0);
 
 
-    Label = gtk_label_new(NULL);
-    gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
-    gtk_label_set_markup(GTK_LABEL(Label), "<b>Transparency: </b>");
     gtk_box_pack_start(GTK_BOX(BoiteV), Label, FALSE, TRUE, 10);
-
-    Check_Bouton = gtk_check_button_new_with_label("Transparency enable");
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Check_Bouton), term_conf.transparency);
-    gtk_box_pack_start(GTK_BOX(BoiteV), Check_Bouton, FALSE, TRUE, 0);
-
-    HScale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0.0, 100.0, 1.0);
-    gtk_range_set_value(GTK_RANGE(HScale), term_conf.background_saturation*100.0);
-    g_signal_connect(GTK_WIDGET(Check_Bouton), "toggled", G_CALLBACK(Transparency_OnOff), HScale);
-    g_signal_connect(GTK_RANGE(HScale), "value-changed", G_CALLBACK(change_scale), 0);
-    gtk_widget_set_sensitive(GTK_WIDGET(HScale), term_conf.transparency);
-    gtk_box_pack_start(GTK_BOX(BoiteV), HScale, FALSE, TRUE, 0);
 
     Label = gtk_label_new(NULL);
     gtk_misc_set_alignment(GTK_MISC(Label), 0, 0);
@@ -1541,35 +1496,6 @@ void config_bg_color(GtkWidget *button, gpointer data)
 	string = g_strdup_printf ("%d", term_conf.background_color.blue);
 	cfgStoreValue (cfg, "term_background_blue", string, CFG_INI, 0);
 	g_free (string);
-}
-
-
-static void Transparency_OnOff(GtkWidget *Check_Bouton, gpointer data)
-{
-    gchar *string;
-
-    term_conf.transparency = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(Check_Bouton));
-    vte_terminal_set_background_transparent(VTE_TERMINAL(display), term_conf.transparency);
-    gtk_widget_set_sensitive(GTK_WIDGET(data), term_conf.transparency);
-
-    if(term_conf.transparency == FALSE)
-	string = g_strdup_printf("False");
-    else
-	string = g_strdup_printf("True");
-
-    cfgStoreValue(cfg, "term_transparency", string, CFG_INI, 1);
-    g_free(string);
-}
-
-static void change_scale(GtkRange *range, gpointer data)
-{
-    gchar *string;
-    term_conf.background_saturation = gtk_range_get_value(GTK_RANGE(range))/100.0;
-    vte_terminal_set_background_saturation(VTE_TERMINAL(display), (gdouble)term_conf.background_saturation);
-
-    string = g_strdup_printf("%g", term_conf.background_saturation);
-    cfgStoreValue(cfg, "term_background_saturation", string, CFG_INI, 0);
-    g_free(string);
 }
 
 gint scrollback_set(GtkWidget *Entry, GdkEventFocus *event, gpointer data)
