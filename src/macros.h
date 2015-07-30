@@ -17,9 +17,9 @@
 
 typedef struct
 {
-  gchar *shortcut;
-  gchar *action;
-  GClosure *closure;
+	gchar *shortcut;
+	gchar *action;
+	GClosure *closure;
 }
 macro_t;
 

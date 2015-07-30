@@ -75,11 +75,11 @@ void send_raw_file(GtkAction *action, gpointer data)
 	GtkWidget *file_select;
 
 	file_select = gtk_file_chooser_dialog_new(_("Send RAW File"),
-	                                          GTK_WINDOW(Fenetre), 
-	                                          GTK_FILE_CHOOSER_ACTION_OPEN, 
-	                                          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	                                          GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
-	                                          NULL);
+	              GTK_WINDOW(Fenetre),
+	              GTK_FILE_CHOOSER_ACTION_OPEN,
+	              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+	              GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+	              NULL);
 
 	if(fic_defaut != NULL)
 		gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(file_select), fic_defaut);
@@ -151,138 +151,138 @@ void send_raw_file(GtkAction *action, gpointer data)
 
 void ecriture(gpointer data, gint source)
 {
-    static gchar buffer[BUFFER_EMISSION];
-    static gchar *current_buffer;
-    static gint bytes_to_write;
-    gint bytes_written;
-    gchar *car;
-
-    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar), (gfloat)car_written/(gfloat)nb_car );
-
-    if(car_written < nb_car)
-    {
-	/* Read the file only if buffer totally sent or if buffer empty */
-	if(current_buffer_position == bytes_read)
-	{
-	    bytes_read = read(Fichier, buffer, BUFFER_EMISSION);
-
-	    current_buffer_position = 0;
-	    current_buffer = buffer;
-	    bytes_to_write = bytes_read;
-	}
-
-    if(current_buffer == NULL)
-    {
-        /* something went wrong... */
-        g_free(str);
-        str = g_strdup_printf(_("Error sending file\n"));
-        show_message(str, MSG_ERR);
-        close_all();
-        return;
-    }
-
-	car = current_buffer;
-
-	if(config.delai != 0 || config.car != -1)
-	{
-	    /* search for next LF */
-	    bytes_to_write = current_buffer_position;
-	    while(*car != LINE_FEED && bytes_to_write < bytes_read)
-	    {
-		car++;
-		bytes_to_write++;
-	    }
-	    if(*car == LINE_FEED)
-		bytes_to_write++;
-	}
-
-	/* write to serial port */
-	bytes_written = send_serial(current_buffer, bytes_to_write - current_buffer_position);
-
-	if(bytes_written == -1)
-	{
-	    /* Problem while writing, stop file transfer */
-	    g_free(str);
-	    str = g_strdup_printf(_("Error sending file: %s\n"), strerror(errno));
-	    show_message(str, MSG_ERR);
-	    close_all();
-	    return;
-	}
-
-	car_written += bytes_written;
-	current_buffer_position += bytes_written;
-	current_buffer += bytes_written;
+	static gchar buffer[BUFFER_EMISSION];
+	static gchar *current_buffer;
+	static gint bytes_to_write;
+	gint bytes_written;
+	gchar *car;
 
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar), (gfloat)car_written/(gfloat)nb_car );
 
-	if(config.delai != 0 && *car == LINE_FEED)
+	if(car_written < nb_car)
 	{
-	    remove_input();
-	    g_timeout_add(config.delai, (GSourceFunc)timer, NULL);
-	    waiting_for_timer = TRUE;
+		/* Read the file only if buffer totally sent or if buffer empty */
+		if(current_buffer_position == bytes_read)
+		{
+			bytes_read = read(Fichier, buffer, BUFFER_EMISSION);
+
+			current_buffer_position = 0;
+			current_buffer = buffer;
+			bytes_to_write = bytes_read;
+		}
+
+		if(current_buffer == NULL)
+		{
+			/* something went wrong... */
+			g_free(str);
+			str = g_strdup_printf(_("Error sending file\n"));
+			show_message(str, MSG_ERR);
+			close_all();
+			return;
+		}
+
+		car = current_buffer;
+
+		if(config.delai != 0 || config.car != -1)
+		{
+			/* search for next LF */
+			bytes_to_write = current_buffer_position;
+			while(*car != LINE_FEED && bytes_to_write < bytes_read)
+			{
+				car++;
+				bytes_to_write++;
+			}
+			if(*car == LINE_FEED)
+				bytes_to_write++;
+		}
+
+		/* write to serial port */
+		bytes_written = send_serial(current_buffer, bytes_to_write - current_buffer_position);
+
+		if(bytes_written == -1)
+		{
+			/* Problem while writing, stop file transfer */
+			g_free(str);
+			str = g_strdup_printf(_("Error sending file: %s\n"), strerror(errno));
+			show_message(str, MSG_ERR);
+			close_all();
+			return;
+		}
+
+		car_written += bytes_written;
+		current_buffer_position += bytes_written;
+		current_buffer += bytes_written;
+
+		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar), (gfloat)car_written/(gfloat)nb_car );
+
+		if(config.delai != 0 && *car == LINE_FEED)
+		{
+			remove_input();
+			g_timeout_add(config.delai, (GSourceFunc)timer, NULL);
+			waiting_for_timer = TRUE;
+		}
+		else if(config.car != -1 && *car == LINE_FEED)
+		{
+			remove_input();
+			waiting_for_char = TRUE;
+		}
 	}
-	else if(config.car != -1 && *car == LINE_FEED)
+	else
 	{
-	    remove_input();
-	    waiting_for_char = TRUE;
+		close_all();
+		return;
 	}
-    }
-    else
-    {
-	close_all();
 	return;
-    }
-    return;
 }
 
 gboolean timer(gpointer pointer)
 {
-    if(waiting_for_timer == TRUE)
-    {
-	add_input();
-	waiting_for_timer = FALSE;
-    }
-    return FALSE;
+	if(waiting_for_timer == TRUE)
+	{
+		add_input();
+		waiting_for_timer = FALSE;
+	}
+	return FALSE;
 }
 
 void add_input(void)
 {
-    if(input_running == FALSE)
-    {
-	input_running = TRUE;
-    callback_handler = g_io_add_watch_full(g_io_channel_unix_new(serial_port_fd),
-					   10,
-					   G_IO_OUT, 
-					   (GIOFunc)ecriture, 
-					   NULL, NULL);
+	if(input_running == FALSE)
+	{
+		input_running = TRUE;
+		callback_handler = g_io_add_watch_full(g_io_channel_unix_new(serial_port_fd),
+		                                       10,
+		                                       G_IO_OUT,
+		                                       (GIOFunc)ecriture,
+		                                       NULL, NULL);
 
-    }
+	}
 }
 
 void remove_input(void)
 {
-    if(input_running == TRUE)
-    {
-    g_source_remove(callback_handler);
-	input_running = FALSE;
-    }
+	if(input_running == TRUE)
+	{
+		g_source_remove(callback_handler);
+		input_running = FALSE;
+	}
 }
 
 gint close_all(void)
 {
-    remove_input();
-    waiting_for_char = FALSE;
-    waiting_for_timer = FALSE;
-    gtk_statusbar_pop(GTK_STATUSBAR(StatusBar), id);
-    close(Fichier);
-    gtk_widget_destroy(Window);
+	remove_input();
+	waiting_for_char = FALSE;
+	waiting_for_timer = FALSE;
+	gtk_statusbar_pop(GTK_STATUSBAR(StatusBar), id);
+	close(Fichier);
+	gtk_widget_destroy(Window);
 
-    return FALSE;
+	return FALSE;
 }
 
 void write_file(char *data, unsigned int size)
 {
-    fwrite(data, size, 1, Fic);
+	fwrite(data, size, 1, Fic);
 }
 
 void save_raw_file(GtkAction *action, gpointer data)
@@ -290,11 +290,11 @@ void save_raw_file(GtkAction *action, gpointer data)
 	GtkWidget *file_select;
 
 	file_select = gtk_file_chooser_dialog_new(_("Save RAW File"),
-	                                          GTK_WINDOW(Fenetre), 
-	                                          GTK_FILE_CHOOSER_ACTION_SAVE, 
-	                                          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	                                          GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
-	                                          NULL);
+	              GTK_WINDOW(Fenetre),
+	              GTK_FILE_CHOOSER_ACTION_SAVE,
+	              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+	              GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+	              NULL);
 	gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(file_select), TRUE);
 
 	if(fic_defaut != NULL)

@@ -34,42 +34,42 @@
 
 int main(int argc, char *argv[])
 {
-  gchar *message;
+	gchar *message;
 
-  config_file = g_strdup_printf("%s/.gtktermrc", getenv("HOME"));
+	config_file = g_strdup_printf("%s/.gtktermrc", getenv("HOME"));
 
-  bindtextdomain(PACKAGE, LOCALEDIR);
-  bind_textdomain_codeset(PACKAGE, "UTF-8");
-  textdomain(PACKAGE);
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	bind_textdomain_codeset(PACKAGE, "UTF-8");
+	textdomain(PACKAGE);
 
-  gtk_init(&argc, &argv);
+	gtk_init(&argc, &argv);
 
-  create_buffer();
+	create_buffer();
 
-  create_main_window();
+	create_main_window();
 
-  if(read_command_line(argc, argv) < 0)
-    {
-      delete_buffer();
-      exit(1);
-    }
+	if(read_command_line(argc, argv) < 0)
+	{
+		delete_buffer();
+		exit(1);
+	}
 
-  Config_port();
+	Config_port();
 
-  message = get_port_string();
-  Set_window_title(message);
-  Set_status_message(message);
-  g_free(message);
+	message = get_port_string();
+	Set_window_title(message);
+	Set_status_message(message);
+	g_free(message);
 
-  add_shortcuts();
+	add_shortcuts();
 
-  set_view(ASCII_VIEW);
+	set_view(ASCII_VIEW);
 
-  gtk_main();
+	gtk_main();
 
-  delete_buffer();
+	delete_buffer();
 
-  Close_port_and_remove_lockfile();
+	Close_port_and_remove_lockfile();
 
-  return 0;
+	return 0;
 }

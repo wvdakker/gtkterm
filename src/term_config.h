@@ -25,35 +25,37 @@ void Verify_configuration(void);
 gint Load_configuration_from_file(gchar *);
 gint Check_configuration_file(void);
 void check_text_input(GtkEditable *editable,
-		       gchar       *new_text,
-		       gint         new_text_length,
-		       gint        *position,
-		       gpointer     user_data);
+                      gchar       *new_text,
+                      gint         new_text_length,
+                      gint        *position,
+                      gpointer     user_data);
 
-struct configuration_port {
-  gchar port[1024];
-  gint vitesse;                // 300 - 600 - 1200 - ... - 115200
-  gint bits;                   // 5 - 6 - 7 - 8
-  gint stops;                  // 1 - 2
-  gint parite;                 // 0 : None, 1 : Odd, 2 : Even
-  gint flux;                   // 0 : None, 1 : Xon/Xoff, 2 : RTS/CTS, 3 : RS485halfduplex
-  gint delai;                  // end of char delay: in ms
-  gint rs485_rts_time_before_transmit;
-  gint rs485_rts_time_after_transmit;
-  gchar car;             // caractere à attendre
-  gboolean echo;               // echo local
-  gboolean crlfauto;         // line feed auto
+struct configuration_port
+{
+	gchar port[1024];
+	gint vitesse;                // 300 - 600 - 1200 - ... - 115200
+	gint bits;                   // 5 - 6 - 7 - 8
+	gint stops;                  // 1 - 2
+	gint parite;                 // 0 : None, 1 : Odd, 2 : Even
+	gint flux;                   // 0 : None, 1 : Xon/Xoff, 2 : RTS/CTS, 3 : RS485halfduplex
+	gint delai;                  // end of char delay: in ms
+	gint rs485_rts_time_before_transmit;
+	gint rs485_rts_time_after_transmit;
+	gchar car;             // caractere à attendre
+	gboolean echo;               // echo local
+	gboolean crlfauto;         // line feed auto
 };
 
-typedef struct {
-  gboolean show_cursor;
-  gint rows;
-  gint columns;
-  gint scrollback;
-  gboolean visual_bell;
-  GdkRGBA foreground_color;
-  GdkRGBA background_color;
-  gchar *font;
+typedef struct
+{
+	gboolean show_cursor;
+	gint rows;
+	gint columns;
+	gint scrollback;
+	gboolean visual_bell;
+	GdkRGBA foreground_color;
+	GdkRGBA background_color;
+	gchar *font;
 } display_config_t;
 
 

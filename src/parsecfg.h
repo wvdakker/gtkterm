@@ -30,7 +30,8 @@
 #define PARSECFG_VERSION "3.6.7"
 
 /* error code */
-typedef enum {
+typedef enum
+{
 	CFG_NO_ERROR,
 	CFG_OPEN_FAIL,
 	CFG_CREATE_FAIL,
@@ -47,13 +48,15 @@ typedef enum {
 } cfgErrorCode;
 
 /* type of the configuration file */
-typedef enum {
+typedef enum
+{
 	CFG_SIMPLE,
 	CFG_INI
 } cfgFileType;
 
 /* constants for recognized value types */
-typedef enum {
+typedef enum
+{
 	CFG_END,
 	CFG_BOOL,
 	CFG_STRING,
@@ -66,26 +69,30 @@ typedef enum {
 	CFG_DOUBLE
 } cfgValueType;
 
-typedef enum {
+typedef enum
+{
 	CFG_PARAMETER,
 	CFG_VALUE,
 	CFG_SECTION
 } cfgKeywordValue;
 
-typedef enum {
+typedef enum
+{
 	CFG_NO_QUOTE,
 	CFG_SINGLE_QUOTE,
 	CFG_DOUBLE_QUOTE
 } cfgQuote;
 
 
-typedef struct {
+typedef struct
+{
 	char *parameterName;
 	cfgValueType type;
 	void *value;
 } cfgStruct;
 
-typedef struct cfgList_tag {
+typedef struct cfgList_tag
+{
 	char *str;
 	struct cfgList_tag *next;
 } cfgList;
