@@ -254,6 +254,12 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "38400");
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "57600");
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "115200");
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "230400");
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "460800");
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "576000");
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "921600");
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "1000000");
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "2000000");
 
 	/* set the current choice to the previous setting */
 	switch(config.vitesse)
@@ -287,6 +293,24 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 		break;
 	case 115200:
 		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 9);
+		break;
+	case 230400:
+		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 10);
+		break;
+	case 460800:
+		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 11);
+		break;
+	case 576000:
+		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 12);
+		break;
+	case 921600:
+		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 13);
+		break;
+	case 1000000:
+		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 14);
+		break;
+	case 2000000:
+		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 15);
 		break;
 	case 0:
 		/* no previous setting, use a default */
@@ -1037,6 +1061,12 @@ void Verify_configuration(void)
 	case 38400:
 	case 57600:
 	case 115200:
+	case 230400:
+	case 460800:
+	case 576000:
+	case 921600:
+	case 1000000:
+	case 2000000:
 		break;
 
 	default:

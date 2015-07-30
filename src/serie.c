@@ -217,6 +217,24 @@ gboolean Config_port(void)
 	case 115200:
 		termios_p.c_cflag = B115200;
 		break;
+	case 230400:
+		termios_p.c_cflag = B230400;
+		break;
+	case 460800:
+		termios_p.c_cflag = B460800;
+		break;
+	case 576000:
+		termios_p.c_cflag = B576000;
+		break;
+	case 921600:
+		termios_p.c_cflag = B921600;
+		break;
+	case 1000000:
+		termios_p.c_cflag = B1000000;
+		break;
+	case 2000000:
+		termios_p.c_cflag = B2000000;
+		break;
 
 	default:
 #ifdef HAVE_LINUX_SERIAL_H
