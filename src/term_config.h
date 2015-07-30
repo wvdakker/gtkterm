@@ -46,7 +46,6 @@ struct configuration_port {
 };
 
 typedef struct {
-  gboolean transparency;
   gboolean show_cursor;
   gint rows;
   gint columns;
@@ -54,7 +53,6 @@ typedef struct {
   gboolean visual_bell;
   GdkRGBA foreground_color;
   GdkRGBA background_color;
-  gdouble background_saturation;
   gchar *font;
 } display_config_t;
 

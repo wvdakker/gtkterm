@@ -107,6 +107,8 @@ static gboolean show_index = FALSE;
 void signals_send_break_callback(GtkAction *action, gpointer data);
 void signals_toggle_DTR_callback(GtkAction *action, gpointer data);
 void signals_toggle_RTS_callback(GtkAction *action, gpointer data);
+void signals_close_port(GtkAction *action, gpointer data);
+void signals_open_port(GtkAction *action, gpointer data);
 void help_about_callback(GtkAction *action, gpointer data);
 gboolean Envoie_car(GtkWidget *, GdkEventKey *, gpointer);
 gboolean control_signals_read(void);
@@ -166,6 +168,8 @@ const GtkActionEntry menu_entries[] = {
 
   /* Signals Menu */
   {"SignalsSendBreak", NULL, N_("Send break"), "<shift><control>B", NULL, G_CALLBACK(signals_send_break_callback)},
+  {"SignalsOpenPort", GTK_STOCK_OPEN, N_("_Open Port"), "F5", NULL, G_CALLBACK(signals_open_port)},
+  {"SignalsClosePort", GTK_STOCK_CLOSE, N_("_Close Port"), "F6", NULL, G_CALLBACK(signals_close_port)},
   {"SignalsDTR", NULL, N_("Toggle DTR"), "F7", NULL, G_CALLBACK(signals_toggle_DTR_callback)},
   {"SignalsRTS", NULL, N_("Toggle RTS"), "F8", NULL, G_CALLBACK(signals_toggle_RTS_callback)},
 
@@ -231,6 +235,8 @@ static const char *ui_description =
 "    </menu>"
 "    <menu action='Signals'>"
 "      <menuitem action='SignalsSendBreak'/>"
+"      <menuitem action='SignalsOpenPort'/>"
+"      <menuitem action='SignalsClosePort'/>"
 "      <menuitem action='SignalsDTR'/>"
 "      <menuitem action='SignalsRTS'/>"
 "    </menu>"
@@ -746,6 +752,28 @@ void signals_toggle_DTR_callback(GtkAction *action, gpointer data)
 void signals_toggle_RTS_callback(GtkAction *action, gpointer data)
 {
   Set_signals(1);
+}
+
+void signals_close_port(GtkAction *action, gpointer data)
+{
+  Close_port_and_remove_lockfile();
+
+  gchar *message;
+  message = get_port_string();
+  Set_status_message(message);
+  Set_window_title(message);
+  g_free(message);
+}
+
+void signals_open_port(GtkAction *action, gpointer data)
+{
+  Config_port();
+
+  gchar *message;
+  message = get_port_string();
+  Set_status_message(message);
+  Set_window_title(message);
+  g_free(message);
 }
 
 gboolean control_signals_read(void)
