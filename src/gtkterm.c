@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
 	delete_buffer();
 
-	Close_port_and_remove_lockfile();
+	Close_port();
 
 	return 0;
 }

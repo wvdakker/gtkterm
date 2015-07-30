@@ -760,7 +760,7 @@ void signals_toggle_RTS_callback(GtkAction *action, gpointer data)
 
 void signals_close_port(GtkAction *action, gpointer data)
 {
-	Close_port_and_remove_lockfile();
+	Close_port();
 
 	gchar *message;
 	message = get_port_string();

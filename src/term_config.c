@@ -1264,8 +1264,6 @@ void Copy_configuration(int pos)
 		g_free(string);
 	}
 
-	g_free(string);
-
 	if(term_conf.show_cursor == FALSE)
 		string = g_strdup_printf("False");
 	else
@@ -1292,29 +1290,29 @@ void Copy_configuration(int pos)
 	cfgStoreValue(cfg, "term_visual_bell", string, CFG_INI, pos);
 	g_free(string);
 
-	string = g_strdup_printf("%d", term_conf.foreground_color.red);
+	string = g_strdup_printf("%f", term_conf.foreground_color.red);
 	cfgStoreValue(cfg, "term_foreground_red", string, CFG_INI, pos);
 	g_free(string);
-	string = g_strdup_printf("%d", term_conf.foreground_color.green);
+	string = g_strdup_printf("%f", term_conf.foreground_color.green);
 	cfgStoreValue(cfg, "term_foreground_green", string, CFG_INI, pos);
 	g_free(string);
-	string = g_strdup_printf("%d", term_conf.foreground_color.blue);
+	string = g_strdup_printf("%f", term_conf.foreground_color.blue);
 	cfgStoreValue(cfg, "term_foreground_blue", string, CFG_INI, pos);
 	g_free(string);
-	string = g_strdup_printf("%d", term_conf.foreground_color.alpha);
+	string = g_strdup_printf("%f", term_conf.foreground_color.alpha);
 	cfgStoreValue(cfg, "term_foreground_alpha", string, CFG_INI, pos);
 	g_free(string);
 
-	string = g_strdup_printf("%d", term_conf.background_color.red);
+	string = g_strdup_printf("%f", term_conf.background_color.red);
 	cfgStoreValue(cfg, "term_background_red", string, CFG_INI, pos);
 	g_free(string);
-	string = g_strdup_printf("%d", term_conf.background_color.green);
+	string = g_strdup_printf("%f", term_conf.background_color.green);
 	cfgStoreValue(cfg, "term_background_green", string, CFG_INI, pos);
 	g_free(string);
-	string = g_strdup_printf("%d", term_conf.background_color.blue);
+	string = g_strdup_printf("%f", term_conf.background_color.blue);
 	cfgStoreValue(cfg, "term_background_blue", string, CFG_INI, pos);
 	g_free(string);
-	string = g_strdup_printf("%d", term_conf.background_color.alpha);
+	string = g_strdup_printf("%f", term_conf.background_color.alpha);
 	cfgStoreValue(cfg, "term_background_alpha", string, CFG_INI, pos);
 	g_free(string);
 }
