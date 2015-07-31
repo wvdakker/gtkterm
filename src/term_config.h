@@ -48,7 +48,7 @@ struct configuration_port
 
 typedef struct
 {
-	gboolean show_cursor;
+	gboolean block_cursor;
 	gint rows;
 	gint columns;
 	gint scrollback;

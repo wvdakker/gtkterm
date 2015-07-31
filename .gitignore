@@ -12,3 +12,5 @@ stamp-h1
 *.o
 *.gmo
 src/gtkterm
+src/gresource.c
+src/gresource.h

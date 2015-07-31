@@ -51,7 +51,7 @@ The RS485 flow control is a software user-space emulation and therefore may not 
 
 ### Building:
 GtkTerm has a few dependencies-
-* Gtk+3.0 (version 3.0 or higher)
+* Gtk+3.0 (version 3.12 or higher)
 * vte (version 0.40 or higher)
 * intltool (version 0.40.0 or higher)
 

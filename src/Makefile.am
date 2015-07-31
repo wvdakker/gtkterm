@@ -4,6 +4,13 @@ AM_CFLAGS = $(gtk_CFLAGS) $(vte_CFLAGS)
 
 bin_PROGRAMS = gtkterm
 
+# Rules to compile GResources
+gresource.c: gresource.xml
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-header --target=gresource.h gresource.xml
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-source --target=gresource.c gresource.xml
+
+.PHONY: gresource.c
+
 gtkterm_SOURCES = \
     term_config.c \
     files.c \
@@ -26,7 +33,9 @@ gtkterm_SOURCES = \
     i18n.h \
     auto_config.h \
     logging.c \
-    logging.h 
+    logging.h \
+	gresource.c \
+	gresource.h
 
 gtkterm_LDADD = $(gtk_LIBS) $(vte_LIBS)
 
