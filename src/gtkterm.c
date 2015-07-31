@@ -20,8 +20,8 @@
 #include <gdk/gdk.h>
 #include <stdlib.h>
 
-#include "widgets.h"
-#include "serie.h"
+#include "interface.h"
+#include "serial.h"
 #include "term_config.h"
 #include "cmdline.h"
 #include "parsecfg.h"

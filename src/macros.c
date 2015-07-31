@@ -22,7 +22,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "widgets.h"
+#include "interface.h"
 #include "macros.h"
 
 #include <config.h>

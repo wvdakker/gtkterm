@@ -22,7 +22,7 @@
 #include <string.h>
 #include "buffer.h"
 #include "i18n.h"
-#include "serie.h"
+#include "serial.h"
 
 #include <config.h>
 #include <glib/gi18n.h>

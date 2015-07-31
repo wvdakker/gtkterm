@@ -64,9 +64,9 @@
 #include <string.h>
 
 #include "term_config.h"
-#include "fichier.h"
-#include "serie.h"
-#include "widgets.h"
+#include "files.h"
+#include "serial.h"
+#include "interface.h"
 #include "buffer.h"
 #include "macros.h"
 #include "auto_config.h"

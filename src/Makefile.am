@@ -6,14 +6,14 @@ bin_PROGRAMS = gtkterm
 
 gtkterm_SOURCES = \
     term_config.c \
-    fichier.c \
+    files.c \
     gtkterm.c \
-    serie.c \
+    serial.c \
     config.h \
-    fichier.h \
-    serie.h \
-    widgets.c \
-    widgets.h \
+    files.h \
+    serial.h \
+    interface.c \
+    interface.h \
     cmdline.c \
     cmdline.h \
     parsecfg.c \

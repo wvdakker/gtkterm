@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include "term_config.h"
-#include "fichier.h"
+#include "files.h"
 #include "auto_config.h"
 #include "i18n.h"
 

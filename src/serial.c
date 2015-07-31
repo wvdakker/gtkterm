@@ -36,9 +36,9 @@
 #include <pwd.h>
 
 #include "term_config.h"
-#include "serie.h"
-#include "widgets.h"
-#include "fichier.h"
+#include "serial.h"
+#include "interface.h"
+#include "files.h"
 #include "buffer.h"
 #include "i18n.h"
 

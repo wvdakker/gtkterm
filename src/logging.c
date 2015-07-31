@@ -24,8 +24,8 @@
 #include <string.h>
 #include <glib.h>
 
-#include "widgets.h"
-#include "serie.h"
+#include "interface.h"
+#include "serial.h"
 #include "buffer.h"
 #include "logging.h"
 

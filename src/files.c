@@ -32,8 +32,8 @@
 #include <glib.h>
 
 #include "term_config.h"
-#include "widgets.h"
-#include "serie.h"
+#include "interface.h"
+#include "serial.h"
 #include "buffer.h"
 
 #include <config.h>

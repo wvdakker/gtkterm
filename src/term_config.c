@@ -42,9 +42,9 @@
 #include <vte/vte.h>
 #include <glib/gi18n.h>
 
-#include "serie.h"
+#include "serial.h"
 #include "term_config.h"
-#include "widgets.h"
+#include "interface.h"
 #include "parsecfg.h"
 #include "macros.h"
 #include "i18n.h"
