@@ -34,8 +34,8 @@ gtkterm_SOURCES = \
     auto_config.h \
     logging.c \
     logging.h \
-	gresource.c \
-	gresource.h
+    gresource.c \
+    gresource.h
 
 gtkterm_LDADD = $(gtk_LIBS) $(vte_LIBS)
 
