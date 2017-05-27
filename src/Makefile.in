@@ -104,7 +104,8 @@ PROGRAMS = $(bin_PROGRAMS)
 am_gtkterm_OBJECTS = term_config.$(OBJEXT) files.$(OBJEXT) \
 	gtkterm.$(OBJEXT) serial.$(OBJEXT) interface.$(OBJEXT) \
 	cmdline.$(OBJEXT) parsecfg.$(OBJEXT) buffer.$(OBJEXT) \
-	macros.$(OBJEXT) i18n.$(OBJEXT) logging.$(OBJEXT)
+	macros.$(OBJEXT) i18n.$(OBJEXT) logging.$(OBJEXT) \
+	gresource.$(OBJEXT)
 gtkterm_OBJECTS = $(am_gtkterm_OBJECTS)
 am__DEPENDENCIES_1 =
 gtkterm_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
@@ -316,7 +317,9 @@ gtkterm_SOURCES = \
     i18n.h \
     auto_config.h \
     logging.c \
-    logging.h
+    logging.h \
+    gresource.c \
+    gresource.h
 
 BUILT_SOURCES = \
     gresource.c \
@@ -415,6 +418,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/buffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/files.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gresource.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkterm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/i18n.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interface.Po@am__quote@
