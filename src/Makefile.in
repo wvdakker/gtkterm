@@ -104,8 +104,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_gtkterm_OBJECTS = term_config.$(OBJEXT) files.$(OBJEXT) \
 	gtkterm.$(OBJEXT) serial.$(OBJEXT) interface.$(OBJEXT) \
 	cmdline.$(OBJEXT) parsecfg.$(OBJEXT) buffer.$(OBJEXT) \
-	macros.$(OBJEXT) i18n.$(OBJEXT) logging.$(OBJEXT) \
-	gresource.$(OBJEXT)
+	macros.$(OBJEXT) i18n.$(OBJEXT) logging.$(OBJEXT)
 gtkterm_OBJECTS = $(am_gtkterm_OBJECTS)
 am__DEPENDENCIES_1 =
 gtkterm_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
@@ -210,6 +209,7 @@ INTLTOOL_V_MERGE = @INTLTOOL_V_MERGE@
 INTLTOOL_V_MERGE_OPTIONS = @INTLTOOL_V_MERGE_OPTIONS@
 INTLTOOL__v_MERGE_ = @INTLTOOL__v_MERGE_@
 INTLTOOL__v_MERGE_0 = @INTLTOOL__v_MERGE_0@
+INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
@@ -291,6 +291,9 @@ top_srcdir = @top_srcdir@
 vte_CFLAGS = @vte_CFLAGS@
 vte_LIBS = @vte_LIBS@
 AM_CFLAGS = $(gtk_CFLAGS) $(vte_CFLAGS)
+
+# Rules to compile GResources
+resources = $(shell $(GLIB_COMPILE_RESOURCES) --generate-dependencies gresource.xml)
 gtkterm_SOURCES = \
     term_config.c \
     files.c \
@@ -313,14 +316,17 @@ gtkterm_SOURCES = \
     i18n.h \
     auto_config.h \
     logging.c \
-    logging.h \
-	gresource.c \
-	gresource.h
+    logging.h
+
+BUILT_SOURCES = \
+    gresource.c \
+    gresource.h
 
 gtkterm_LDADD = $(gtk_LIBS) $(vte_LIBS)
-CLEANFILES = *~
+CLEANFILES = $(BUILT_SOURCES) *~
 AM_CPPFLAGS = -DLOCALEDIR=\""$(localedir)"\"
-all: all-am
+all: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
 .SUFFIXES: .c .o .obj
@@ -409,7 +415,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/buffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/files.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gresource.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkterm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/i18n.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interface.Po@am__quote@
@@ -516,13 +521,15 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-check: check-am
+check: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(PROGRAMS)
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: install-am
+install: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -553,6 +560,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
@@ -622,7 +630,7 @@ ps-am:
 
 uninstall-am: uninstall-binPROGRAMS
 
-.MAKE: install-am install-strip
+.MAKE: all check install install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean \
 	clean-binPROGRAMS clean-generic cscopelist-am ctags ctags-am \
@@ -640,13 +648,11 @@ uninstall-am: uninstall-binPROGRAMS
 
 .PRECIOUS: Makefile
 
+gresource.c: gresource.xml $(resources)
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-source --target=$@ gresource.xml
 
-# Rules to compile GResources
-gresource.c: gresource.xml
-	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-header --target=gresource.h gresource.xml
-	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-source --target=gresource.c gresource.xml
-
-.PHONY: gresource.c
+gresource.h: gresource.xml $(resources)
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-header --target=$@ gresource.xml
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

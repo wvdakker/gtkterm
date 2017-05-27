@@ -5,11 +5,12 @@ AM_CFLAGS = $(gtk_CFLAGS) $(vte_CFLAGS)
 bin_PROGRAMS = gtkterm
 
 # Rules to compile GResources
-gresource.c: gresource.xml
-	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-header --target=gresource.h gresource.xml
-	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-source --target=gresource.c gresource.xml
+resources=$(shell $(GLIB_COMPILE_RESOURCES) --generate-dependencies gresource.xml)
+gresource.c: gresource.xml $(resources)
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-source --target=$@ gresource.xml
 
-.PHONY: gresource.c
+gresource.h: gresource.xml $(resources)
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-header --target=$@ gresource.xml
 
 gtkterm_SOURCES = \
     term_config.c \
@@ -33,13 +34,15 @@ gtkterm_SOURCES = \
     i18n.h \
     auto_config.h \
     logging.c \
-    logging.h \
+    logging.h
+
+BUILT_SOURCES = \
     gresource.c \
     gresource.h
 
 gtkterm_LDADD = $(gtk_LIBS) $(vte_LIBS)
 
-CLEANFILES = *~
+CLEANFILES = $(BUILT_SOURCES) *~
 
 
 AM_CPPFLAGS = -DLOCALEDIR=\""$(localedir)"\"
