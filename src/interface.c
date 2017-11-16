@@ -708,8 +708,8 @@ void help_about_callback(GtkAction *action, gpointer data)
 	                      "comments", _("GTKTerm is a simple GTK+ terminal used to communicate with the serial port."),
 	                      "copyright", "Copyright © Julien Schimtt",
 	                      "authors", authors,
-	                      "website", "https://github.com/Jeija/gtkterm]/",
-	                      "website-label", "https://github.com/Jeija/gtkterm]",
+	                      "website", "https://github.com/Jeija/gtkterm",
+	                      "website-label", "https://github.com/Jeija/gtkterm",
 	                      "license-type", GTK_LICENSE_LGPL_3_0,
 	                      NULL);
 }
