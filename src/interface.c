@@ -701,9 +701,14 @@ gboolean Envoie_car(GtkWidget *widget, GdkEventKey *event, gpointer pointer)
 void help_about_callback(GtkAction *action, gpointer data)
 {
 	gchar *authors[] = {"Julien Schimtt", "Zach Davis", NULL};
+	GError *error = NULL;
+	GdkPixbuf *logo = NULL;
+
+	logo = gdk_pixbuf_new_from_resource ("/org/gtk/gtkterm/gtkterm_small.png", &error);
 
 	gtk_show_about_dialog(GTK_WINDOW(Fenetre),
 	                      "program-name", "GTKTerm",
+	                      "logo", logo,
 	                      "version", VERSION,
 	                      "comments", _("GTKTerm is a simple GTK+ terminal used to communicate with the serial port."),
 	                      "copyright", "Copyright © Julien Schimtt",

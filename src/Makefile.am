@@ -12,6 +12,12 @@ gresource.c: gresource.xml $(resources)
 gresource.h: gresource.xml $(resources)
 	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-header --target=$@ gresource.xml
 
+gicon.c: gicon.xml $(resources)
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-source --target=$@ gicon.xml
+
+gicon.h: gicon.xml $(resources)
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-header --target=$@ gicon.xml
+
 gtkterm_SOURCES = \
     term_config.c \
     files.c \
@@ -36,11 +42,15 @@ gtkterm_SOURCES = \
     logging.c \
     logging.h \
     gresource.c \
-    gresource.h
+    gresource.h \
+    gicon.c \
+    gicon.h
 
 BUILT_SOURCES = \
     gresource.c \
-    gresource.h
+    gresource.h \
+    gicon.c \
+    gicon.h
 
 gtkterm_LDADD = $(gtk_LIBS) $(vte_LIBS)
 

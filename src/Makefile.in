@@ -105,7 +105,7 @@ am_gtkterm_OBJECTS = term_config.$(OBJEXT) files.$(OBJEXT) \
 	gtkterm.$(OBJEXT) serial.$(OBJEXT) interface.$(OBJEXT) \
 	cmdline.$(OBJEXT) parsecfg.$(OBJEXT) buffer.$(OBJEXT) \
 	macros.$(OBJEXT) i18n.$(OBJEXT) logging.$(OBJEXT) \
-	gresource.$(OBJEXT)
+	gresource.$(OBJEXT) gicon.$(OBJEXT)
 gtkterm_OBJECTS = $(am_gtkterm_OBJECTS)
 am__DEPENDENCIES_1 =
 gtkterm_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
@@ -307,11 +307,15 @@ gtkterm_SOURCES = \
     logging.c \
     logging.h \
     gresource.c \
-    gresource.h
+    gresource.h \
+    gicon.c \
+    gicon.h
 
 BUILT_SOURCES = \
     gresource.c \
-    gresource.h
+    gresource.h \
+    gicon.c \
+    gicon.h
 
 gtkterm_LDADD = $(gtk_LIBS) $(vte_LIBS)
 CLEANFILES = $(BUILT_SOURCES) *~
@@ -406,6 +410,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/buffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmdline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/files.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gicon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gresource.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtkterm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/i18n.Po@am__quote@
@@ -645,6 +650,12 @@ gresource.c: gresource.xml $(resources)
 
 gresource.h: gresource.xml $(resources)
 	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-header --target=$@ gresource.xml
+
+gicon.c: gicon.xml $(resources)
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-source --target=$@ gicon.xml
+
+gicon.h: gicon.xml $(resources)
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --generate-header --target=$@ gicon.xml
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
