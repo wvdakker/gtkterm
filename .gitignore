@@ -14,3 +14,5 @@ stamp-h1
 src/gtkterm
 src/gresource.c
 src/gresource.h
+src/gicon.c
+src/gicon.h

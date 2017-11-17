@@ -1,0 +1,691 @@
+# Translation of gtkterm to German
+# Copyright (C) 2002 Sebastien Bacher.
+# This file is distributed under the same license as the gtkterm package.
+# Chris Leick <c.leick@vollbio.de>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gtkterm 0.99.5-1\n"
+"Report-Msgid-Bugs-To: Julien Schmitt <julien@jls-info.com>\n"
+"POT-Creation-Date: 2005-11-14 20:44+0100\n"
+"PO-Revision-Date: 2010-03-21 19:17+GMT\n"
+"Last-Translator: Chris Leick <c.leick@vollbio.de>\n"
+"Language-Team: German <debian-l10n-german@lists.debian.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+#: src/buffer.c:92
+msgid "ERROR : Buffer is not initialized !\n"
+msgstr "FEHLER: Puffer ist nicht initialisiert!\n"
+
+#: src/cmdline.c:36
+#, c-format
+msgid ""
+"\n"
+"GTKTerm version %s\n"
+msgstr ""
+"\n"
+"GTKTerm-Version %s\n"
+
+#: src/cmdline.c:37
+msgid "\t (c) Julien Schmitt - julien@jls-info.com\n"
+msgstr "\t (c) Julien Schmitt - julien@jls-info.com\n"
+
+#: src/cmdline.c:38
+msgid "\t http://www.jls-info.com/julien/linux\n"
+msgstr "\t http://www.jls-info.com/julien/linux\n"
+
+#: src/cmdline.c:39
+msgid ""
+"\n"
+"This program is released under the terms of the GPL V.2\n"
+msgstr ""
+"\n"
+"Dieses Programm wurde unter den Bedingungen der GPL v2 veröffentlicht\n"
+
+#: src/cmdline.c:40
+msgid "\t ** Use at your own risks ! **\n"
+msgstr "\t ** Benutzung auf eigenes Risiko! **\n"
+
+#: src/cmdline.c:41
+msgid ""
+"\n"
+"Command line options\n"
+msgstr ""
+"\n"
+"Befehlszeilenoptionen\n"
+
+#: src/cmdline.c:42
+msgid "--help or -h : this help screen\n"
+msgstr "--help oder -h: Diesen Hilfebildschirm anzeigen\n"
+
+#: src/cmdline.c:43
+msgid "--config <configuration> or -c : load configuration\n"
+msgstr "--config <Konfiguration> oder -c: Konfiguration laden\n"
+
+#: src/cmdline.c:44
+msgid "--port <device> or -p : serial port device (default /dev/ttyS0)\n"
+msgstr "--port <Gerät> oder -p: Serielles Port-Gerät (Vorgabe /dev/ttyS0)\n"
+
+#: src/cmdline.c:45
+msgid "--speed <speed> or -s : serial port speed (default 9600)\n"
+msgstr ""
+"--speed <Geschwindigkeit> oder -s: Geschwindigkeit des seriellen Ports\n"
+"(Vorgabe 9600)\n"
+
+#: src/cmdline.c:46
+msgid "--bits <bits> or -b : number of bits (default 8)\n"
+msgstr "--bits <Bits> oder -b: Anzahl der Bits (Vorgabe 8)\n"
+
+#: src/cmdline.c:47
+msgid "--stopbits <stopbits> or -t : number of stopbits (default 1)\n"
+msgstr "--stopbits <Stoppbits> oder -t: Anzahl der Stoppbits (Vorgabe 1)\n"
+
+#: src/cmdline.c:48
+# FIXME s/partity/parity
+msgid "--parity <odd | even> or -a : partity (default none)\n"
+msgstr "--parity <odd | even> oder -a: Parität (Vorgabe keine)\n"
+
+#: src/cmdline.c:49
+msgid "--flow <Xon | CTS> or -w : flow control (default none)\n"
+msgstr "--flow <Xon | CTS> oder -w: Flusssteuerung (Vorgabe keine)\n"
+
+#: src/cmdline.c:50
+msgid "--delay <ms> or -d : end of line delay in ms (default none)\n"
+msgstr ""
+"--delay <ms> oder -d: Ende der Zeilenverzögerung in ms (Vorgabe keine)\n"
+
+#: src/cmdline.c:51
+msgid ""
+"--char <char> or -r : wait for a special char at end of line (default none)\n"
+msgstr ""
+"--char <char> oder -r: Auf ein Sonderzeichen am Zeilenende warten\n"
+"(Vorgabe keine)\n"
+
+#: src/cmdline.c:52
+msgid "--file <filename> or -f : default file to send (default none)\n"
+msgstr ""
+"--file <Dateiname> oder -f: Zu sendende Vorgabedatei (Vorgabe keine)\n"
+
+#: src/cmdline.c:53
+msgid "--echo or -e : switch on local echo\n"
+msgstr "--echo oder -e: Lokales Echo anschalten\n"
+
+#: src/cmdline.c:144
+msgid "Misunderstood command line option\n"
+msgstr "Missverstandene Befehlszeilenoption\n"
+
+#: src/config.c:173
+msgid ""
+"No valid serial device found in /dev, sorry !\n"
+"You should have at least one of these :\n"
+"/dev/ttyS*\n"
+"/dev/tts/*\n"
+"/dev/ttyUSB*\n"
+"/dev/usb/tts/*\n"
+msgstr ""
+"In /dev wurde kein gültiges serielles Gerät gefunden, Entschuldigung.\n"
+"Sie sollten mindestens eines der folgenden haben:\n"
+"/dev/ttyS*\n"
+"/dev/tts/*\n"
+"/dev/ttyUSB*\n"
+"/dev/usb/tts/*\n"
+
+#: src/config.c:178
+msgid "Configuration"
+msgstr "Konfiguration"
+
+#: src/config.c:181
+msgid "Serial port"
+msgstr "Serieller Port"
+
+#: src/config.c:187
+msgid "Port :"
+msgstr "Port:"
+
+#: src/config.c:189
+msgid "Speed :"
+msgstr "Geschwindigkeit:"
+
+#: src/config.c:191
+msgid "Parity :"
+msgstr "Parität:"
+
+#: src/config.c:252
+msgid "Bits :"
+msgstr "Bits:"
+
+#: src/config.c:254
+msgid "Stopbits :"
+msgstr "Stoppbits:"
+
+#: src/config.c:256
+msgid "Flow control :"
+msgstr "Flusssteuerung:"
+
+#: src/config.c:317
+msgid "ASCII file transfer"
+msgstr "ASCII-Dateiübertragung"
+
+#: src/config.c:323
+msgid "End of line delay (milliseconds) :"
+msgstr "Ende der Zeilenverzögerung (Millisekunden):"
+
+#: src/config.c:337
+msgid "Wait for this special character before passing to next line :"
+msgstr "Auf dieses Sonderzeichen warten, bevor es zur nächsten Zeile geht:"
+
+#: src/config.c:395 src/config.c:715
+msgid "No open port"
+msgstr "Kein offener Port"
+
+#: src/config.c:421
+msgid "Font selection"
+msgstr "Schriftauswahl"
+
+#: src/config.c:464
+msgid "Load configuration"
+msgstr "Konfiguration laden"
+
+#: src/config.c:470
+msgid "Delete configuration"
+msgstr "Konfiguration löschen"
+
+#: src/config.c:501
+msgid "Cannot read configuration file !\n"
+msgstr "Konfigurationsdatei kann nicht gelesen werden.\n"
+
+#: src/config.c:507
+msgid "Configurations"
+msgstr "Konfigurationen"
+
+#: src/config.c:572
+msgid "Save configuration"
+msgstr "Konfiguration speichern"
+
+#: src/config.c:581
+msgid "Configuration name : "
+msgstr "Konfigurationsname: "
+
+#: src/config.c:626
+msgid "Cannot overwrite section !"
+msgstr "Abschnitt kann nicht überschrieben werden."
+
+#: src/config.c:631
+msgid "Cannot read configuration file !"
+msgstr "Konfigurationsdatei kann nicht gelesen werden."
+
+#: src/config.c:641
+#, c-format
+msgid "Configuration [%s] saved\n"
+msgstr "Konfiguration [%s] gespeichert\n"
+
+#: src/config.c:667
+msgid "Warning !"
+msgstr "Warnung!"
+
+#: src/config.c:676
+#, c-format
+msgid ""
+"\n"
+"Section [%s] already exists\n"
+"Do you want to overwrite it ?\n"
+msgstr ""
+"\n"
+"Abschnitt [%s] existiert bereits\n"
+"Möchten Sie ihn überschreiben?\n"
+
+#: src/config.c:734
+msgid "Cannot delete section !"
+msgstr "Abschnitt kann nicht gelöscht werden."
+
+#: src/config.c:905
+#, c-format
+msgid "No section \"%s\" in configuration file\n"
+msgstr "Kein Abschnitt »%s« in Konfigurationsdatei\n"
+
+#: src/config.c:942
+#, c-format
+msgid ""
+"Unknown speed : %d bauds\n"
+"Falling back to default speed : %d bauds\n"
+msgstr ""
+"Unbekannte Geschwindigkeit: %d Baud\n"
+"Es wird auf Vorgabegeschwindigkeit zurückgesetzt: %d Baud\n" 
+
+#: src/config.c:950
+#, c-format
+msgid ""
+"Impossible stopbits number : %d\n"
+"Falling back to default stop bits number : %d\n"
+msgstr ""
+"Unmögliche Stoppbit-Anzahl: %d\n"
+"Es wird auf Vorgabe-Stoppbit-Anzahl zurückgesetzt: %d\n" 
+
+#: src/config.c:958
+#, c-format
+msgid ""
+"Impossible bits number : %d\n"
+"Falling back to default stop bits : %d\n"
+msgstr ""
+"Unmögliche Bit-Anzahl: %d\n"
+"Es wird auf Vorgabe-Bits zurückgesetzt: %d\n" 
+
+#: src/config.c:966
+#, c-format
+msgid ""
+"Impossible delay : %d ms\n"
+"Falling back to default delay : %d ms\n"
+msgstr ""
+"Unmögliche Verzögerung: %d ms\n"
+"Es wird auf Vorgabeverzögerung zurückgesetzt: %d ms\n" 
+
+#: src/config.c:996
+#, c-format
+msgid ""
+"Configuration file (%s) with\n"
+"[default] configuration has been created.\n"
+msgstr ""
+"Konfigurationsdatei (%s) mit\n"
+"[Vorgabe]-Konfigurationsdatei wurde erstellt.\n"
+
+#: src/config.c:1228
+#, c-format
+msgid "Cannot find section %s\n"
+msgstr "Abschnitt %s kann nicht gefunden werden\n"
+
+#: src/config.c:1265
+msgid "Terminal configuration"
+msgstr "Terminal-Konfiguration"
+
+#: src/fichier.c:74
+msgid "File selection"
+msgstr "Dateiabschnitt"
+
+#: src/fichier.c:104
+msgid "Error opening file\n"
+msgstr "Fehler beim Öffnen der Datei\n"
+
+#: src/fichier.c:112
+#, c-format
+msgid "%s : transfer in progress..."
+msgstr "%s: Übertragung im Gang ..."
+
+#: src/fichier.c:129
+msgid "%v / %u Kb (%p %%)"
+msgstr "%v / %u Kb (%p %%)"
+
+#: src/fichier.c:135
+msgid "%v / %u bytes (%p %%)"
+msgstr "%v / %u Bytes (%p %%)"
+
+#: src/fichier.c:140
+msgid "Cancel"
+msgstr "Abbruch"
+
+#: src/fichier.c:156
+#, c-format
+msgid "Cannot read file %s : %s\n"
+msgstr "Datei kann nicht gelesen werden: %s\n"
+
+#: src/fichier.c:205
+#, c-format
+msgid "Cannot write file %s\n"
+msgstr "Datei kann nicht geschrieben werden: %s\n"
+
+#: src/fichier.c:293
+msgid "File error\n"
+msgstr "Dateifehler\n"
+
+#: src/fichier.c:301
+#, c-format
+msgid "Cannot open file %s : %s\n"
+msgstr "Datei kann nicht geöffnet werden: %s\n"
+
+#: src/macros.c:143
+#, c-format
+msgid "Macro \"%s\" sent !"
+msgstr "Makro »%s« gesendet"
+
+#: src/macros.c:274
+msgid "Shortcut"
+msgstr "Kürzel"
+
+#: src/macros.c:426
+msgid "Help on macros"
+msgstr "Hilfe über Makros"
+
+#: src/macros.c:433
+msgid ""
+"The \"action\" field of a macro is the data to be sent on the port. Text can "
+"be entered, but also special chars, like \\n, \\t, \\r, etc. You can also "
+"enter hexadecimal data preceded by a '\\'. The hexadecimal data should not "
+"begin with a letter (eg. use \\0FF and not \\FF)\n"
+"Examples :\n"
+"\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n"
+"\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"
+msgstr ""
+"Das »action«-Feld eines Makros enthält die Daten, die an den Port gesandt "
+"werden. Es kann Text eingegeben werden, aber auch Sonderzeichen wie \\n, "
+"\\t, \\r, etc. Sie können außerdem hexadezimale Daten mit vorangestelltem "
+"»\\« eingeben. Die hexadezimalen Daten sollten nicht mit einem Buchstaben "
+"beginnen (benutzen Sie z.B. \\0FF und nicht \\FF)\n"
+"Beispiele:\n"
+"\t»Hallo\\n« sendet »Hallo« gefolgt von einem Zeilenumbruch\n"
+"\t\"Hallo\\OA« tut das Gleiche, aber der Zeilenumbruch ist hexadezimal"
+
+#: src/macros.c:460
+msgid "Configure Macros"
+msgstr "Makros konfigurieren"
+
+#: src/macros.c:496
+msgid "_Add"
+msgstr "_Hinzufügen"
+
+#: src/macros.c:500
+msgid "_Delete"
+msgstr "_Löschen"
+
+#: src/macros.c:504
+msgid "_Capture Shortcut"
+msgstr "Kürzel _erfassen"
+
+#: src/parsecfg.c:335
+#, c-format
+msgid "Cannot open configuration file `%s'.\n"
+msgstr "Die Konfigurationsdatei »%s« kann nicht geöffnet werden.\n"
+
+#: src/parsecfg.c:338
+#, c-format
+msgid "Cannot create configuration file `%s'.\n"
+msgstr "Konfigurationsdatei »%s« kann nicht erstellt werden.\n"
+
+#: src/parsecfg.c:341
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Syntax error\n"
+msgstr ""
+"%s(%d): %s\n"
+"Syntax-Fehler\n"
+
+#: src/parsecfg.c:344
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Unrecognized parameter\n"
+msgstr ""
+"%s(%d): %s\n"
+"Parameter nicht erkannt\n"
+
+#: src/parsecfg.c:347
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Internal error\n"
+msgstr ""
+"%s(%d): %s\n"
+"Interner Fehler\n"
+
+#: src/parsecfg.c:350
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Invalid number\n"
+msgstr ""
+"%s(%d): %s\n"
+"Ungültige Nummer\n"
+
+#: src/parsecfg.c:353
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Out of range\n"
+msgstr ""
+"%s(%d): %s\n"
+"Außerhalb des Bereichs\n"
+
+#: src/parsecfg.c:356
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Cannot allocate memory.\n"
+msgstr ""
+"%s(%d): %s\n"
+"Speicher kann nicht reserviert werden.\n"
+
+#: src/parsecfg.c:359
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"It must be specified TRUE or FALSE.\n"
+msgstr ""
+"%s(%d): %s\n"
+"Es muss TRUE oder FALSE angegeben werden.\n"
+
+#: src/parsecfg.c:362
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"The section name is already used.\n"
+msgstr ""
+"%s(%d): %s\n"
+"Der Abschnittsname wird bereits benutzt.\n"
+
+#: src/parsecfg.c:365
+#, c-format
+msgid ""
+"%s(%d)\n"
+"There is no closing brace.\n"
+msgstr ""
+"%s(%d)\n"
+"Die schließende Klammer fehlt.\n"
+
+#: src/parsecfg.c:370
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Unexplained error\n"
+msgstr ""
+"%s(%d): %s\n"
+"Ungeklärter Fehler\n"
+
+#: src/serie.c:212
+#, c-format
+msgid "Cannot open %s : %s\n"
+msgstr "%s kann nicht geöffnet werden: %s\n"
+
+#: src/serie.c:357 src/serie.c:392
+msgid "Control signals read"
+msgstr "Steuersignale gelesen"
+
+#: src/serie.c:369
+msgid "DTR write"
+msgstr "DTR schreiben"
+
+#: src/serie.c:379
+msgid "RTS write"
+msgstr "RTS schreiben"
+
+#: src/serie.c:470
+msgid "Lockfile is stale. Overriding it..\n"
+msgstr "Sperrdatei ist abgelaufen: Wird überschrieben ...\n"
+
+#: src/serie.c:480
+#, c-format
+msgid "Device %s is locked.\n"
+msgstr "Gerät %s ist gesperrt.\n"
+
+#: src/serie.c:492
+msgid "Cannot create lockfile. Sorry.\n"
+msgstr "Sperrdatei kann nicht erstellt werden. Entschuldigung.\n"
+
+#: src/widgets.c:122
+msgid "/_File"
+msgstr "/_Datei"
+
+#: src/widgets.c:123
+msgid "/File/Clear screen"
+msgstr "/Datei/Bildschirm leeren"
+
+#: src/widgets.c:124
+msgid "/File/Send _raw file"
+msgstr "/Datei/_rohe Datei senden"
+
+#: src/widgets.c:125
+msgid "/File/_Save raw file"
+msgstr "/Datei/rohe Datei _speichern"
+
+#: src/widgets.c:126
+msgid "/File/Separator"
+msgstr "/Datei/Trenner"
+
+#: src/widgets.c:127
+msgid "/File/E_xit"
+msgstr "/Datei/_Beenden"
+
+#: src/widgets.c:128
+msgid "/_Configuration"
+msgstr "/_Konfiguration"
+
+#: src/widgets.c:129
+msgid "/Configuration/_Port"
+msgstr "/Konfiguration/_Port"
+
+#: src/widgets.c:130
+msgid "/Configuration/_Main window"
+msgstr "/Konfiguration/_Hauptfenster"
+
+#: src/widgets.c:131
+msgid "/Configuration/Local _echo"
+msgstr "/Konfiguration/Lokales _Echo"
+
+#: src/widgets.c:132
+msgid "/Configuration/_CR LF auto"
+msgstr "/Konfiguration/_CR LF automatisch"
+
+#: src/widgets.c:133
+msgid "/Configuration/_Macros"
+msgstr "/Konfiguration/_Makros"
+
+#: src/widgets.c:134
+msgid "/Configuration/Separator"
+msgstr "/Konfiguration/Trenner"
+
+#: src/widgets.c:135
+msgid "/Configuration/_Load configuration"
+msgstr "/Konfiguration/Konfiguration laden"
+
+#: src/widgets.c:136
+msgid "/Configuration/_Save configuration"
+msgstr "/Konfiguration/Konfigu_ration sichern"
+
+#: src/widgets.c:137
+msgid "/Configuration/_Delete configuration"
+msgstr "/Konfiguration/Konfiguration l_öschen"
+
+#: src/widgets.c:138
+msgid "/Control _signals"
+msgstr "/Steuers_ignale"
+
+#: src/widgets.c:139
+msgid "/Control signals/Send break"
+msgstr "/Steuersignale/Unterbrechung senden"
+
+#: src/widgets.c:140
+msgid "/Control signals/Toggle DTR"
+msgstr "/Steuersignale/DTR umschalten"
+
+#: src/widgets.c:141
+msgid "/Control signals/Toggle RTS"
+msgstr "/Steuersignale/RTS umschalten"
+
+#: src/widgets.c:142
+msgid "/_View"
+msgstr "/_Ansicht"
+
+#: src/widgets.c:143
+msgid "/View/_ASCII"
+msgstr "/Ansicht/AS_CII"
+
+#: src/widgets.c:144
+msgid "/View/_Hexadecimal"
+msgstr "/Ansicht/He_xadezimal"
+
+#: src/widgets.c:145
+msgid "/View/Hexadecimal _chars"
+msgstr "/Ansicht/Hexadezimale _Zeichen"
+
+#: src/widgets.c:146
+msgid "/View/Hexadecimal chars/_8"
+msgstr "/Ansicht/Hexadezimale _Zeichen/_8"
+
+#: src/widgets.c:147
+msgid "/View/Hexadecimal chars/1_0"
+msgstr "/Ansicht/Hexadezimale _Zeichen/1_0"
+
+#: src/widgets.c:148
+msgid "/View/Hexadecimal chars/_16"
+msgstr "/Ansicht/Hexadezimale _Zeichen/_16"
+
+#: src/widgets.c:149
+msgid "/View/Hexadecimal chars/_24"
+msgstr "/Ansicht/Hexadezimale _Zeichen/_24"
+
+#: src/widgets.c:150
+msgid "/View/Hexadecimal chars/_32"
+msgstr "/Ansicht/Hexadezimale _Zeichen/_32"
+
+#: src/widgets.c:151
+msgid "/View/Show _index"
+msgstr "/Ansicht/Zei_ge Index"
+
+#: src/widgets.c:152
+msgid "/View/Separator"
+msgstr "/Ansicht/Trenner"
+
+#: src/widgets.c:153
+msgid "/View/_Send hexadecimal data"
+msgstr "/Ansicht/Hexadezimale Daten sen_den"
+
+#: src/widgets.c:154
+msgid "/_Help"
+msgstr "/Hil_fe"
+
+#: src/widgets.c:155
+msgid "/Help/_About..."
+msgstr "/Hilfe/_Über ..."
+
+#: src/widgets.c:307
+msgid "Hexadecimal data to send (separator : ';' or space) : "
+msgstr "Zu sendende hexadezimale Daten (Trenner: »;« oder Leerzeichen): "
+
+#: src/widgets.c:502
+msgid "About..."
+msgstr "Über ..."
+
+#: src/widgets.c:510
+#, c-format
+msgid ""
+"\n"
+" <big><i> GTKTerm V. %s </i></big> \n"
+"\n"
+"\t(c) Julien Schmitt : julien@jls-info.com \n"
+"\thttp://www.jls-info.com/julien/linux\n"
+msgstr ""
+"\n"
+" <big><i> GTKTerm V. %s </i></big>\n"
+"\n"
+"\t(c) Julien Schmitt : julien@jls-info.com\n"
+"\thttp://www.jls-info.com/julien/linux\n"
+
+#: src/widgets.c:554
+msgid "Break signal sent !"
+msgstr "Unterbrechungssignal gesandt!"
+
+#: src/widgets.c:636
+#, c-format
+msgid "\"%s\" : %d byte(s) sent !"
+msgstr "»%s«: %d Byte(s) gesandt!"

@@ -52,23 +52,23 @@ INTLTOOL_EXTRACT = @INTLTOOL_EXTRACT@
 MSGMERGE = INTLTOOL_EXTRACT=$(INTLTOOL_EXTRACT) srcdir=$(srcdir) $(INTLTOOL_UPDATE) --gettext-package $(GETTEXT_PACKAGE) --dist
 GENPOT   = INTLTOOL_EXTRACT=$(INTLTOOL_EXTRACT) srcdir=$(srcdir) $(INTLTOOL_UPDATE) --gettext-package $(GETTEXT_PACKAGE) --pot
 
-ALL_LINGUAS = @ALL_LINGUAS@
+ALL_LANGUAGES = @ALL_LANGUAGES@
 
-PO_LINGUAS=$(shell if test -r $(srcdir)/LINGUAS; then grep -v "^\#" $(srcdir)/LINGUAS; else echo "$(ALL_LINGUAS)"; fi)
+PO_LANGUAGES=$(shell if test -r $(srcdir)/LANGUAGES; then grep -v "^\#" $(srcdir)/LANGUAGES; else echo "$(ALL_LANGUAGES)"; fi)
 
-USER_LINGUAS=$(shell if test -n "$(LINGUAS)"; then LLINGUAS="$(LINGUAS)"; ALINGUAS="$(ALL_LINGUAS)"; for lang in $$LLINGUAS; do if test -n "`grep \^$$lang$$ $(srcdir)/LINGUAS 2>/dev/null`" -o -n "`echo $$ALINGUAS|tr ' ' '\n'|grep \^$$lang$$`"; then printf "$$lang "; fi; done; fi)
+USER_LANGUAGES=$(shell if test -n "$(LANGUAGES)"; then LLANGUAGES="$(LANGUAGES)"; ALANGUAGES="$(ALL_LANGUAGES)"; for lang in $$LLANGUAGES; do if test -n "`grep \^$$lang$$ $(srcdir)/LANGUAGES 2>/dev/null`" -o -n "`echo $$ALANGUAGES|tr ' ' '\n'|grep \^$$lang$$`"; then printf "$$lang "; fi; done; fi)
 
-USE_LINGUAS=$(shell if test -n "$(USER_LINGUAS)" -o -n "$(LINGUAS)"; then LLINGUAS="$(USER_LINGUAS)"; else if test -n "$(PO_LINGUAS)"; then LLINGUAS="$(PO_LINGUAS)"; else LLINGUAS="$(ALL_LINGUAS)"; fi; fi; for lang in $$LLINGUAS; do printf "$$lang "; done)
+USE_LANGUAGES=$(shell if test -n "$(USER_LANGUAGES)" -o -n "$(LANGUAGES)"; then LLANGUAGES="$(USER_LANGUAGES)"; else if test -n "$(PO_LANGUAGES)"; then LLANGUAGES="$(PO_LANGUAGES)"; else LLANGUAGES="$(ALL_LANGUAGES)"; fi; fi; for lang in $$LLANGUAGES; do printf "$$lang "; done)
 
-POFILES=$(shell LINGUAS="$(PO_LINGUAS)"; for lang in $$LINGUAS; do printf "$$lang.po "; done)
+POFILES=$(shell LANGUAGES="$(PO_LANGUAGES)"; for lang in $$LANGUAGES; do printf "$$lang.po "; done)
 
 DISTFILES = Makefile.in.in POTFILES.in $(POFILES)
-EXTRA_DISTFILES = ChangeLog POTFILES.skip Makevars LINGUAS
+EXTRA_DISTFILES = ChangeLog POTFILES.skip Makevars LANGUAGES
 
 POTFILES = \
 # This comment gets stripped out
 
-CATALOGS=$(shell LINGUAS="$(USE_LINGUAS)"; for lang in $$LINGUAS; do printf "$$lang.gmo "; done)
+CATALOGS=$(shell LANGUAGES="$(USE_LANGUAGES)"; for lang in $$LANGUAGES; do printf "$$lang.gmo "; done)
 
 .SUFFIXES:
 .SUFFIXES: .po .pox .gmo .mo .msg .cat
@@ -101,8 +101,8 @@ install: install-data
 install-data: install-data-@USE_NLS@
 install-data-no: all
 install-data-yes: all
-	linguas="$(USE_LINGUAS)"; \
-	for lang in $$linguas; do \
+	LANGUAGES="$(USE_LANGUAGES)"; \
+	for lang in $$LANGUAGES; do \
 	  dir=$(DESTDIR)$(itlocaledir)/$$lang/LC_MESSAGES; \
 	  $(mkdir_p) $$dir; \
 	  if test -r $$lang.gmo; then \
@@ -135,8 +135,8 @@ dvi info ctags tags CTAGS TAGS ID:
 install-exec installcheck:
 
 uninstall:
-	linguas="$(USE_LINGUAS)"; \
-	for lang in $$linguas; do \
+	LANGUAGES="$(USE_LANGUAGES)"; \
+	for lang in $$LANGUAGES; do \
 	  rm -f $(DESTDIR)$(itlocaledir)/$$lang/LC_MESSAGES/$(GETTEXT_PACKAGE).mo; \
 	  rm -f $(DESTDIR)$(itlocaledir)/$$lang/LC_MESSAGES/$(GETTEXT_PACKAGE).mo.m; \
 	done
@@ -179,8 +179,8 @@ dist distdir: $(DISTFILES)
 update-po: Makefile
 	$(MAKE) $(GETTEXT_PACKAGE).pot
 	tmpdir=`pwd`; \
-	linguas="$(USE_LINGUAS)"; \
-	for lang in $$linguas; do \
+	LANGUAGES="$(USE_LANGUAGES)"; \
+	for lang in $$LANGUAGES; do \
 	  echo "$$lang:"; \
 	  result="`$(MSGMERGE) -o $$tmpdir/$$lang.new.po $$lang`"; \
 	  if $$result; then \

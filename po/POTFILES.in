@@ -4,10 +4,11 @@
 # Package source files
 src/buffer.c
 src/cmdline.c
-src/fichier.c
+src/config_terminal_dialog.ui
+src/files.c
+src/interface.c
+src/logging.c
 src/macros.c
 src/parsecfg.c
-src/serie.c
-src/widgets.c
-src/logging.c
+src/serial.c
 src/term_config.c
