@@ -60,6 +60,7 @@ gchar *devices_to_check[] =
 	"/dev/tts/%d",
 	"/dev/ttyUSB%d",
 	"/dev/ttyACM%d",
+	"/dev/ttyXRUSB%d",
 	"/dev/usb/tts/%d",
 	NULL
 };
