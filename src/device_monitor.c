@@ -1,3 +1,17 @@
+/***********************************************************************/
+/* device_mintor.h                                                     */
+/* ---------                                                           */
+/*           GTKTerm Software                                          */
+/*                      (c) Julien Schmitt                             */
+/*                                                                     */
+/* ------------------------------------------------------------------- */
+/*                                                                     */
+/*   Purpose                                                           */
+/*      Monitor device to autoreconnect                                */
+/*   Written by Kevin Picot - picotk27@gmail.com                       */
+/*                                                                     */
+/***********************************************************************/
+
 #include <device_monitor.h>
 #include <stdio.h>
 #include <stdlib.h>
