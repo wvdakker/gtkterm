@@ -624,7 +624,7 @@ void Select_config(gchar *title, void *callback)
 
 	if(max == -1)
 	{
-		show_message(_("Cannot read configuration file!\n"), MSG_ERR);
+		show_message(_("Cannot read configuration file!\nConfig file may contain invalid parameter.\n"), MSG_ERR);
 		return;
 	}
 
@@ -742,7 +742,10 @@ void really_save_config(GtkDialog *Fenetre, gint id, gpointer data)
 		max = cfgParse(config_file, cfg, CFG_INI);
 
 		if(max == -1)
+		{
+			show_message(_("Cannot save configuration file!\nConfig file may contain invalid parameter.\n"), MSG_ERR);
 			return;
+		}
 
 		for(i = 0; i < max; i++)
 		{
@@ -793,7 +796,10 @@ void save_config(GtkDialog *Fenetre, gint id, GtkWidget *edit)
 		max = cfgParse(config_file, cfg, CFG_INI);
 
 		if(max == -1)
+		{
+			show_message(_("Cannot write configuration file!\nConfig file may contain invalid parameter.\n"), MSG_ERR);
 			return;
+		}
 
 		config_name = gtk_entry_get_text(GTK_ENTRY(edit));
 
@@ -882,7 +888,10 @@ gint Load_configuration_from_file(gchar *config_name)
 	max = cfgParse(config_file, cfg, CFG_INI);
 
 	if(max == -1)
+	{
+		show_message(_("Cannot read configuration file!\nConfig file may contain invalid parameter.\n"), MSG_ERR);
 		return -1;
+	}
 
 	else
 	{
