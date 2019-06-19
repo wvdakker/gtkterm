@@ -98,6 +98,8 @@ GtkWidget *Text;
 GtkTextBuffer *buffer;
 GtkTextIter iter;
 
+extern struct configuration_port config;
+
 /* Variables for hexadecimal display */
 static gint bytes_per_line = 16;
 static gchar blank_data[128];
@@ -129,7 +131,6 @@ void edit_copy_callback(GtkAction *action, gpointer data);
 void update_copy_sensivity(VteTerminal *terminal, gpointer data);
 void edit_paste_callback(GtkAction *action, gpointer data);
 void edit_select_all_callback(GtkAction *action, gpointer data);
-
 
 /* Menu */
 const GtkActionEntry menu_entries[] =
@@ -379,9 +380,21 @@ void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data)
 	configure_crlfauto(crlfauto_on);
 }
 
+void Set_timestamp(gboolean timestamp)
+{
+	GtkAction *action;
+
+	timestamp_on = timestamp;
+
+	action = gtk_action_group_get_action(action_group, "Timestamp");
+	if(action)
+		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), timestamp_on);
+}
+
 void timestamp_toggled_callback(GtkAction *action, gpointer data)
 {
 	timestamp_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
+	config.timestamp = timestamp_on ? TRUE : FALSE;
 }
 
 void toggle_logging_pause_resume(gboolean currentlyLogging)
@@ -934,3 +947,4 @@ void edit_select_all_callback(GtkAction *action, gpointer data)
 {
 	vte_terminal_select_all(VTE_TERMINAL(display));
 }
+

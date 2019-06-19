@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
 	}
 
 	Config_port();
+	ConfigFlags();
 
 	message = get_port_string();
 	Set_window_title(message);

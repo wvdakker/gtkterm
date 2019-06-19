@@ -78,6 +78,7 @@ gint *rts_time_before_tx;
 gint *rts_time_after_tx;
 gint *echo;
 gint *crlfauto;
+gint *timestamp;
 cfgList **macro_list = NULL;
 gchar **font;
 
@@ -110,6 +111,7 @@ cfgStruct cfg[] =
 	{"rs485_rts_time_after_tx", CFG_INT, &rts_time_after_tx},
 	{"echo", CFG_BOOL, &echo},
 	{"crlfauto", CFG_BOOL, &crlfauto},
+	{"timestamp", CFG_BOOL, &timestamp},
 	{"font", CFG_STRING, &font},
 	{"macros", CFG_STRING_LIST, &macro_list},
 	{"term_block_cursor", CFG_BOOL, &block_cursor},
@@ -154,6 +156,12 @@ void config_bg_color(GtkWidget *button, gpointer data);
 static void scrollback_set(GtkAdjustment *, gpointer);
 
 extern GtkWidget *display;
+
+void ConfigFlags(void)
+{
+	Set_crlfauto(config.crlfauto);
+	Set_timestamp(config.timestamp);
+}
 
 void Config_Port_Fenetre(GtkAction *action, gpointer data)
 {
@@ -539,6 +547,7 @@ gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos)
 		config.car = -1;
 
 	Config_port();
+	ConfigFlags();
 
 	message = get_port_string();
 	Set_status_message(message);
@@ -834,6 +843,7 @@ void load_config(GtkDialog *Fenetre, gint id, GtkTreeSelection *Selection_Liste)
 			Load_configuration_from_file(txt);
 			Verify_configuration();
 			Config_port();
+			ConfigFlags();
 			add_shortcuts();
 
 			message = get_port_string();
@@ -930,6 +940,11 @@ gint Load_configuration_from_file(gchar *config_name)
 					config.crlfauto = (gboolean)crlfauto[i];
 				else
 					config.crlfauto = FALSE;
+
+				if(timestamp[i] != -1)
+					config.timestamp = (gboolean)timestamp[i];
+				else
+					config.timestamp = FALSE;
 
 				g_free(term_conf.font);
 				term_conf.font = g_strdup(font[i]);
@@ -1152,6 +1167,7 @@ void Hard_default_configuration(void)
 	config.car = DEFAULT_CHAR;
 	config.echo = DEFAULT_ECHO;
 	config.crlfauto = FALSE;
+	config.timestamp = FALSE;
 
 	term_conf.font = g_strdup_printf(DEFAULT_FONT);
 
@@ -1254,6 +1270,14 @@ void Copy_configuration(int pos)
 		string = g_strdup_printf("True");
 
 	cfgStoreValue(cfg, "crlfauto", string, CFG_INI, pos);
+	g_free(string);
+
+	if(config.timestamp == FALSE)
+		string = g_strdup_printf("False");
+	else
+		string = g_strdup_printf("True");
+
+	cfgStoreValue(cfg, "timestamp", string, CFG_INI, pos);
 	g_free(string);
 
 	string = g_strdup(term_conf.font);

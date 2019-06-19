@@ -15,6 +15,7 @@
 #ifndef TERM_CONFIG_H_
 #define TERM_CONFIG_H_
 
+void ConfigFlags(void);
 void Config_Port_Fenetre(GtkAction *action, gpointer data);
 gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos);
 void Config_Terminal(GtkAction *action, gpointer data);
@@ -44,6 +45,7 @@ struct configuration_port
 	gchar car;             // caractere à attendre
 	gboolean echo;               // echo local
 	gboolean crlfauto;         // line feed auto
+	gboolean timestamp;
 };
 
 typedef struct
