@@ -26,7 +26,9 @@
 
 #include <config.h>
 #include <glib/gi18n.h>
+#include <time.h>
 
+extern gboolean timestamp_on;
 static char *buffer = NULL;
 static char *current_buffer;
 static unsigned int pointer;
@@ -55,13 +57,15 @@ void delete_buffer(void)
 
 void put_chars(char *chars, unsigned int size, gboolean crlf_auto)
 {
+	#define HEADER_SIZE 50
+	// buffer must still be valid after cr conversion or adding timestamp
+	// only pointer is copied below
+	char out_buffer[(BUFFER_RECEPTION*2) + HEADER_SIZE];
 	char *characters;
 
 	/* If the auto CR LF mode on, read the buffer to add \r before \n */
 	if(crlf_auto)
 	{
-		/* BUFFER_RECEPTION*2 for worst case scenario, all \n or \r chars */
-		char out_buffer[BUFFER_RECEPTION*2];
 		int i, out_size = 0;
 
 		for (i=0; i<size; i++)
@@ -96,8 +100,39 @@ void put_chars(char *chars, unsigned int size, gboolean crlf_auto)
 						out_buffer[out_size] = '\n';
 						out_size++;
 					}
+
 				}
 				cr_received = 0;
+			}
+			out_buffer[out_size] = chars[i];
+			out_size++;
+		}
+		chars = out_buffer;
+		size = out_size;
+	}
+
+	// insert timestamp
+	if(timestamp_on)
+	{
+		int i, out_size = 0;
+
+		for (i=0; i<size; i++)
+		{
+			if(chars[i] == '\n')
+			{
+				char buf[HEADER_SIZE];
+				struct timespec ts;
+				int d,h,m,s,x;
+				timespec_get(&ts, TIME_UTC);
+				d = (ts.tv_sec / (3600 * 24));
+				h = (ts.tv_sec / 3600) % 24;
+				m = (ts.tv_sec / 60 ) % 60;
+				s = ts.tv_sec % 60;
+				x = ts.tv_nsec / 1000000;
+				snprintf(buf, HEADER_SIZE - 1, "[%d.%02uh.%02um.%02us.%03u] "
+							, d, h, m, s, x );
+				strcpy(&out_buffer[out_size], buf);
+				out_size += strlen(buf);
 			}
 			out_buffer[out_size] = chars[i];
 			out_size++;

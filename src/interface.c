@@ -78,6 +78,7 @@
 guint id;
 gboolean echo_on;
 gboolean crlfauto_on;
+gboolean timestamp_on = 0;
 GtkWidget *StatusBar;
 GtkWidget *signals[6];
 static GtkWidget *Hex_Box;
@@ -114,6 +115,7 @@ gboolean Envoie_car(GtkWidget *, GdkEventKey *, gpointer);
 gboolean control_signals_read(void);
 void echo_toggled_callback(GtkAction *action, gpointer data);
 void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data);
+void timestamp_toggled_callback(GtkAction *action, gpointer data);
 void view_radio_callback(GtkAction *action, gpointer data);
 void view_hexadecimal_chars_radio_callback(GtkAction* action, gpointer data);
 void view_index_toggled_callback(GtkAction *action, gpointer data);
@@ -183,6 +185,7 @@ const GtkToggleActionEntry menu_toggle_entries[] =
 	/* Configuration Menu */
 	{"LocalEcho", NULL, N_("Local _echo"), NULL, NULL, G_CALLBACK(echo_toggled_callback), FALSE},
 	{"CRLFauto", NULL, N_("_CR LF auto"), NULL, NULL, G_CALLBACK(CR_LF_auto_toggled_callback), FALSE},
+	{"Timestamp", NULL, N_("Timestamp"), NULL, NULL, G_CALLBACK(timestamp_toggled_callback), FALSE},
 
 	/* View Menu */
 	{"ViewIndex", NULL, N_("Show _index"), NULL, NULL, G_CALLBACK(view_index_toggled_callback), FALSE},
@@ -231,6 +234,7 @@ static const char *ui_description =
     "      <menuitem action='ConfigTerminal'/>"
     "      <menuitem action='LocalEcho'/>"
     "      <menuitem action='CRLFauto'/>"
+    "      <menuitem action='Timestamp'/>"
     "      <menuitem action='Macros'/>"
     "      <separator/>"
     "      <menuitem action='SelectConfig'/>"
@@ -373,6 +377,11 @@ void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data)
 {
 	crlfauto_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
 	configure_crlfauto(crlfauto_on);
+}
+
+void timestamp_toggled_callback(GtkAction *action, gpointer data)
+{
+	timestamp_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
 }
 
 void toggle_logging_pause_resume(gboolean currentlyLogging)
