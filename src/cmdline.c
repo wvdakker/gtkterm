@@ -53,6 +53,8 @@ void display_help(void)
 	i18n_printf(_("--rts_time_before <ms> or -x : for rs485, time in ms before transmit with rts on\n"));
 	i18n_printf(_("--rts_time_after <ms> or -y : for rs485, time in ms after transmit with rts on\n"));
 	i18n_printf(_("--echo or -e : switch on local echo\n"));
+	i18n_printf(_("--disable-port-lock or -L: does not lock serial port. Allows to send to serial port from different terminals\n"));
+	i18n_printf(_("                      Note: incomming data are displayed randomly on only one terminal\n"));
 	i18n_printf("\n");
 }
 
@@ -74,6 +76,7 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 		{"char", 1, 0, 'r'},
 		{"help", 0, 0, 'h'},
 		{"echo", 0, 0, 'e'},
+		{"disable-port-lock", 0, 0, 'L'},
 		{"rts_time_before", 1, 0, 'x'},
 		{"rts_time_after", 1, 0, 'y'},
 		{"config", 1, 0, 'c'},
@@ -85,7 +88,7 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 
 	while(1)
 	{
-		c = getopt_long (argc, argv, "s:a:t:b:f:p:w:d:r:hec:x:y:", long_options, &option_index);
+		c = getopt_long (argc, argv, "s:a:t:b:f:p:w:d:r:heLc:x:y:", long_options, &option_index);
 
 		if(c == -1)
 			break;
@@ -144,6 +147,10 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 			config.echo = TRUE;
 			break;
 
+		case 'L':
+			config.disable_port_lock = TRUE;
+			break;
+
 		case 'x':
 			config.rs485_rts_time_before_transmit = atoi(optarg);
 			break;
@@ -164,4 +171,3 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 	Verify_configuration();
 	return 0;
 }
-

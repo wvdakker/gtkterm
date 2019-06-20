@@ -78,6 +78,7 @@
 guint id;
 gboolean echo_on;
 gboolean crlfauto_on;
+gboolean timestamp_on = 0;
 GtkWidget *StatusBar;
 GtkWidget *signals[6];
 static GtkWidget *Hex_Box;
@@ -97,6 +98,8 @@ GtkWidget *Text;
 GtkTextBuffer *buffer;
 GtkTextIter iter;
 
+extern struct configuration_port config;
+
 /* Variables for hexadecimal display */
 static gint bytes_per_line = 16;
 static gchar blank_data[128];
@@ -114,6 +117,7 @@ gboolean Envoie_car(GtkWidget *, GdkEventKey *, gpointer);
 gboolean control_signals_read(void);
 void echo_toggled_callback(GtkAction *action, gpointer data);
 void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data);
+void timestamp_toggled_callback(GtkAction *action, gpointer data);
 void view_radio_callback(GtkAction *action, gpointer data);
 void view_hexadecimal_chars_radio_callback(GtkAction* action, gpointer data);
 void view_index_toggled_callback(GtkAction *action, gpointer data);
@@ -127,7 +131,6 @@ void edit_copy_callback(GtkAction *action, gpointer data);
 void update_copy_sensivity(VteTerminal *terminal, gpointer data);
 void edit_paste_callback(GtkAction *action, gpointer data);
 void edit_select_all_callback(GtkAction *action, gpointer data);
-
 
 /* Menu */
 const GtkActionEntry menu_entries[] =
@@ -183,6 +186,7 @@ const GtkToggleActionEntry menu_toggle_entries[] =
 	/* Configuration Menu */
 	{"LocalEcho", NULL, N_("Local _echo"), NULL, NULL, G_CALLBACK(echo_toggled_callback), FALSE},
 	{"CRLFauto", NULL, N_("_CR LF auto"), NULL, NULL, G_CALLBACK(CR_LF_auto_toggled_callback), FALSE},
+	{"Timestamp", NULL, N_("Timestamp"), NULL, NULL, G_CALLBACK(timestamp_toggled_callback), FALSE},
 
 	/* View Menu */
 	{"ViewIndex", NULL, N_("Show _index"), NULL, NULL, G_CALLBACK(view_index_toggled_callback), FALSE},
@@ -231,6 +235,7 @@ static const char *ui_description =
     "      <menuitem action='ConfigTerminal'/>"
     "      <menuitem action='LocalEcho'/>"
     "      <menuitem action='CRLFauto'/>"
+    "      <menuitem action='Timestamp'/>"
     "      <menuitem action='Macros'/>"
     "      <separator/>"
     "      <menuitem action='SelectConfig'/>"
@@ -373,6 +378,23 @@ void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data)
 {
 	crlfauto_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
 	configure_crlfauto(crlfauto_on);
+}
+
+void Set_timestamp(gboolean timestamp)
+{
+	GtkAction *action;
+
+	timestamp_on = timestamp;
+
+	action = gtk_action_group_get_action(action_group, "Timestamp");
+	if(action)
+		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), timestamp_on);
+}
+
+void timestamp_toggled_callback(GtkAction *action, gpointer data)
+{
+	timestamp_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
+	config.timestamp = timestamp_on ? TRUE : FALSE;
 }
 
 void toggle_logging_pause_resume(gboolean currentlyLogging)
@@ -700,7 +722,7 @@ gboolean Envoie_car(GtkWidget *widget, GdkEventKey *event, gpointer pointer)
 
 void help_about_callback(GtkAction *action, gpointer data)
 {
-	gchar *authors[] = {"Julien Schimtt", "Zach Davis", NULL};
+	gchar *authors[] = {"Julien Schimtt", "Zach Davis", "Stephan Enderlein", NULL};
 	GError *error = NULL;
 	GdkPixbuf *logo = NULL;
 
@@ -710,7 +732,7 @@ void help_about_callback(GtkAction *action, gpointer data)
 	                      "program-name", "GTKTerm",
 	                      "logo", logo,
 	                      "version", VERSION,
-	                      "comments", _("GTKTerm is a simple GTK+ terminal used to communicate with the serial port."),
+	                      "comments", _("Jun 2019\n\nGTKTerm is a simple GTK+ terminal used to communicate with the serial port."),
 	                      "copyright", "Copyright © Julien Schimtt",
 	                      "authors", authors,
 	                      "website", "https://github.com/Jeija/gtkterm",
@@ -925,3 +947,4 @@ void edit_select_all_callback(GtkAction *action, gpointer data)
 {
 	vte_terminal_select_all(VTE_TERMINAL(display));
 }
+

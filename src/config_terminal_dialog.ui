@@ -4,8 +4,8 @@
   <requires lib="gtk+" version="3.12"/>
   <object class="GtkAdjustment" id="cfg_scrollback_lines">
     <property name="lower">100</property>
-    <property name="upper">3000</property>
-    <property name="value">200</property>
+    <property name="upper">99999</property>
+    <property name="value">3000</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
