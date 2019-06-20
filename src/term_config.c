@@ -1177,6 +1177,7 @@ void Hard_default_configuration(void)
 	config.echo = DEFAULT_ECHO;
 	config.crlfauto = FALSE;
 	config.timestamp = FALSE;
+  config.disable_port_lock = FALSE;
 
 	term_conf.font = g_strdup_printf(DEFAULT_FONT);
 
@@ -1590,4 +1591,3 @@ invalid_input:
 	                                  (gpointer)check_text_input, user_data);
 	g_signal_stop_emission_by_name(editable, "insert-text");
 }
-

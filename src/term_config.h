@@ -42,10 +42,11 @@ struct configuration_port
 	gint delai;                  // end of char delay: in ms
 	gint rs485_rts_time_before_transmit;
 	gint rs485_rts_time_after_transmit;
-	gchar car;             // caractere à attendre
+	gchar car;                   // caractere à attendre
 	gboolean echo;               // echo local
-	gboolean crlfauto;         // line feed auto
+	gboolean crlfauto;           // line feed auto
 	gboolean timestamp;
+	gboolean disable_port_lock;
 };
 
 typedef struct
@@ -62,10 +63,10 @@ typedef struct
 
 
 #define DEFAULT_FONT "Monospace 12"
-#define DEFAULT_SCROLLBACK 10000 
+#define DEFAULT_SCROLLBACK 10000
 
 #define DEFAULT_PORT "/dev/ttyS0"
-#define DEFAULT_SPEED 115200 
+#define DEFAULT_SPEED 115200
 #define DEFAULT_PARITY 0
 #define DEFAULT_BITS 8
 #define DEFAULT_STOP 1

@@ -159,14 +159,17 @@ gboolean Config_port(void)
 		return FALSE;
 	}
 
-	if(flock(serial_port_fd, LOCK_EX | LOCK_NB) == -1)
+	if(! config.disable_port_lock)
 	{
+	    if(flock(serial_port_fd, LOCK_EX | LOCK_NB) == -1)
+	    {
 		Close_port();
 		msg = g_strdup_printf(_("Cannot lock port! The serial port may currently be in use by another program.\n"));
 		show_message(msg, MSG_ERR);
 		g_free(msg);
 
 		return FALSE;
+		}
 	}
 
 	tcgetattr(serial_port_fd, &termios_p);
@@ -328,7 +331,10 @@ void Close_port(void)
 		tcsetattr(serial_port_fd, TCSANOW, &termios_save);
 		tcflush(serial_port_fd, TCOFLUSH);
 		tcflush(serial_port_fd, TCIFLUSH);
-		flock(serial_port_fd, LOCK_UN);
+		if(! config.disable_port_lock)
+		{
+			flock(serial_port_fd, LOCK_UN);
+		}
 		close(serial_port_fd);
 		serial_port_fd = -1;
 	}
