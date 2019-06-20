@@ -28,6 +28,7 @@
 #include "buffer.h"
 #include "macros.h"
 #include "auto_config.h"
+#include "device_monitor.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
@@ -65,6 +66,8 @@ int main(int argc, char *argv[])
 	add_shortcuts();
 
 	set_view(ASCII_VIEW);
+
+	device_monitor_start();
 
 	gtk_main();
 

@@ -44,7 +44,9 @@ gtkterm_SOURCES = \
     gresource.c \
     gresource.h \
     gicon.c \
-    gicon.h
+	gicon.h \
+	device_monitor.c \
+	device_monitor.h
 
 BUILT_SOURCES = \
     gresource.c \
@@ -58,3 +60,4 @@ CLEANFILES = $(BUILT_SOURCES) *~
 
 
 AM_CPPFLAGS = -DLOCALEDIR=\""$(localedir)"\"
+AM_LDFLAGS = -ludev
