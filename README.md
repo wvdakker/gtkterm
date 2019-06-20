@@ -14,17 +14,6 @@ Original Code by: Julien Schmitt
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Modifications 06/2019:
-    The current version is forked from original location https://github.com/Jeija/gtkterm
-    and adds a new functionality to display timestamp in logs.
-    (forked project: https://github.com/ddmesh/gtkterm)
-
-Changelog since original version:
-    Version 1.1 : - fix memory access when auto CR/NL conversion is enabled
-                  - fix loading and setting CR/NL configuration setting
-                  - add new option to display timestamp in logs
-    
-- 
 
 ### Command line options
 

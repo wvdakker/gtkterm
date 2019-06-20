@@ -1,6 +1,6 @@
 # GtkTerm autoconf script
 
-AC_INIT([GtkTerm], [1.1], [https://github.com/Jeija/gtkterm])
+AC_INIT([GtkTerm], [1.0], [https://github.com/Jeija/gtkterm])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror -Wno-portability])
 AC_PROG_CC
 AC_CONFIG_HEADERS([config.h])
