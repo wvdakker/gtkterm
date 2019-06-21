@@ -28,8 +28,8 @@ if test x$GLIB_COMPILE_RESOURCES = xno; then
 	AC_MSG_ERROR(Could not find glib-compile-resources in your PATH)
 fi
 
-# Linux is required for arbitrary baud rates
-AC_CHECK_HEADERS_ONCE([linux/serial.h])
+# Check for required include files
+AC_CHECK_HEADERS([linux/serial.h libudev.h], [], [AC_MSG_ERROR([Couldn't find or include header file.])])
 
 AC_CONFIG_FILES([Makefile src/Makefile po/Makefile.in])
 
