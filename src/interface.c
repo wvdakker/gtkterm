@@ -722,7 +722,8 @@ gboolean Envoie_car(GtkWidget *widget, GdkEventKey *event, gpointer pointer)
 
 void help_about_callback(GtkAction *action, gpointer data)
 {
-	gchar *authors[] = {"Julien Schimtt", "Zach Davis", "Stephan Enderlein", NULL};
+	gchar *authors[] = {"Julien Schimtt", "Zach Davis", "Florian Euchner", "Stephan Enderlein", 
+			    "Kevin Picot", NULL};
 	GError *error = NULL;
 	GdkPixbuf *logo = NULL;
 
