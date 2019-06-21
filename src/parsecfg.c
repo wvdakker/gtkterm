@@ -33,6 +33,7 @@
 #include <string.h>
 #include <limits.h>
 #include <errno.h>
+#include <locale.h>
 
 #include "parsecfg.h"
 #include "i18n.h"
@@ -575,6 +576,17 @@ static int store_value(cfgStruct cfg[], const char *parameter, const char *value
 	char *strptr;
 	cfgList *listptr;
 
+	//first step is to set locale to "C" and ignoring any environment
+	//defined locale.
+	//this is important because when saving float numbers in config file
+	//those are saved either as "1.0" or "1,0". When then starting
+	//gtkterm from console or via window manager menu, different locale
+	//could prevent processing config values correctly.
+	//In such a case configuration not loaded at all.
+	//
+	//Note: locale must be set at different locations to read and write
+	//      correct values.
+	setlocale(LC_ALL,"C");
 
 	for (num = 0; cfg[num].type != CFG_END; num++)
 	{
@@ -1224,6 +1236,18 @@ static int dump_ini(FILE *fp, cfgStruct cfg[], cfgFileType type, int max)
 	int i, j;
 	char c[2];
 	cfgList *l;
+
+	//first step is to set locale to "C" and ignoring any environment
+	//defined locale.
+	//this is important because when saving float numbers in config file
+	//those are saved either as "1.0" or "1,0". When then starting
+	//gtkterm from console or via window manager menu, different locale
+	//could prevent processing config values correctly.
+	//In such a case configuration not loaded at all.
+	//
+	//Note: locale must be set at different locations to read and write
+	//      correct values.
+	setlocale(LC_ALL,"C");
 
 	for (j = 0; j < max; j++)
 	{
