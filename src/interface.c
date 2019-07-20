@@ -727,7 +727,7 @@ void help_about_callback(GtkAction *action, gpointer data)
 	GError *error = NULL;
 	GdkPixbuf *logo = NULL;
 
-	logo = gdk_pixbuf_new_from_resource ("/org/gtk/gtkterm/gtkterm_small.png", &error);
+	logo = gdk_pixbuf_new_from_resource ("/org/gtk/gtkterm/gtkterm_64x64.png", &error);
 
 	gtk_show_about_dialog(GTK_WINDOW(Fenetre),
 	                      "program-name", "GTKTerm",

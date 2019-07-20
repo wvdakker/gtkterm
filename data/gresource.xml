@@ -2,5 +2,6 @@
 <gresources>
 	<gresource prefix="/org/gtk/gtkterm">
 		<file compressed="true">config_terminal_dialog.ui</file>
+		<file compressed="true">gtkterm_64x64.png</file>
 	</gresource>
 </gresources>

@@ -2,7 +2,7 @@ project(
 	'gtkterm',
 	'c',
 	version: '1.0.1',
-	meson_version : '>= 0.50.0'
+	meson_version : '>= 0.46.0'
 )
 
 # Find dependencies

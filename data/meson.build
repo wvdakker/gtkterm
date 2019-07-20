@@ -11,7 +11,6 @@ desktop_file_configured = configure_file(
 	input: 'gtkterm.desktop.in',
 	output: 'gtkterm.desktop',
 	configuration: desktop_config,
-	install: true,
 	install_dir: join_paths(
 		datadir,
 		'applications',
