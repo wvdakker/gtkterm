@@ -1,6 +1,6 @@
 # GtkTerm src/Makefile.am
 
-AM_CFLAGS = $(gtk_CFLAGS) $(vte_CFLAGS)
+AM_CFLAGS = $(gtk_CFLAGS) $(vte_CFLAGS) $(udev_CFLAGS)
 
 bin_PROGRAMS = gtkterm
 
@@ -54,10 +54,9 @@ BUILT_SOURCES = \
     gicon.c \
     gicon.h
 
-gtkterm_LDADD = $(gtk_LIBS) $(vte_LIBS)
+gtkterm_LDADD = $(gtk_LIBS) $(vte_LIBS) $(udev_LIBS)
 
 CLEANFILES = $(BUILT_SOURCES) *~
 
 
 AM_CPPFLAGS = -DLOCALEDIR=\""$(localedir)"\"
-AM_LDFLAGS = -ludev

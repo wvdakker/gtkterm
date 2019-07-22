@@ -16,6 +16,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 PKG_CHECK_MODULES([gtk], [gtk+-3.0 >= 3.12.0])
 PKG_CHECK_MODULES([vte], [vte-2.91 >= 0.40.0])
+PKG_CHECK_MODULES([udev], [libudev >= 232])
 
 if test "$CC" = "gcc" ; then
   GNUCFLAGS="-Wall -fno-omit-frame-pointer -fno-strict-aliasing -O2"
@@ -29,7 +30,7 @@ if test x$GLIB_COMPILE_RESOURCES = xno; then
 fi
 
 # Check for required include files
-AC_CHECK_HEADERS([linux/serial.h libudev.h], [], [AC_MSG_ERROR([Couldn't find or include header file.])])
+AC_CHECK_HEADERS([linux/serial.h], [], [AC_MSG_ERROR([Couldn't find or include header file.])])
 
 AC_CONFIG_FILES([Makefile src/Makefile po/Makefile.in])
 
