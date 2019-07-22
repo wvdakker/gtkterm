@@ -20,7 +20,7 @@
 /*                                                                        */
 /**************************************************************************/
 
-/* $Id: parsecfg.h,v 1.15 2001/02/22 12:28:50 gm Exp $ */
+/* $Id: parsecfg.h,v 1.17 2001/08/06 15:07:10 gm Exp $ */
 
 #ifndef PARSECFG_H_INCLUDED
 #define PARSECFG_H_INCLUDED
@@ -90,6 +90,12 @@ typedef struct
 	cfgValueType type;
 	void *value;
 } cfgStruct;
+
+typedef struct
+{
+	cfgStruct *user;
+	int modify_flag;
+} cfgStructSys;
 
 typedef struct cfgList_tag
 {
