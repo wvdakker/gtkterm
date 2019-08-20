@@ -23,13 +23,13 @@
 
 void create_buffer(void);
 void delete_buffer(void);
-void put_chars(char *, unsigned int, gboolean);
+void put_chars(const char *, unsigned int, gboolean);
 void clear_buffer(void);
 void write_buffer(void);
-void set_display_func(void (*func)(char *, unsigned int));
-void unset_display_func(void (*func)(char *, unsigned int));
+void set_display_func(void (*func)(const char *, unsigned int));
+void unset_display_func(void (*func)(const char *, unsigned int));
 void set_clear_func(void (*func)(void));
 void unset_clear_func(void (*func)(void));
-void write_buffer_with_func(void (*func)(char *, unsigned int));
+void write_buffer_with_func(void (*func)(const char *, unsigned int));
 
 #endif

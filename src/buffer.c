@@ -31,13 +31,14 @@
 #define TIMESTAMP_SIZE 50
 
 extern gboolean timestamp_on;
+static int need_to_write_timestamp = 0;
 static char *buffer = NULL;
 static char *current_buffer;
 static unsigned int pointer;
 static int cr_received = 0;
 char overlapped;
 
-void (*write_func)(char *, unsigned int) = NULL;
+void (*write_func)(const char *, unsigned int) = NULL;
 void (*clear_func)(void) = NULL;
 
 void create_buffer(void)
@@ -82,12 +83,12 @@ unsigned int insert_timestamp(char *buffer)
   return size;
 }
 
-void put_chars(char *chars, unsigned int size, gboolean crlf_auto)
+void put_chars(const char *chars, unsigned int size, gboolean crlf_auto)
 {
 	// buffer must still be valid after cr conversion or adding timestamp
 	// only pointer is copied below
 	char out_buffer[(BUFFER_RECEPTION*2) + TIMESTAMP_SIZE];
-	char *characters;
+	const char *characters;
 
 	/* If the auto CR LF mode on, read the buffer to add \r before \n */
 	if(crlf_auto || timestamp_on)
@@ -105,7 +106,7 @@ void put_chars(char *chars, unsigned int size, gboolean crlf_auto)
 					{
 						out_buffer[out_size] = '\n';
 						out_size++;
-						out_size += insert_timestamp(&out_buffer[out_size]);
+						need_to_write_timestamp = 1;
 					}
 					cr_received = 1;
 				}
@@ -128,22 +129,28 @@ void put_chars(char *chars, unsigned int size, gboolean crlf_auto)
 						{
 							out_buffer[out_size] = '\n';
 							out_size++;
-							out_size += insert_timestamp(&out_buffer[out_size]);
+							need_to_write_timestamp = 1;
 						}
-
 					}
 					cr_received = 0;
 				}
 			} //if crlf_auto
 
+			if(need_to_write_timestamp)
+			{
+				out_size += insert_timestamp(&out_buffer[out_size]);
+				need_to_write_timestamp = 0;
+			}
+
+			if(chars[i] == '\n' )
+			{
+				need_to_write_timestamp = 1; //remember until we have a new character to print
+			}
+
 			//copy each character to new buffer
 			out_buffer[out_size] = chars[i];
 			out_size++; // increment for each stored character
 
-			if(chars[i] == '\n')
-			{
-				out_size += insert_timestamp(&out_buffer[out_size]);
-			}
 		} // for
 
 		// set "incomming" data pointer to new buffer containing all normal and
@@ -158,6 +165,8 @@ void put_chars(char *chars, unsigned int size, gboolean crlf_auto)
 		return;
 	}
 
+	// when incomming size is larger than buffer, then just print the
+	// last BUFFER_SIZE characters and ignore all other at begin of buffer
 	if(size > BUFFER_SIZE)
 	{
 		characters = chars + (size - BUFFER_SIZE);
@@ -200,9 +209,9 @@ void write_buffer(void)
 	}
 }
 
-void write_buffer_with_func(void (*func)(char *, unsigned int))
+void write_buffer_with_func(void (*func)(const char *, unsigned int))
 {
-	void (*write_func_backup)(char *, unsigned int);
+	void (*write_func_backup)(const char *, unsigned int);
 
 	write_func_backup = write_func;
 	write_func = func;
@@ -235,12 +244,12 @@ void unset_clear_func(void (*func)(void))
 	clear_func = NULL;
 }
 
-void set_display_func(void (*func)(char *, unsigned int))
+void set_display_func(void (*func)(const char *, unsigned int))
 {
 	write_func = func;
 }
 
-void unset_display_func(void (*func)(char *, unsigned int))
+void unset_display_func(void (*func)(const char *, unsigned int))
 {
 	write_func = NULL;
 }
