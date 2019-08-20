@@ -28,6 +28,8 @@
 #include <glib/gi18n.h>
 #include <time.h>
 
+#define TIMESTAMP_SIZE 50
+
 extern gboolean timestamp_on;
 static char *buffer = NULL;
 static char *current_buffer;
@@ -55,91 +57,100 @@ void delete_buffer(void)
 	return;
 }
 
+//assumes that buffer always has space for timestamp (TIMESTAMP_SIZE)
+//buffer points to location where timestamp will be inserted
+unsigned int insert_timestamp(char *buffer)
+{
+  unsigned int size = 0;
+
+	if(timestamp_on)
+	{
+		char buf[TIMESTAMP_SIZE];
+		struct timespec ts;
+		int d,h,m,s,x;
+		timespec_get(&ts, TIME_UTC);
+		d = (ts.tv_sec / (3600 * 24));
+		h = (ts.tv_sec / 3600) % 24;
+		m = (ts.tv_sec / 60 ) % 60;
+		s = ts.tv_sec % 60;
+		x = ts.tv_nsec / 1000000;
+		snprintf(buf, TIMESTAMP_SIZE - 1, "[%d.%02uh.%02um.%02us.%03u] "
+				, d, h, m, s, x );
+		strcpy(buffer, buf);
+		size = strlen(buf);
+	}
+  return size;
+}
+
 void put_chars(char *chars, unsigned int size, gboolean crlf_auto)
 {
-	#define HEADER_SIZE 50
 	// buffer must still be valid after cr conversion or adding timestamp
 	// only pointer is copied below
-	char out_buffer[(BUFFER_RECEPTION*2) + HEADER_SIZE];
+	char out_buffer[(BUFFER_RECEPTION*2) + TIMESTAMP_SIZE];
 	char *characters;
 
 	/* If the auto CR LF mode on, read the buffer to add \r before \n */
-	if(crlf_auto)
+	if(crlf_auto || timestamp_on)
 	{
 		int i, out_size = 0;
 
 		for (i=0; i<size; i++)
 		{
-			if (chars[i] == '\r')
+      if(crlf_auto)
 			{
-				/* If the previous character was a CR too, insert a newline */
-				if (cr_received)
+				if (chars[i] == '\r')
 				{
-					out_buffer[out_size] = '\n';
-					out_size++;
-				}
-				cr_received = 1;
-			}
-			else
-			{
-				if (chars[i] == '\n')
-				{
-					/* If we get a newline without a CR first, insert a CR */
-					if (!cr_received)
-					{
-						out_buffer[out_size] = '\r';
-						out_size++;
-					}
-				}
-				else
-				{
-					/* If we receive a normal char, and the previous one was a
-					   CR insert a newline */
+					/* If the previous character was a CR too, insert a newline */
 					if (cr_received)
 					{
 						out_buffer[out_size] = '\n';
 						out_size++;
+						out_size += insert_timestamp(&out_buffer[out_size]);
 					}
-
+					cr_received = 1;
 				}
-				cr_received = 0;
-			}
+				else
+				{
+					if (chars[i] == '\n')
+					{
+						/* If we get a newline without a CR first, insert a CR */
+						if (!cr_received)
+						{
+							out_buffer[out_size] = '\r';
+							out_size++;
+						}
+					}
+					else
+					{
+						/* If we receive a normal char, and the previous one was a
+						   CR insert a newline */
+						if (cr_received)
+						{
+							out_buffer[out_size] = '\n';
+							out_size++;
+							out_size += insert_timestamp(&out_buffer[out_size]);
+						}
+
+					}
+					cr_received = 0;
+				}
+			} //if crlf_auto
+
+			//copy each character to new buffer
 			out_buffer[out_size] = chars[i];
-			out_size++;
-		}
-		chars = out_buffer;
-		size = out_size;
-	}
+			out_size++; // increment for each stored character
 
-	// insert timestamp
-	if(timestamp_on)
-	{
-		int i, out_size = 0;
-
-		for (i=0; i<size; i++)
-		{
 			if(chars[i] == '\n')
 			{
-				char buf[HEADER_SIZE];
-				struct timespec ts;
-				int d,h,m,s,x;
-				timespec_get(&ts, TIME_UTC);
-				d = (ts.tv_sec / (3600 * 24));
-				h = (ts.tv_sec / 3600) % 24;
-				m = (ts.tv_sec / 60 ) % 60;
-				s = ts.tv_sec % 60;
-				x = ts.tv_nsec / 1000000;
-				snprintf(buf, HEADER_SIZE - 1, "[%d.%02uh.%02um.%02us.%03u] "
-							, d, h, m, s, x );
-				strcpy(&out_buffer[out_size], buf);
-				out_size += strlen(buf);
+				out_size += insert_timestamp(&out_buffer[out_size]);
 			}
-			out_buffer[out_size] = chars[i];
-			out_size++;
-		}
+		} // for
+
+		// set "incomming" data pointer to new buffer containing all normal and
+		// converted newline characters
 		chars = out_buffer;
 		size = out_size;
-	}
+	} // if(crlf_auto || timestamp_on)
 
 	if(buffer == NULL)
 	{
@@ -233,4 +244,3 @@ void unset_display_func(void (*func)(char *, unsigned int))
 {
 	write_func = NULL;
 }
-
