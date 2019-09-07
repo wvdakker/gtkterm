@@ -55,6 +55,8 @@ GtkTerm has a few dependencies-
 * vte (version 0.40 or higher)
 * intltool (version 0.40.0 or higher)
 
+   apt-get install intltool pkg-config gtk+-3.0 vte-2.91 libudev-dev
+
 Once these dependencies are installed, most people should simply run:
 
     ./configure
