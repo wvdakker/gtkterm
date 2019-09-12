@@ -36,6 +36,8 @@ void Set_window_title(gchar *msg);
 void toggle_logging_pause_resume(gboolean currentlyLogging);
 void toggle_logging_sensitivity(gboolean currentlyLogging);
 
+void catch_signals();
+
 extern GtkWidget *Fenetre;
 extern GtkWidget *StatusBar;
 extern guint id;

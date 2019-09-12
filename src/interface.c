@@ -949,3 +949,21 @@ void edit_select_all_callback(GtkAction *action, gpointer data)
 	vte_terminal_select_all(VTE_TERMINAL(display));
 }
 
+static gboolean handle_usr1 (gpointer user_data)
+{
+  signals_close_port(NULL, NULL);
+  return G_SOURCE_CONTINUE;
+}
+
+static gboolean handle_usr2 (gpointer user_data)
+{
+  signals_open_port(NULL, NULL);
+  return G_SOURCE_CONTINUE;
+}
+
+void catch_signals()
+{
+  g_unix_signal_add (SIGUSR1, (GSourceFunc) handle_usr1, NULL);
+  g_unix_signal_add (SIGUSR2, (GSourceFunc) handle_usr2, NULL);
+}
+

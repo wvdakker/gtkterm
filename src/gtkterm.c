@@ -69,6 +69,8 @@ int main(int argc, char *argv[])
 
 	device_monitor_start();
 
+	catch_signals();
+
 	gtk_main();
 
 	delete_buffer();
