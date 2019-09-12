@@ -28,22 +28,18 @@
 #include <glib/gprintf.h>
 #include <term_config.h>
 
+#include "interface.h"
+
 extern struct configuration_port config;
 
 static inline void device_monitor_status(const bool connected) {
 
     gchar *message;
 
-    if( connected )
-        Config_port();
+    if (connected)
+        interface_open_port();
     else
-        Close_port();
-
-    message = get_port_string();
-
-    Set_status_message(message);
-    Set_window_title(message);
-    g_free(message);
+        interface_close_port();
 }
 
 static inline void device_monitor_handle(struct udev_device *dev) {

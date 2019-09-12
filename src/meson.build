@@ -22,6 +22,8 @@ sources = [
 	'serial.h',
 	'term_config.c',
 	'term_config.h',
+	'user_signals.c',
+	'user_signals.h',
 	gresources
 ]
 

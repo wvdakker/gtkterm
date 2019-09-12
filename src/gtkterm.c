@@ -29,6 +29,7 @@
 #include "macros.h"
 #include "auto_config.h"
 #include "device_monitor.h"
+#include "user_signals.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
@@ -68,6 +69,8 @@ int main(int argc, char *argv[])
 	set_view(ASCII_VIEW);
 
 	device_monitor_start();
+
+	user_signals_catch();
 
 	gtk_main();
 

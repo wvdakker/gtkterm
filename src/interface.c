@@ -788,24 +788,12 @@ void signals_toggle_RTS_callback(GtkAction *action, gpointer data)
 
 void signals_close_port(GtkAction *action, gpointer data)
 {
-	Close_port();
-
-	gchar *message;
-	message = get_port_string();
-	Set_status_message(message);
-	Set_window_title(message);
-	g_free(message);
+	interface_close_port();
 }
 
 void signals_open_port(GtkAction *action, gpointer data)
 {
-	Config_port();
-
-	gchar *message;
-	message = get_port_string();
-	Set_status_message(message);
-	Set_window_title(message);
-	g_free(message);
+	interface_open_port();
 }
 
 gboolean control_signals_read(void)
@@ -830,6 +818,28 @@ void Set_window_title(gchar *msg)
 	gchar* header = g_strdup_printf("GTKTerm - %s", msg);
 	gtk_window_set_title(GTK_WINDOW(Fenetre), header);
 	g_free(header);
+}
+
+void interface_open_port(void)
+{
+	Config_port();
+
+	gchar *message;
+	message = get_port_string();
+	Set_status_message(message);
+	Set_window_title(message);
+	g_free(message);
+}
+
+void interface_close_port(void)
+{
+	Close_port();
+
+	gchar *message;
+	message = get_port_string();
+	Set_status_message(message);
+	Set_window_title(message);
+	g_free(message);
 }
 
 void show_message(gchar *message, gint type_msg)
