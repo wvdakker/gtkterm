@@ -45,7 +45,6 @@
 #include "serial.h"
 #include "term_config.h"
 #include "interface.h"
-#include "gresource.h"
 #include "parsecfg.h"
 #include "macros.h"
 #include "i18n.h"
@@ -1447,6 +1446,7 @@ void Config_Terminal(GtkAction *action, gpointer data)
 	GtkWidget *dialog;
 	dialog = GTK_WIDGET(gtk_builder_get_object(builder, "dialog"));
 	gtk_window_set_transient_for(dialog, Fenetre);
+	gtk_window_set_title(GTK_WINDOW(dialog), _("Main Window"));
 
 	/** Connect signals **/
 	// Font Selection Button

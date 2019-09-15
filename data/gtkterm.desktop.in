@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=GTKTerm
+GenericName=Serial Port Terminal
+Comment=Connect to serial consoles
+Keywords=serial;console;terminal;
+Icon=gtkterm
+Exec=gtkterm
+Terminal=false
+Type=Application
+Categories=GNOME;GTK;Utility

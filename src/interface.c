@@ -467,7 +467,7 @@ void create_main_window(void)
 	g_signal_connect(GTK_WIDGET(Fenetre), "destroy", (GCallback)gtk_main_quit, NULL);
 	g_signal_connect(GTK_WIDGET(Fenetre), "delete_event", (GCallback)gtk_main_quit, NULL);
 
-	Set_window_title("GtkTerm");
+	Set_window_title("GTKTerm");
 
 	main_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add(GTK_CONTAINER(Fenetre), main_vbox);
@@ -727,7 +727,7 @@ void help_about_callback(GtkAction *action, gpointer data)
 	GError *error = NULL;
 	GdkPixbuf *logo = NULL;
 
-	logo = gdk_pixbuf_new_from_resource ("/org/gtk/gtkterm/gtkterm_small.png", &error);
+	logo = gdk_pixbuf_new_from_resource ("/org/gtk/gtkterm/gtkterm_64x64.png", &error);
 
 	gtk_show_about_dialog(GTK_WINDOW(Fenetre),
 	                      "program-name", "GTKTerm",
@@ -827,7 +827,7 @@ void Set_status_message(gchar *msg)
 
 void Set_window_title(gchar *msg)
 {
-	gchar* header = g_strdup_printf("GtkTerm - %s", msg);
+	gchar* header = g_strdup_printf("GTKTerm - %s", msg);
 	gtk_window_set_title(GTK_WINDOW(Fenetre), header);
 	g_free(header);
 }

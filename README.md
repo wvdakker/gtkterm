@@ -31,8 +31,8 @@ Original Code by: Julien Schmitt
     --echo or -e : switch on local echo
 
 ### Keyboard shortcuts 
-As Gtkterm is often used like a terminal emulator,
-the shortcut keys are assigned to `<ctrl><shift>`, rather than just `<ctrl>`. This allows the user to send keystrokes of the form `<ctrl>X` and not have Gtkterm intercept them.
+As GTKTerm is often used like a terminal emulator,
+the shortcut keys are assigned to `<ctrl><shift>`, rather than just `<ctrl>`. This allows the user to send keystrokes of the form `<ctrl>X` and not have GTKTerm intercept them.
 
     <ctrl><shift>L -- Clear screen
     <ctrl><shift>R -- Send file
@@ -50,22 +50,24 @@ the shortcut keys are assigned to `<ctrl><shift>`, rather than just `<ctrl>`. Th
 The RS485 flow control is a software user-space emulation and therefore may not work for all configurations (won't respond quickly enough). If this is the case for your setup, you will need to either use a dedicated RS232 to RS485 converter, or look for a kernel level driver. This is an inherent limitation to user space programs.
 
 ### Building:
-GtkTerm has a few dependencies-
+GTKTerm has a few dependencies-
 * Gtk+3.0 (version 3.12 or higher)
 * vte (version 0.40 or higher)
 * intltool (version 0.40.0 or higher)
+* udev (version 229 or higher)
 
 Once these dependencies are installed, most people should simply run:
 
-    ./configure
-    make
-    #  And to install:
-    make install
+	meson build
+	ninja -C build
 
-If you wish to install Gtkterm someplace other than the default directory, use:
+To install GTKTerm system-wide, run:
 
-    ./configure --prefix=/install/directory
+	ninja -C build install
+	gtk-update-icon-cache
+
+If you wish to install GTKTerm someplace other than the default directory, e.g. in `/usr`, use:
+
+	meson build -Dprefix=/usr
 
 Then build and install as usual.
-
- See `INSTALL` for more detailed build and install options.
