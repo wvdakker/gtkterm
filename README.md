@@ -5,12 +5,14 @@
 
 GTKTerm is a simple, graphical serial port terminal emulator for Linux and possibly other POSIX-compliant operating systems. It can be used to communicate with all kinds of devices with a serial interface, such as embedded computers, microcontrollers, modems, GPS receivers, CNC machines and more.
 
+<p align="center">
+    <img src="screenshot.png" width="60%"/>
+</p>
+
 ## Usage
 ### Keyboard Shortcuts 
 As GTKTerm is often used like a terminal emulator,
 the shortcut keys are assigned to `<ctrl><shift>`, rather than just `<ctrl>`. This allows the user to send keystrokes of the form `<ctrl>X` and not have GTKTerm intercept them.
-
-<img src="screenshot.png" align="right" width="50%"/>
 
 Key Combination | Effect
 ---:|---
