@@ -27,10 +27,9 @@
 #include <interface.h>
 #include <glib/gprintf.h>
 #include <term_config.h>
+#include <gudev/gudev.h>
 
 #include "interface.h"
-
-#include <gudev/gudev.h>
 
 extern struct configuration_port config;
 
@@ -73,8 +72,18 @@ extern void device_monitor_start(void) {
 
     const gchar *const subsystems[] = {NULL, NULL};
 
+    /* Initial check */
     GUdevClient *udev_client = g_udev_client_new(subsystems);
 
+    if( g_udev_client_query_by_device_file(udev_client, config.port) == NULL ) {
+        g_printf("Device %s not detected\n", config.port);
+        device_monitor_status(false);
+    } else {
+        g_printf("Device %s detected\n", config.port);
+        device_monitor_status(true);
+    }
+
+    /* Monitor device */
     g_signal_connect(G_OBJECT(udev_client), "uevent",
             G_CALLBACK(event_udev), NULL);
 }
