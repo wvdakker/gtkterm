@@ -30,65 +30,51 @@
 
 #include "interface.h"
 
+#include <gudev/gudev.h>
+
 extern struct configuration_port config;
 
 static inline void device_monitor_status(const bool connected) {
 
-    gchar *message;
-
-    if (connected)
+    if( connected )
         interface_open_port();
     else
         interface_close_port();
 }
 
-static inline void device_monitor_handle(struct udev_device *dev) {
+static inline void device_monitor_handle(const char *action) {
 
-    if( strcmp(udev_device_get_action(dev), "remove") == 0 ) {
+    if( strcmp(action, "remove") == 0 ) {
         device_monitor_status(false);
-    } else if( strcmp(udev_device_get_action(dev), "add") == 0 ) {
+    } else if( strcmp(action, "add") == 0 ) {
         device_monitor_status(true);
     }
 }
 
-static gpointer device_monitor_thread(gpointer data) {
+void event_udev(GUdevClient *client, const gchar *action, GUdevDevice *device) {
 
-    struct udev *udev;
-    struct udev_monitor *mon;
+    if( !device || !action )
+        return;
 
-    udev = udev_new();
-    mon = udev_monitor_new_from_netlink(udev, "udev");
+    if( !g_udev_device_get_device_file(device) )
+        return;
 
-    if( mon == NULL ) {
-        g_printf("%s:%u udev error\n", __func__, __LINE__);
-        return NULL;
-    }
+    const gchar *name = config.port;
 
-    udev_monitor_enable_receiving(mon);
-
-    while (1) {
-
-        struct udev_device *dev;
-
-        dev = udev_monitor_receive_device(mon);
-
-        if (dev) {
-
-            const char *n = udev_device_get_devnode(dev);
-            const gchar *name = config.port;
-
-            if( n != NULL )
-                if( strcmp(n, name) == 0 )
-                    device_monitor_handle(dev);
-
-            udev_device_unref(dev);
-        }
-        usleep(250*1000);
+    if( strcmp(g_udev_device_get_device_file(device), name) == 0 ) {
+        g_printf("Device %s: %s\n",
+                    g_udev_device_get_device_file(device),
+                    action);
+        device_monitor_handle(action);
     }
 }
 
 extern void device_monitor_start(void) {
 
-    /* Create gtk thread */
-    g_thread_new("dev_mon_th", device_monitor_thread, NULL);
+    const gchar *const subsystems[] = {NULL, NULL};
+
+    GUdevClient *udev_client = g_udev_client_new(subsystems);
+
+    g_signal_connect(G_OBJECT(udev_client), "uevent",
+            G_CALLBACK(event_udev), NULL);
 }

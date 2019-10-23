@@ -8,7 +8,7 @@ project(
 # Find dependencies
 gtk_deps = dependency('gtk+-3.0', version : '>= 3.0.0')
 vte_deps = dependency('vte-2.91', version : '>= 0.28.0')
-udev_deps = dependency('libudev', version: '>= 229')
+gudev_deps = dependency('gudev-1.0', version: '>= 230')
 
 # Find install paths
 prefix = get_option('prefix')
