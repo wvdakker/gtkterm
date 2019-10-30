@@ -33,8 +33,8 @@ executable(
 	dependencies : [
 		gtk_deps,
 		vte_deps,
-        config,
-        gudev_deps
+		config,
+		gudev_deps
 	],
 	install : true
 )
