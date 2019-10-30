@@ -49,7 +49,7 @@ GTKTerm has a few dependencies-
 * Gtk+3.0 (version 3.12 or higher)
 * vte (version 0.40 or higher)
 * intltool (version 0.40.0 or higher)
-* udev (version 229 or higher)
+* libgudev (version 229 or higher)
 
 Once these dependencies are installed, most people should simply run:
 

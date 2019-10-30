@@ -18,7 +18,6 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <libudev.h>
 #include <locale.h>
 #include <string.h>
 #include <gtk/gtk.h>
