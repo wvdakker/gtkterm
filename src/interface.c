@@ -12,6 +12,11 @@
 /*   ChangeLog                                                         */
 /*   (All changes by Julien Schmitt except when explicitly written)    */
 /*                                                                     */
+/*       - 1.01  : The put_hexadecimal partly function rewritten.      */
+/*                 The vte_terminal_get_cursor_position function does  */
+/*                 not return always the actual column.                */
+/*                 Now it uses an internal column-index (virt_col_pos).*/
+/*                 (Willem van den Akker)                              */
 /*      - 0.99.7 : Changed keyboard shortcuts to <ctrl><shift>         */
 /*	            (Ken Peek)                                         */
 /*      - 0.99.6 : Added scrollbar and copy/paste (Zach Davis)         */
@@ -105,6 +110,7 @@ static gint bytes_per_line = 16;
 static gchar blank_data[128];
 static guint total_bytes;
 static gboolean show_index = FALSE;
+static guint virt_col_pos = 0;
 
 /* Local functions prototype */
 void signals_send_break_callback(GtkAction *action, gpointer data);
@@ -330,6 +336,7 @@ void set_view(guint type)
 		gtk_action_set_sensitive(show_index_action, TRUE);
 		gtk_action_set_sensitive(hex_chars_action, TRUE);
 		total_bytes = 0;
+		virt_col_pos = 0;
 		set_display_func(put_hexadecimal);
 		break;
 	default:
@@ -612,9 +619,7 @@ void put_hexadecimal(gchar *string, guint size)
 {
 	static gchar data[128];
 	static gchar data_byte[6];
-	static guint bytes;
-	glong column, row;
-
+	static gchar buffer[128];
 	gint i = 0;
 
 	if(size == 0)
@@ -623,38 +628,30 @@ void put_hexadecimal(gchar *string, guint size)
 	while(i < size)
 	{
 		while(gtk_events_pending()) gtk_main_iteration();
-		vte_terminal_get_cursor_position(VTE_TERMINAL(display), &column, &row);
-
-		if(show_index)
-		{
-			if(column == 0)
-				/* First byte on line */
-			{
-				sprintf(data, "%6d: ", total_bytes);
-				vte_terminal_feed(VTE_TERMINAL(display), data, strlen(data));
-				bytes = 0;
-			}
-		}
-		else
-		{
-			if(column == 0)
-				bytes = 0;
-		}
 
 		/* Print hexadecimal characters */
 		data[0] = 0;
 
-		while(bytes < bytes_per_line && i < size)
+		while(virt_col_pos < bytes_per_line && i < size)
 		{
 			gint avance=0;
 			gchar ascii[1];
+
+			if(show_index)
+			{
+				/* First byte on line */
+				if(virt_col_pos == 0)
+				{
+					sprintf(data, "%6d: ", total_bytes);
+					vte_terminal_feed(VTE_TERMINAL(display), data, strlen(data));
+				}
+			}
 
 			sprintf(data_byte, "%02X ", (guchar)string[i]);
 			log_chars(data_byte, 3);
 			vte_terminal_feed(VTE_TERMINAL(display), data_byte, 3);
 
-			avance = (bytes_per_line - bytes) * 3 + bytes + 2;
-
+			avance = (bytes_per_line - virt_col_pos) * 3 + virt_col_pos + 2;
 			/* Move forward */
 			sprintf(data_byte, "%c[%dC", 27, avance);
 			vte_terminal_feed(VTE_TERMINAL(display), data_byte, strlen(data_byte));
@@ -667,17 +664,18 @@ void put_hexadecimal(gchar *string, guint size)
 			sprintf(data_byte, "%c[%dD", 27, avance + 1);
 			vte_terminal_feed(VTE_TERMINAL(display), data_byte, strlen(data_byte));
 
-			if(bytes == bytes_per_line / 2 - 1)
+			if(virt_col_pos == bytes_per_line / 2 - 1)
 				vte_terminal_feed(VTE_TERMINAL(display), "- ", strlen("- "));
 
-			bytes++;
+			virt_col_pos++;
 			i++;
 
 			/* End of line ? */
-			if(bytes == bytes_per_line)
+			if(virt_col_pos == bytes_per_line)
 			{
 				vte_terminal_feed(VTE_TERMINAL(display), "\r\n", 2);
-				total_bytes += bytes;
+				total_bytes += virt_col_pos;
+				virt_col_pos = 0;
 			}
 
 		}
