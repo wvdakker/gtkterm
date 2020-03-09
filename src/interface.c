@@ -154,6 +154,7 @@ const GtkActionEntry menu_entries[] =
 	/* File menu */
 	{"FileExit", GTK_STOCK_QUIT, NULL, "<shift><control>Q", NULL, gtk_main_quit},
 	{"ClearScreen", GTK_STOCK_CLEAR, N_("_Clear screen"), "<shift><control>L", NULL, G_CALLBACK(clear_buffer)},
+	{"ClearScrollback", GTK_STOCK_CLEAR, N_("_Clear scrollback"), "<shift><control>K", NULL, G_CALLBACK(clear_scrollback)},
 	{"SendFile", GTK_STOCK_JUMP_TO, N_("Send _RAW file"), "<shift><control>R", NULL, G_CALLBACK(send_raw_file)},
 	{"SaveFile", GTK_STOCK_SAVE_AS, N_("_Save RAW file"), "", NULL, G_CALLBACK(save_raw_file)},
 
@@ -219,6 +220,7 @@ static const char *ui_description =
     "  <menubar name='MenuBar'>"
     "    <menu action='File'>"
     "      <menuitem action='ClearScreen'/>"
+    "      <menuitem action='ClearScrollback'/>"
     "      <menuitem action='SendFile'/>"
     "      <menuitem action='SaveFile'/>"
     "      <separator/>"

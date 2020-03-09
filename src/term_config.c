@@ -571,6 +571,11 @@ gint Grise_Degrise(GtkWidget *bouton, gpointer pointeur)
 	return FALSE;
 }
 
+void clear_scrollback(void){
+    vte_terminal_set_scrollback_lines (VTE_TERMINAL(display), 0);
+    vte_terminal_set_scrollback_lines (VTE_TERMINAL(display), term_conf.scrollback);
+}
+
 void read_font_button(GtkFontButton *fontButton)
 {
 	g_free(term_conf.font);
