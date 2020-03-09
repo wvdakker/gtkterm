@@ -1,0 +1,766 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gtkterm 1.0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-03-09 08:47+0100\n"
+"PO-Revision-Date: 2020-03-09 10:32+0100\n"
+"Language-Team: W. van den Akker\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.3\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: nl_NL\n"
+
+#: ../src/buffer.c:164
+msgid "ERROR : Buffer is not initialized !\n"
+msgstr "Fout: Buffer is niet geinitialiseerd\n"
+
+#: ../src/cmdline.c:37
+#, c-format
+msgid ""
+"\n"
+"GTKTerm version %s\n"
+msgstr ""
+"\n"
+"GTKTerm versie %s\n"
+
+#: ../src/cmdline.c:38
+msgid "\t (c) Julien Schmitt\n"
+msgstr "\t (c) Julien Schmitt\n"
+
+#: ../src/cmdline.c:39
+msgid ""
+"\n"
+"This program is released under the terms of the GPL V.2\n"
+msgstr ""
+"\n"
+"Dit programma is vrijgegeven  onder de  GPL V.2 licentie\n"
+
+#: ../src/cmdline.c:40
+msgid "\t ** Use at your own risks ! **\n"
+msgstr "\t ** Gebruik op eigen risico ! **\n"
+
+#: ../src/cmdline.c:41
+msgid ""
+"\n"
+"Command line options\n"
+msgstr ""
+"\n"
+"Command line opties\n"
+
+#: ../src/cmdline.c:42
+msgid "--help or -h : this help screen\n"
+msgstr "--help of -h : dit help scherm\n"
+
+#: ../src/cmdline.c:43
+msgid "--config <configuration> or -c : load configuration\n"
+msgstr "--config <configuratie> of -c : te laden configuratie\n"
+
+#: ../src/cmdline.c:44
+msgid "--port <device> or -p : serial port device (default /dev/ttyS0)\n"
+msgstr ""
+"--port <apparaat> of -p : seriele poort apparaat (standaard /dev/ttyS0)\n"
+
+#: ../src/cmdline.c:45
+msgid "--speed <speed> or -s : serial port speed (default 9600)\n"
+msgstr "--speed <snelheid> of -s : seriele poort snelheid (standaard 9600)\n"
+
+#: ../src/cmdline.c:46
+msgid "--bits <bits> or -b : number of bits (default 8)\n"
+msgstr "--bits <bits> of -b : aantal bits (standaard 8)\n"
+
+#: ../src/cmdline.c:47
+msgid "--stopbits <stopbits> or -t : number of stopbits (default 1)\n"
+msgstr "--stopbits <stopbits> of -t : aantal stopbits (standaard 1)\n"
+
+#: ../src/cmdline.c:48
+msgid "--parity <odd | even> or -a : partity (default none)\n"
+msgstr "--parity <odd | even> of -a : partiteit (standaard none)\n"
+
+#: ../src/cmdline.c:49
+msgid "--flow <Xon | RTS | RS485> or -w : flow control (default none)\n"
+msgstr "--flow <Xon | RTS | RS485> of -w : flow controle (standaard none)\n"
+
+#: ../src/cmdline.c:50
+msgid "--delay <ms> or -d : end of line delay in ms (default none)\n"
+msgstr "--delay <ms> of -d : einde regel vertraging in ms (default none)\n"
+
+#: ../src/cmdline.c:51
+msgid ""
+"--char <char> or -r : wait for a special char at end of line (default none)\n"
+msgstr ""
+"--char <char> of -r : wachten op speciaal teken aan einde van de regel "
+"(standaard none)\n"
+
+#: ../src/cmdline.c:52
+msgid "--file <filename> or -f : default file to send (default none)\n"
+msgstr ""
+"--file <bestandsnaam> of -f : standaard bestand om te versturen (standaard "
+"none)\n"
+
+#: ../src/cmdline.c:53
+msgid ""
+"--rts_time_before <ms> or -x : for rs485, time in ms before transmit with "
+"rts on\n"
+msgstr ""
+"--rts_time_before <ms> of -x : voor de  rs485, tijd in ms voordat met RTS "
+"aan wordt verzonden\n"
+
+#: ../src/cmdline.c:54
+msgid ""
+"--rts_time_after <ms> or -y : for rs485, time in ms after transmit with rts "
+"on\n"
+msgstr ""
+"--rts_time_after <ms> of -x : voor de  rs485, tijd in ms nadat met RTS aan "
+"wordt verzonden\n"
+"\n"
+
+#: ../src/cmdline.c:55
+msgid "--echo or -e : switch on local echo\n"
+msgstr "--echo of -e :  schakel  locale echo aan\n"
+
+#: ../src/cmdline.c:56
+msgid ""
+"--disable-port-lock or -L: does not lock serial port. Allows to send to "
+"serial port from different terminals\n"
+msgstr ""
+"--disable-port-lock or -L: poort wordt niet gereserveerd. Geeft mogelijk om "
+"van andere schermen naar de seriele poort te zenden\n"
+
+#: ../src/cmdline.c:57
+msgid ""
+"                      Note: incomming data are displayed randomly on only "
+"one terminal\n"
+msgstr ""
+"                      Note: Inkomende data wordt in willekeurige volgorde "
+"getoond op slechts een  scherm\n"
+
+#: ../src/cmdline.c:167
+msgid "Misunderstood command line option\n"
+msgstr "Herken commandlijn optie niet\n"
+
+#: ../src/files.c:77
+msgid "Send RAW File"
+msgstr "Versturen  ruwe bestand"
+
+#: ../src/files.c:96
+#, c-format
+msgid "Error opening file\n"
+msgstr "Fout bij openen bestand\n"
+
+#: ../src/files.c:110
+#, c-format
+msgid "%s : transfer in progress..."
+msgstr "%s : overdracht vindt plaats..."
+
+#: ../src/files.c:128
+msgid "Cancel"
+msgstr "Afbreken"
+
+#: ../src/files.c:143
+#, c-format
+msgid "Cannot read file %s: %s\n"
+msgstr "Kan bestand %s: %s niet lezen\n"
+
+#: ../src/files.c:178
+#, c-format
+msgid "Error sending file\n"
+msgstr "Fout bij versturen bestand\n"
+
+#: ../src/files.c:206
+#, c-format
+msgid "Error sending file: %s\n"
+msgstr "Fout bij versturen bestand: %s\n"
+
+#: ../src/files.c:292
+msgid "Save RAW File"
+msgstr "Ruwe bestand opslaan"
+
+#: ../src/files.c:311
+#, c-format
+msgid "File error\n"
+msgstr "Bestand fout\n"
+
+#: ../src/files.c:322 ../src/logging.c:68 ../src/logging.c:123
+#, c-format
+msgid "Cannot open file %s: %s\n"
+msgstr "Kan bestand %s: %s niet openen\n"
+
+#. Toplevel
+#: ../src/interface.c:145
+msgid "_File"
+msgstr "_Bestand"
+
+#: ../src/interface.c:146
+msgid "_Edit"
+msgstr "_Wijzigen"
+
+#: ../src/interface.c:147
+msgid "_Log"
+msgstr "_Loggen"
+
+#: ../src/interface.c:148
+msgid "_Configuration"
+msgstr "_Configuratie"
+
+#: ../src/interface.c:149
+msgid "Control _signals"
+msgstr "Controle _signalen"
+
+#: ../src/interface.c:150
+msgid "_View"
+msgstr "_Tonen"
+
+#: ../src/interface.c:151
+msgid "Hexadecimal _chars"
+msgstr "Hexadecimale _tekens"
+
+#: ../src/interface.c:152
+msgid "_Help"
+msgstr "_Help"
+
+#: ../src/interface.c:156
+msgid "_Clear screen"
+msgstr "_Opschonen scherm"
+
+#: ../src/interface.c:157
+msgid "_Clear scrollback"
+msgstr "_Opschonen scrollback"
+
+#: ../src/interface.c:158
+msgid "Send _RAW file"
+msgstr "_Ruwe bestand versturen"
+
+#: ../src/interface.c:159
+msgid "_Save RAW file"
+msgstr "_Ruwe bestand opslaan"
+
+#. Log Menu
+#: ../src/interface.c:167
+msgid "To file..."
+msgstr "Naar bestand ..."
+
+#. Confuguration Menu
+#: ../src/interface.c:173
+msgid "_Port"
+msgstr "_Poort"
+
+#: ../src/interface.c:174
+msgid "_Main window"
+msgstr "_Hoofd scherm"
+
+#: ../src/interface.c:175
+msgid "_Macros"
+msgstr "_Macros"
+
+#: ../src/interface.c:176
+msgid "_Load configuration"
+msgstr "_Laden configuration"
+
+#: ../src/interface.c:177
+msgid "_Save configuration"
+msgstr "_Opslaan configuratie"
+
+#: ../src/interface.c:178
+msgid "_Delete configuration"
+msgstr "_Verwijderen configuratie"
+
+#. Signals Menu
+#: ../src/interface.c:181
+msgid "Send break"
+msgstr "Afbreken versturen"
+
+#: ../src/interface.c:182
+msgid "_Open Port"
+msgstr "_Openen Poort"
+
+#: ../src/interface.c:183
+msgid "_Close Port"
+msgstr "_Sluiten Poort"
+
+#: ../src/interface.c:184
+msgid "Toggle DTR"
+msgstr "Toggel DTR"
+
+#: ../src/interface.c:185
+msgid "Toggle RTS"
+msgstr "Toggel RTS"
+
+#. Configuration Menu
+#: ../src/interface.c:194
+msgid "Local _echo"
+msgstr "Lokale _echo"
+
+#: ../src/interface.c:195
+msgid "_CR LF auto"
+msgstr "_CR LF automatisch"
+
+#: ../src/interface.c:196
+msgid "Timestamp"
+msgstr "Tijdstempel"
+
+#. View Menu
+#: ../src/interface.c:199
+msgid "Show _index"
+msgstr "Toon _index"
+
+#: ../src/interface.c:200
+msgid "_Send hexadecimal data"
+msgstr "_Versturen hexadecimale data"
+
+#: ../src/interface.c:205
+msgid "_ASCII"
+msgstr "_ASCII"
+
+#: ../src/interface.c:206
+msgid "_Hexadecimal"
+msgstr "_Hexadecimaal"
+
+#: ../src/interface.c:422
+msgid "Resume"
+msgstr "Hervatten"
+
+#: ../src/interface.c:567
+msgid "Hexadecimal data to send (separator : ';' or space) : "
+msgstr "Te verzenden hexadecimale data (scheidingsteken : ';' or spatie) : "
+
+#: ../src/interface.c:736
+msgid ""
+"Jun 2019\n"
+"\n"
+"GTKTerm is a simple GTK+ terminal used to communicate with the serial port."
+msgstr ""
+"Jun 2019\n"
+"\n"
+"GTKTerm is een eenvoudige GTK+ terminal voor communicatie met de seriele "
+"poort."
+
+#: ../src/interface.c:776
+msgid "Break signal sent!"
+msgstr "Afbreek signaal verstuurd!"
+
+#: ../src/interface.c:882
+#, c-format
+msgid "0 byte(s) sent!"
+msgstr "0 byte(s) verstuurd!"
+
+#: ../src/interface.c:896
+msgid "Improper formatted hex input, 0 bytes sent!"
+msgstr "Onjuist geformteerde hex invoer 0 bytes sent!"
+
+#: ../src/interface.c:907
+#, c-format
+msgid "%d byte(s) sent!"
+msgstr "%d byte(s) verstuurd!"
+
+#: ../src/logging.c:49
+#, c-format
+msgid "Filename error\n"
+msgstr "Fout in bestandsnaam\n"
+
+#: ../src/logging.c:88
+msgid "Log file selection"
+msgstr "Selecteren log bestand"
+
+#: ../src/logging.c:184
+msgid "Failed to log data\n"
+msgstr "Kan data niet loggen\n"
+
+#: ../src/macros.c:144
+#, c-format
+msgid "Macro \"%s\" sent !"
+msgstr "Macro \"%s\" verstuurd !"
+
+#: ../src/macros.c:275
+msgid "Shortcut"
+msgstr "Snelkoppeling"
+
+#: ../src/macros.c:432
+msgid ""
+"The \"action\" field of a macro is the data to be sent on the port. Text can "
+"be entered, but also special chars, like \\n, \\t, \\r, etc. You can also "
+"enter hexadecimal data preceded by a '\\'. The hexadecimal data should not "
+"begin with a letter (eg. use \\0FF and not \\FF)\n"
+"Examples :\n"
+"\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n"
+"\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"
+msgstr ""
+"In het veld \"actie\" van een macro zijn de gegevens die naar de poort "
+"moeten worden verzonden. Tekst kan worden ingevoerd, maar ook speciale "
+"tekens, zoals \\ n, \\ t, \\ r, enz. U kunt ook hexadecimale gegevens "
+"invoeren die worden voorafgegaan door een '\\'. De hexadecimale gegevens "
+"mogen niet beginnen met een letter (gebruik bijvoorbeeld \\ 0FF en niet \\ "
+"FF)\n"
+"Voorbeelden:\n"
+"\"Hallo \\ n\" stuurt \"Hallo\" gevolgd door een einde regel teken\n"
+"\"Hallo \\ 0A\" doet hetzelfde, maar de LF wordt hexadecimaal ingevoerd"
+
+#: ../src/macros.c:452
+msgid "Configure Macros"
+msgstr "Macros configureren"
+
+#: ../src/macros.c:489
+msgid "_Add"
+msgstr "_Toevoegen"
+
+#: ../src/macros.c:493
+msgid "_Delete"
+msgstr "_Verwijderen"
+
+#: ../src/macros.c:497
+msgid "_Capture Shortcut"
+msgstr "_Snelkoppeling vastleggen"
+
+#: ../src/parsecfg.c:355
+#, c-format
+msgid "Cannot open configuration file `%s'.\n"
+msgstr "Kan configuratie bestand `%s' niet openen.\n"
+
+#: ../src/parsecfg.c:358
+#, c-format
+msgid "Cannot create configuration file `%s'.\n"
+msgstr "Kan create configuratie bestand `%s' niet aanmaken.\n"
+
+#: ../src/parsecfg.c:361
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Syntax error\n"
+msgstr ""
+"%s(%d): %s\n"
+"Syntax fout\n"
+
+#: ../src/parsecfg.c:364
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Unrecognized parameter\n"
+msgstr ""
+"%s(%d): %s\n"
+"Parameter niet herkend\n"
+
+#: ../src/parsecfg.c:367
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Internal error\n"
+msgstr ""
+"%s(%d): %s\n"
+"Internae fout\n"
+
+#: ../src/parsecfg.c:370
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Invalid number\n"
+msgstr ""
+"%s(%d): %s\n"
+"Onjuist nummer\n"
+
+#: ../src/parsecfg.c:373
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Out of range\n"
+msgstr ""
+"%s(%d): %s\n"
+"Buiten bereik\n"
+
+#: ../src/parsecfg.c:376
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Cannot allocate memory.\n"
+msgstr ""
+"%s(%d): %s\n"
+"Kan geheugen niet alloceren.\n"
+
+#: ../src/parsecfg.c:379
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"It must be specified TRUE or FALSE.\n"
+msgstr ""
+"%s(%d): %s\n"
+"Moet TRUE of FALSE specifieren.\n"
+
+#: ../src/parsecfg.c:382
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"The section name is already used.\n"
+msgstr ""
+"%s(%d): %s\n"
+"Sectie naam is al in gebruik.\n"
+
+#: ../src/parsecfg.c:385
+#, c-format
+msgid ""
+"%s(%d)\n"
+"There is no closing brace.\n"
+msgstr ""
+"%s(%d)\n"
+"Er is geen sluit haakje.\n"
+
+#: ../src/parsecfg.c:390
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Unexplained error\n"
+msgstr ""
+"%s(%d): %s\n"
+"onbekende fout\n"
+
+#: ../src/serial.c:154
+#, c-format
+msgid "Cannot open %s: %s\n"
+msgstr "Kan  %s: %s niet openen\n"
+
+#: ../src/serial.c:167
+#, c-format
+msgid ""
+"Cannot lock port! The serial port may currently be in use by another "
+"program.\n"
+msgstr ""
+"Kan poort niet reserveren! De seriele poort kan door een ander programma in "
+"gebruik zijn\n"
+
+#: ../src/serial.c:235
+#, c-format
+msgid "Arbitrary baud rates not supported"
+msgstr "Willekeurige baud-snelheden worden niet ondersteund"
+
+#: ../src/serial.c:352 ../src/serial.c:398
+msgid "Control signals read"
+msgstr "Lezen controle signalen"
+
+#: ../src/serial.c:364
+msgid "DTR write"
+msgstr "DTR schrijven"
+
+#: ../src/serial.c:374
+msgid "RTS write"
+msgstr "RTS schrijven"
+
+#: ../src/serial.c:452
+msgid "No open port"
+msgstr "Geen poort open"
+
+#: ../src/term_config.c:193
+msgid ""
+"No serial devices found!\n"
+"\n"
+"Searched the following paths:\n"
+"\t/dev/ttyS*\n"
+"\t/dev/tts/*\n"
+"\t/dev/ttyUSB*\n"
+"\t/dev/usb/tts/*\n"
+"\n"
+"Enter a different device path in the 'Port' box.\n"
+msgstr ""
+"Geen seriele poorten gevonden!\n"
+"\n"
+"Naar de volgende paden gezocht:\n"
+"\t/dev/ttyS*\n"
+"\t/dev/tts/*\n"
+"\t/dev/ttyUSB*\n"
+"\t/dev/usb/tts/*\n"
+"\n"
+"Geef pad op in het 'Poort' veld.\n"
+
+#: ../src/term_config.c:202
+msgid "Configuration"
+msgstr "Configuratie"
+
+#: ../src/term_config.c:206
+msgid "Serial port"
+msgstr "Seriele poort"
+
+#: ../src/term_config.c:212
+msgid "Port:"
+msgstr "Poort:"
+
+#: ../src/term_config.c:214
+msgid "Baud Rate:"
+msgstr "BaudRate:"
+
+#: ../src/term_config.c:216
+msgid "Parity:"
+msgstr "Parity:"
+
+#: ../src/term_config.c:362
+msgid "Bits:"
+msgstr "Bits:"
+
+#: ../src/term_config.c:364
+msgid "Stopbits:"
+msgstr "Stopbits:"
+
+#: ../src/term_config.c:366
+msgid "Flow control:"
+msgstr "Flow controle:"
+
+#. create an expander widget to hide the 'Advanced features'
+#: ../src/term_config.c:417
+msgid "Advanced Configuration Options"
+msgstr "Geavanceerde configuratie opties"
+
+#: ../src/term_config.c:422
+msgid "ASCII file transfer"
+msgstr "ASCII bestand overdracht"
+
+#: ../src/term_config.c:428
+msgid "End of line delay (milliseconds):"
+msgstr "Vertraging einde-regel (milliseconds):"
+
+#: ../src/term_config.c:444
+msgid "Wait for this special character before passing to next line:"
+msgstr ""
+"Wacht op speciale karakter voordat naar de volgende regel wordt gegaan:"
+
+#: ../src/term_config.c:457
+msgid "RS485 half-duplex parameters (RTS signal used to send)"
+msgstr ""
+"RS485 half-duplex parameters (RTS signaal wordt gebruikt om te verzenden)"
+
+#: ../src/term_config.c:464
+msgid "Time with RTS 'on' before transmit (milliseconds):"
+msgstr "Tijd voor RTS 'aan' voordat wordt verzonden (milliseconden):"
+
+#: ../src/term_config.c:466
+msgid "Time with RTS 'on' after transmit (milliseconds):"
+msgstr "Tijd voor RTS 'aan' nadat is verzonden (milliseconden):"
+
+#: ../src/term_config.c:591
+msgid "Load configuration"
+msgstr "Configuratie laden"
+
+#: ../src/term_config.c:601
+msgid "Delete configuration"
+msgstr "Configuratie verwijderen"
+
+#: ../src/term_config.c:631 ../src/term_config.c:896
+msgid ""
+"Cannot read configuration file!\n"
+"Config file may contain invalid parameter.\n"
+msgstr ""
+"Kan configuratie bestand niet lezen!\n"
+"Configuratie bestand kan onjuiste parameters bevatten.\n"
+
+#: ../src/term_config.c:637
+msgid "Configurations"
+msgstr "Configuraties"
+
+#: ../src/term_config.c:704
+msgid "Save configuration"
+msgstr "Configuratie opslaan"
+
+#: ../src/term_config.c:716
+msgid "Configuration name: "
+msgstr "Naam configuratie:"
+
+#: ../src/term_config.c:750
+msgid ""
+"Cannot save configuration file!\n"
+"Config file may contain invalid parameter.\n"
+msgstr ""
+"Kan configuratie bestand niet opslaan!\n"
+"Configuratie bestand kan onjuiste parameters bevatten.\n"
+
+#: ../src/term_config.c:770
+msgid "Cannot overwrite section!"
+msgstr "Kan sectie niet overschrijven"
+
+#: ../src/term_config.c:775
+msgid "Cannot read configuration file!"
+msgstr "Kan configuratiebestand niet overschrijven"
+
+#: ../src/term_config.c:785
+#, c-format
+msgid "Configuration [%s] saved\n"
+msgstr "Configuratie [%s] opgeslagen\n"
+
+#: ../src/term_config.c:804
+msgid ""
+"Cannot write configuration file!\n"
+"Config file may contain invalid parameter.\n"
+msgstr ""
+"Kan niet naar configuratie bestand schrijven!\n"
+"Configuratie bestand kan onjuiste parameters bevatten.\n"
+
+#: ../src/term_config.c:819
+#, c-format
+msgid ""
+"<b>Section [%s] already exists.</b>\n"
+"\n"
+"Do you want to overwrite it ?"
+msgstr ""
+"<b>Sectie [%s] bestaat.</b>\n"
+"\n"
+"Wil je het overschrijven ?"
+
+#: ../src/term_config.c:879
+msgid "Cannot delete section!"
+msgstr "Kan sectie niet verwijderen!"
+
+#: ../src/term_config.c:1060
+#, c-format
+msgid "No section \"%s\" in configuration file\n"
+msgstr "Geen sectie \"%s\" in configuratie bestand\n"
+
+#: ../src/term_config.c:1105
+#, c-format
+msgid "Baudrate %d may not be supported by all hardware"
+msgstr "Baudrate %d  wellicht niet door alle hardware ondersteund"
+
+#: ../src/term_config.c:1112
+#, c-format
+msgid ""
+"Invalid number of stop-bits: %d\n"
+"Falling back to default number of stop-bits number: %d\n"
+msgstr ""
+"Onjuist aantal stop-bits: %d\n"
+"Het standaard aantal stopbits wordt gebruikt: %d\n"
+
+#: ../src/term_config.c:1120
+#, c-format
+msgid ""
+"Invalid number of bits: %d\n"
+"Falling back to default number of bits: %d\n"
+msgstr ""
+"Onjuist aantal bits: %d\n"
+"Het standaard aantal bits wordt gebruikt: %d\n"
+
+#: ../src/term_config.c:1128
+#, c-format
+msgid ""
+"Invalid delay: %d ms\n"
+"Falling back to default delay: %d ms\n"
+msgstr ""
+"Onjuiste vertraging: %d\n"
+"Het standaard  vertraging wordt gebruikt: %d\n"
+
+#: ../src/term_config.c:1158
+#, c-format
+msgid ""
+"Configuration file (%s) with\n"
+"[default] configuration has been created.\n"
+msgstr ""
+"Configuratie bestand (%s) met\n"
+"[standaard] configuratie is aangemaakt.\n"
+
+#: ../src/term_config.c:1414
+#, c-format
+msgid "Cannot find section %s\n"
+msgstr "Kan sectie %s niet vinden\n"
+
+#: ../src/term_config.c:1454
+msgid "Main Window"
+msgstr "Hoofd scherm"
