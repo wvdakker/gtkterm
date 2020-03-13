@@ -269,6 +269,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "576000");
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "921600");
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "1000000");
+	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "1500000");
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "2000000");
 
 	/* set the current choice to the previous setting */

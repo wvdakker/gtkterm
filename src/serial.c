@@ -222,6 +222,9 @@ gboolean Config_port(void)
 	case 1000000:
 		termios_p.c_cflag = B1000000;
 		break;
+	case 1500000:
+		termios_p.c_cflag = B1500000;
+		break;
 	case 2000000:
 		termios_p.c_cflag = B2000000;
 		break;
