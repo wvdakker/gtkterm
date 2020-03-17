@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-03-09 10:42+0100\n"
-"PO-Revision-Date: 2019-11-15 15:11+0800\n"
+"PO-Revision-Date: 2020-03-10 14:11+0800\n"
 "Last-Translator: 玉堂白鹤 <yjwork@qq.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2.4\n"
+"X-Generator: Poedit 2.3\n"
 
 #: ../src/buffer.c:164
 msgid "ERROR : Buffer is not initialized !\n"
@@ -120,12 +120,13 @@ msgid ""
 "--disable-port-lock or -L: does not lock serial port. Allows to send to "
 "serial port from different terminals\n"
 msgstr ""
+"--disable-port-lock 或 -L: 不锁定串行端口。允许从不同的终端发送到串口\n"
 
 #: ../src/cmdline.c:57
 msgid ""
 "                      Note: incomming data are displayed randomly on only "
 "one terminal\n"
-msgstr ""
+msgstr "                      注意: 传入数据仅在一个终端上随机显示\n"
 
 #: ../src/cmdline.c:167
 msgid "Misunderstood command line option\n"
@@ -216,9 +217,8 @@ msgid "_Clear screen"
 msgstr "清除屏幕(_C)"
 
 #: ../src/interface.c:157
-#, fuzzy
 msgid "_Clear scrollback"
-msgstr "清除屏幕(_C)"
+msgstr "清除回滚(_C)"
 
 #: ../src/interface.c:158
 msgid "Send _RAW file"
@@ -290,7 +290,7 @@ msgstr "CR LF 自动(_C)"
 
 #: ../src/interface.c:196
 msgid "Timestamp"
-msgstr ""
+msgstr "时间戳"
 
 #. View Menu
 #: ../src/interface.c:199
@@ -318,12 +318,14 @@ msgid "Hexadecimal data to send (separator : ';' or space) : "
 msgstr "要发送的十六进制数据(分隔符 : ';' 或空格) : "
 
 #: ../src/interface.c:736
-#, fuzzy
 msgid ""
 "Jun 2019\n"
 "\n"
 "GTKTerm is a simple GTK+ terminal used to communicate with the serial port."
-msgstr "GTKTerm 是一个简单的  GTK+ 终端，用于与串行端口进行通信。"
+msgstr ""
+"Jun 2019\n"
+"\n"
+"GTKTerm 是一个简单的 GTK+ 终端，用于与串行端口进行通信。"
 
 #: ../src/interface.c:776
 msgid "Break signal sent!"
@@ -627,6 +629,8 @@ msgid ""
 "Cannot read configuration file!\n"
 "Config file may contain invalid parameter.\n"
 msgstr ""
+"无法读取配置文件！\n"
+"配置文件可能包含无效的参数。\n"
 
 #: ../src/term_config.c:637
 msgid "Configurations"
@@ -645,6 +649,8 @@ msgid ""
 "Cannot save configuration file!\n"
 "Config file may contain invalid parameter.\n"
 msgstr ""
+"无法保存配置文件！\n"
+"配置文件可能包含无效的参数。\n"
 
 #: ../src/term_config.c:770
 msgid "Cannot overwrite section!"
@@ -664,6 +670,8 @@ msgid ""
 "Cannot write configuration file!\n"
 "Config file may contain invalid parameter.\n"
 msgstr ""
+"无法写入配置文件！\n"
+"配置文件可能包含无效的参数。\n"
 
 #: ../src/term_config.c:819
 #, c-format
@@ -733,9 +741,8 @@ msgid "Cannot find section %s\n"
 msgstr "找不到 %s 配置部分\n"
 
 #: ../src/term_config.c:1454
-#, fuzzy
 msgid "Main Window"
-msgstr "主窗口(_M)"
+msgstr "主窗口"
 
 #~ msgid "Terminal Font"
 #~ msgstr "终端字体"
