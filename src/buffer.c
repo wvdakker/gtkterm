@@ -38,6 +38,9 @@ static unsigned int pointer;
 static int cr_received = 0;
 char overlapped;
 
+extern guint virt_col_pos;
+
+
 void (*write_func)(const char *, unsigned int) = NULL;
 void (*clear_func)(void) = NULL;
 
@@ -232,6 +235,8 @@ void clear_buffer(void)
 	current_buffer = buffer;
 	pointer = 0;
 	cr_received = 0;
+
+	virt_col_pos = 0;
 }
 
 void set_clear_func(void (*func)(void))
