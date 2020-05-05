@@ -110,7 +110,7 @@ static gint bytes_per_line = 16;
 static gchar blank_data[128];
 static guint total_bytes;
 static gboolean show_index = FALSE;
-static guint virt_col_pos = 0;
+guint virt_col_pos = 0;
 
 /* Local functions prototype */
 void signals_send_break_callback(GtkAction *action, gpointer data);
