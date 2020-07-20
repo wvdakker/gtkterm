@@ -348,8 +348,6 @@ msgstr "Donnée hexadécimale à envoyer (séparateur : ';' ou espace) : "
 
 #: ../src/interface.c:736
 msgid ""
-"Jun 2019\n"
-"\n"
 "GTKTerm is a simple GTK+ terminal used to communicate with the serial port."
 msgstr ""
 

@@ -724,16 +724,19 @@ void help_about_callback(GtkAction *action, gpointer data)
 {
 	gchar *authors[] = {"Julien Schimtt", "Zach Davis", "Florian Euchner", "Stephan Enderlein",
 			    "Kevin Picot", NULL};
+	gchar *comments_program = _("GTKTerm is a simple GTK+ terminal used to communicate with the serial port.");
+	gchar *comments[256];
 	GError *error = NULL;
 	GdkPixbuf *logo = NULL;
 
 	logo = gdk_pixbuf_new_from_resource ("/org/gtk/gtkterm/gtkterm_64x64.png", &error);
+	g_sprintf(comments, "%s\n\n%s", RELEASE_DATE, comments_program);;
 
 	gtk_show_about_dialog(GTK_WINDOW(Fenetre),
 	                      "program-name", "GTKTerm",
 	                      "logo", logo,
 	                      "version", VERSION,
-	                      "comments", _("Jun 2019\n\nGTKTerm is a simple GTK+ terminal used to communicate with the serial port."),
+	                      "comments", comments,
 	                      "copyright", "Copyright © Julien Schimtt",
 	                      "authors", authors,
 	                      "website", "https://github.com/Jeija/gtkterm",

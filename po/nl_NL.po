@@ -333,14 +333,9 @@ msgstr "Te verzenden hexadecimale data (scheidingsteken : ';' or spatie) : "
 
 #: ../src/interface.c:736
 msgid ""
-"Jun 2019\n"
-"\n"
 "GTKTerm is a simple GTK+ terminal used to communicate with the serial port."
 msgstr ""
-"Jun 2019\n"
-"\n"
-"GTKTerm is een eenvoudige GTK+ terminal voor communicatie met de seriele "
-"poort."
+"GTKTerm is een eenvoudige GTK+ terminal voor communicatie met de seriele poort."
 
 #: ../src/interface.c:776
 msgid "Break signal sent!"

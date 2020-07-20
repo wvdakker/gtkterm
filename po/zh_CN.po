@@ -319,12 +319,8 @@ msgstr "要发送的十六进制数据(分隔符 : ';' 或空格) : "
 
 #: ../src/interface.c:736
 msgid ""
-"Jun 2019\n"
-"\n"
 "GTKTerm is a simple GTK+ terminal used to communicate with the serial port."
 msgstr ""
-"Jun 2019\n"
-"\n"
 "GTKTerm 是一个简单的 GTK+ 终端，用于与串行端口进行通信。"
 
 #: ../src/interface.c:776

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-09 08:47+0100\n"
+"POT-Creation-Date: 2020-07-20 12:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/buffer.c:164
+#: ../src/buffer.c:167
 msgid "ERROR : Buffer is not initialized !\n"
 msgstr ""
 
@@ -310,27 +310,25 @@ msgstr ""
 msgid "Hexadecimal data to send (separator : ';' or space) : "
 msgstr ""
 
-#: ../src/interface.c:736
+#: ../src/interface.c:727
 msgid ""
-"Jun 2019\n"
-"\n"
 "GTKTerm is a simple GTK+ terminal used to communicate with the serial port."
 msgstr ""
 
-#: ../src/interface.c:776
+#: ../src/interface.c:779
 msgid "Break signal sent!"
 msgstr ""
 
-#: ../src/interface.c:882
+#: ../src/interface.c:885
 #, c-format
 msgid "0 byte(s) sent!"
 msgstr ""
 
-#: ../src/interface.c:896
+#: ../src/interface.c:899
 msgid "Improper formatted hex input, 0 bytes sent!"
 msgstr ""
 
-#: ../src/interface.c:907
+#: ../src/interface.c:910
 #, c-format
 msgid "%d byte(s) sent!"
 msgstr ""
