@@ -190,8 +190,9 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 
 	if(liste == NULL)
 	{
-		show_message(_("No serial devices found!\n\n"
-		               "Searched the following paths:\n"
+		show_message(_("No serial devices found!\n"
+		               "\n"
+		               "Searched the following device path patterns:\n"
 		               "\t/dev/ttyS*\n\t/dev/tts/*\n\t/dev/ttyUSB*\n\t/dev/usb/tts/*\n\n"
 		               "Enter a different device path in the 'Port' box.\n"), MSG_WRN);
 	}
@@ -454,7 +455,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	Combos[7] = CheckBouton;
 
 
-	Frame = gtk_frame_new(_("RS485 half-duplex parameters (RTS signal used to send)"));
+	Frame = gtk_frame_new(_("RS_485 half-duplex parameters (RTS signal used to send)"));
 
 	gtk_container_add(GTK_CONTAINER(ExpanderVbox), Frame);
 

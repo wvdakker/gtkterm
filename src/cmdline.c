@@ -45,16 +45,16 @@ void display_help(void)
 	i18n_printf(_("--speed <speed> or -s : serial port speed (default 9600)\n"));
 	i18n_printf(_("--bits <bits> or -b : number of bits (default 8)\n"));
 	i18n_printf(_("--stopbits <stopbits> or -t : number of stopbits (default 1)\n"));
-	i18n_printf(_("--parity <odd | even> or -a : partity (default none)\n"));
+	i18n_printf(_("--parity <odd | even> or -a : parity (default none)\n"));
 	i18n_printf(_("--flow <Xon | RTS | RS485> or -w : flow control (default none)\n"));
 	i18n_printf(_("--delay <ms> or -d : end of line delay in ms (default none)\n"));
 	i18n_printf(_("--char <char> or -r : wait for a special char at end of line (default none)\n"));
 	i18n_printf(_("--file <filename> or -f : default file to send (default none)\n"));
-	i18n_printf(_("--rts_time_before <ms> or -x : for rs485, time in ms before transmit with rts on\n"));
-	i18n_printf(_("--rts_time_after <ms> or -y : for rs485, time in ms after transmit with rts on\n"));
+	i18n_printf(_("--rts_time_before <ms> or -x : for RS-485, time in ms before transmit with rts on\n"));
+	i18n_printf(_("--rts_time_after <ms> or -y : for RS-485, time in ms after transmit with rts on\n"));
 	i18n_printf(_("--echo or -e : switch on local echo\n"));
 	i18n_printf(_("--disable-port-lock or -L: does not lock serial port. Allows to send to serial port from different terminals\n"));
-	i18n_printf(_("                      Note: incomming data are displayed randomly on only one terminal\n"));
+	i18n_printf(_("                      Note: incoming data are displayed randomly on only one terminal\n"));
 	i18n_printf("\n");
 }
 
@@ -164,7 +164,7 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 			return -1;
 
 		default:
-			i18n_printf(_("Misunderstood command line option\n"));
+			i18n_printf(_("Undefined command line option\n"));
 			return -1;
 		}
 	}
