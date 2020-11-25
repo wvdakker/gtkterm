@@ -90,7 +90,7 @@ msgstr "--parity <odd | even> oder -a: Parität (ohne ist voreingestellt)\n"
 #: ../src/cmdline.c:49
 msgid "--flow <Xon | RTS | RS485> or -w : flow control (default none)\n"
 msgstr ""
-"--flow <Xon | RTS | RS485> oder -w: Fluss-Steuerung (ohne ist voreingestellt)"
+"--flow <Xon | RTS | RS485> oder -w: Fluss-Steuerung (ohne ist voreingestellt)\n"
 
 #: ../src/cmdline.c:50
 msgid "--delay <ms> or -d : end of line delay in ms (default none)\n"
@@ -769,4 +769,4 @@ msgstr "Abschnitt %s kann nicht gefunden werden\n"
 #: ../src/term_config.c:1454
 msgid "Main Window"
 msgstr "Hauptfenster"
-
+
