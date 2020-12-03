@@ -156,7 +156,7 @@ void put_chars(const char *chars, unsigned int size, gboolean crlf_auto)
 
 		} // for
 
-		// set "incomming" data pointer to new buffer containing all normal and
+		// set "incoming" data pointer to new buffer containing all normal and
 		// converted newline characters
 		chars = out_buffer;
 		size = out_size;
@@ -168,7 +168,7 @@ void put_chars(const char *chars, unsigned int size, gboolean crlf_auto)
 		return;
 	}
 
-	// when incomming size is larger than buffer, then just print the
+	// when incoming size is larger than buffer, then just print the
 	// last BUFFER_SIZE characters and ignore all other at begin of buffer
 	if(size > BUFFER_SIZE)
 	{

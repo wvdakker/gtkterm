@@ -87,12 +87,12 @@ msgid "--stopbits <stopbits> or -t : number of stopbits (default 1)\n"
 msgstr "--stopbits <стоп-бит> или -t: количество стоп-битов (по умолчанию 1)\n"
 
 #: ../src/cmdline.c:48
-msgid "--parity <odd | even> or -a : partity (default none)\n"
-msgstr "--partity <odd | even> или -a: проверка чётности (по умолчанию none)\n"
+msgid "--parity <odd | even> or -a : parity (default none)\n"
+msgstr "--parity <odd | even> или -a: проверка чётности (по умолчанию none)\n"
 
 #: ../src/cmdline.c:49
 #, fuzzy
-msgid "--flow <Xon | RTS | RS485> or -w : flow control (default none)\n"
+msgid "--flow <Xon | RTS | RS-485> or -w : flow control (default none)\n"
 msgstr "--flow <Xon | CTS> или -w: управление потоком (по умолчанию none)\n"
 
 #: ../src/cmdline.c:50
@@ -113,13 +113,13 @@ msgstr ""
 
 #: ../src/cmdline.c:53
 msgid ""
-"--rts_time_before <ms> or -x : for rs485, time in ms before transmit with "
+"--rts_time_before <ms> or -x : for RS-485, time in ms before transmit with "
 "rts on\n"
 msgstr ""
 
 #: ../src/cmdline.c:54
 msgid ""
-"--rts_time_after <ms> or -y : for rs485, time in ms after transmit with rts "
+"--rts_time_after <ms> or -y : for RS-485, time in ms after transmit with rts "
 "on\n"
 msgstr ""
 
@@ -135,12 +135,12 @@ msgstr ""
 
 #: ../src/cmdline.c:57
 msgid ""
-"                      Note: incomming data are displayed randomly on only "
+"                      Note: incoming data are displayed randomly on only "
 "one terminal\n"
 msgstr ""
 
 #: ../src/cmdline.c:167
-msgid "Misunderstood command line option\n"
+msgid "Undefined command line option\n"
 msgstr "Неверный параметр командной строки\n"
 
 #: ../src/files.c:77
@@ -515,7 +515,7 @@ msgstr ""
 #, c-format
 msgid ""
 "%s(%d)\n"
-"There is no closing brace.\n"
+"There is no closing bracket.\n"
 msgstr ""
 "%s(%d)\n"
 "Нет закрывающей скобки.\n"
@@ -567,7 +567,7 @@ msgstr "Порт не открыт"
 msgid ""
 "No serial devices found!\n"
 "\n"
-"Searched the following paths:\n"
+"Searched the following device path patterns:\n"
 "\t/dev/ttyS*\n"
 "\t/dev/tts/*\n"
 "\t/dev/ttyUSB*\n"
@@ -640,7 +640,7 @@ msgid "Wait for this special character before passing to next line:"
 msgstr "Ожидать специальный символ до передачи следующей строки:"
 
 #: ../src/term_config.c:457
-msgid "RS485 half-duplex parameters (RTS signal used to send)"
+msgid "RS-485 half-duplex parameters (RTS signal used to send)"
 msgstr ""
 
 #: ../src/term_config.c:464

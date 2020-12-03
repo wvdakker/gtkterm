@@ -455,7 +455,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	Combos[7] = CheckBouton;
 
 
-	Frame = gtk_frame_new(_("RS_485 half-duplex parameters (RTS signal used to send)"));
+	Frame = gtk_frame_new(_("RS-485 half-duplex parameters (RTS signal used to send)"));
 
 	gtk_container_add(GTK_CONTAINER(ExpanderVbox), Frame);
 
