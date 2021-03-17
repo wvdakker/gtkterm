@@ -67,6 +67,13 @@ If you wish to install GTKTerm someplace other than the default directory, e.g. 
 
 Then build and install as usual.
 
+## Uninstallation
+To uninstall GTKTerm, run:
+
+	ninja -C build uninstall
+
+If you already deleted "build" directory, just install GTKTerm again in the same place of hard drive and run above uninstallation command.
+
 ## License
 Original Code by: Julien Schmitt
 
