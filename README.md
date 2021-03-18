@@ -72,7 +72,7 @@ To uninstall GTKTerm, run:
 
 	ninja -C build uninstall
 
-If you already deleted "build" directory, just install GTKTerm again in the same place of hard drive and run above uninstallation command.
+If you already deleted the `build` directory, just compile and install GTKTerm again as explained in the [previous section](#installation) with the same target location prefix (`-Dprefix`) and perform the uninstall step afterwards.
 
 ## License
 Original Code by: Julien Schmitt
