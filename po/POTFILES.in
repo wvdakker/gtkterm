@@ -4,8 +4,10 @@
 # Package source files
 src/buffer.c
 src/cmdline.c
-src/config_terminal_dialog.ui
+src/device_monitor.c
 src/files.c
+src/gtkterm.c
+src/i18n.c
 src/interface.c
 src/logging.c
 src/macros.c

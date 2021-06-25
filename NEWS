@@ -1,3 +1,14 @@
+1.1.1  : Fixed many typos (Thanks to Markus Hiereth)
+
+1.1    : Clear scrollbuffer option
+	 Added Dutch translation
+	 Translation updates
+
+1.0.1  : Change to meson buildsystem
+	 Autoreconnect last port
+	 Add several translations
+	 Bugfix: show HEX output
+
 0.99.6 : Change of maintainership
          handfull of existing patches applied
 
@@ -11,9 +22,9 @@
 
 0.98.3 : now gtkterm has a configuration file
 
-0.98 : 	first GTK+ 2.0 version
-	lots of other changes ! see ChangeLog
-	
-0.97 : 	control signals control
+0.98   : first GTK+ 2.0 version
+         lots of other changes ! see ChangeLog
+    
+0.97   : control signals control
 
-0.9 :	initial revision
+0.9    : initial revision

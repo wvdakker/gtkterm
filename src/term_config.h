@@ -30,6 +30,7 @@ void check_text_input(GtkEditable *editable,
                       gint         new_text_length,
                       gint        *position,
                       gpointer     user_data);
+void clear_scrollback(void);
 
 struct configuration_port
 {

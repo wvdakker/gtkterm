@@ -32,6 +32,8 @@ void set_view(guint);
 gint send_serial(gchar *, gint);
 void Put_temp_message(const gchar *, gint);
 void Set_window_title(gchar *msg);
+void interface_close_port(void);
+void interface_open_port(void);
 
 void toggle_logging_pause_resume(gboolean currentlyLogging);
 void toggle_logging_sensitivity(gboolean currentlyLogging);

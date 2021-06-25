@@ -1,0 +1,20 @@
+version: 2
+jobs:
+    build:
+        docker:
+            - image: debian:buster
+        steps:
+            - checkout
+            - run:
+                name: Installdeps
+                command: apt update && apt install -y build-essential meson libgtk-3-dev libvte-2.91-dev gettext libgudev-1.0-dev
+            - run:
+                name: Configure
+                command: meson build
+            - run:
+                name: Build
+                command: ninja -C build
+            - run:
+                name: Install
+                command: ninja -C build install
+

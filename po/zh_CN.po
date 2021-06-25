@@ -1,26 +1,25 @@
-# French translations for gtkterm package
-# Traduction anglaise du package gtkterm.
-# Copyright (C) 2003 Julien Schmitt
+# Chinese (China) translation for gtkterm package.
 # This file is distributed under the same license as the gtkterm package.
-# Julien Schmitt <julien@jls-info.com>, 2003, 2011.
+#
+# 玉堂白鹤 <yjwork@qq.com>, 2019.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: gtkterm 0.99.1\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-09 10:40+0100\n"
-"PO-Revision-Date: 2011-07-25 16:06+0200\n"
-"Last-Translator: Julien Schmitt <julien@jls-info.com>\n"
-"Language-Team: French <traduc@traduc.org>\n"
-"Language: fr\n"
+"POT-Creation-Date: 2020-03-09 10:42+0100\n"
+"PO-Revision-Date: 2020-03-10 14:11+0800\n"
+"Last-Translator: 玉堂白鹤 <yjwork@qq.com>\n"
+"Language-Team: \n"
+"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 2.3\n"
 
 #: ../src/buffer.c:164
 msgid "ERROR : Buffer is not initialized !\n"
-msgstr "ERREUR : buffer non initialisé !\n"
+msgstr "错误：缓冲区未初始化！\n"
 
 #: ../src/cmdline.c:37
 #, c-format
@@ -29,7 +28,7 @@ msgid ""
 "GTKTerm version %s\n"
 msgstr ""
 "\n"
-"GTKTerm version %s\n"
+"GTKTerm 版本 %s\n"
 
 #: ../src/cmdline.c:38
 msgid "\t (c) Julien Schmitt\n"
@@ -41,11 +40,11 @@ msgid ""
 "This program is released under the terms of the GPL V.2\n"
 msgstr ""
 "\n"
-"Ce programme est distribué selon les termes de la license GPL V.2\n"
+"该程序根据 GPL V.2 的条款发布\n"
 
 #: ../src/cmdline.c:40
 msgid "\t ** Use at your own risks ! **\n"
-msgstr "\t ** Livré sans aucune garantie ! **\n"
+msgstr "\t ** 使用风险自负！ **\n"
 
 #: ../src/cmdline.c:41
 msgid ""
@@ -53,343 +52,316 @@ msgid ""
 "Command line options\n"
 msgstr ""
 "\n"
-"Options de la ligne de commande\n"
+"命令行选项\n"
 
 #: ../src/cmdline.c:42
 msgid "--help or -h : this help screen\n"
-msgstr "--help or -h : cet écran d'aide\n"
+msgstr "--help 或 -h：此帮助屏幕\n"
 
 #: ../src/cmdline.c:43
 msgid "--config <configuration> or -c : load configuration\n"
-msgstr "--config <configuration> ou -c : charger une configuration\n"
+msgstr "--config <configuration> 或 -c：加载配置\n"
 
 #: ../src/cmdline.c:44
 msgid "--port <device> or -p : serial port device (default /dev/ttyS0)\n"
-msgstr "--port <device> ou -p : device du port série (/dev/ttyS0 par défaut)\n"
+msgstr "--port <device> 或 -p ：串口设备 (默认为 /dev/ttyS0)\n"
 
 #: ../src/cmdline.c:45
 msgid "--speed <speed> or -s : serial port speed (default 9600)\n"
-msgstr "--speed <speed> ou -s : vitesse du port série (9600 par défaut)\n"
+msgstr "--speed <speed> 或 -s ：串口速率 (默认为 9600)\n"
 
 #: ../src/cmdline.c:46
 msgid "--bits <bits> or -b : number of bits (default 8)\n"
-msgstr "--bits <bits> ou -b : nombre de bits (8 par défaut)\n"
+msgstr "--bits <bits> 或 -b ：数据位 (默认为 8)\n"
 
 #: ../src/cmdline.c:47
 msgid "--stopbits <stopbits> or -t : number of stopbits (default 1)\n"
-msgstr "--stopbits <stopbits> ou -t : nombre de bits de stop (1 par défaut)\n"
+msgstr "--stopbits <stopbits> or -t ：停止位 (默认为 1)\n"
 
 #: ../src/cmdline.c:48
 msgid "--parity <odd | even> or -a : parity (default none)\n"
-msgstr "--parity <odd | even> ou -a : partité (aucune par défaut)\n"
+msgstr "--parity <odd | even> 或 -a ：奇偶校验 (默认为 none)\n"
 
 #: ../src/cmdline.c:49
 msgid "--flow <Xon | RTS | RS-485> or -w : flow control (default none)\n"
-msgstr ""
-"--flow <Xon | RTS | RS-485> ou -w : contrôle de flux (aucun par défaut)\n"
+msgstr "--flow <Xon | RTS | RS-485> 或 -w ：数据流控制 (默认为 none)\n"
 
 #: ../src/cmdline.c:50
 msgid "--delay <ms> or -d : end of line delay in ms (default none)\n"
-msgstr "--delay <ms> ou -d : délai de fin de ligne en ms (aucun par défaut)\n"
+msgstr "--delay <ms> or -d ：行末延迟(ms) (默认 none)\n"
 
 #: ../src/cmdline.c:51
 msgid ""
 "--char <char> or -r : wait for a special char at end of line (default none)\n"
-msgstr ""
-"--char <char> ou -r : caractère spécial à attendre en fin de ligne (aucun "
-"par défaut)\n"
+msgstr "--char <char> or -r : 在行尾等待特殊字符 (默认为 none)\n"
 
 #: ../src/cmdline.c:52
 msgid "--file <filename> or -f : default file to send (default none)\n"
-msgstr ""
-"--file <filename> ou -f : fichier par défaut à envoyer (aucun par défaut)\n"
+msgstr "--file <filename> or -f ：要发送的默认文件 (默认为 none)\n"
 
 #: ../src/cmdline.c:53
 msgid ""
 "--rts_time_before <ms> or -x : for RS-485, time in ms before transmit with "
 "rts on\n"
 msgstr ""
-"--rts_time_before <ms> ou -x : pour RS-485, temps en ms avant transmission "
-"avec rts activé\n"
 
 #: ../src/cmdline.c:54
 msgid ""
 "--rts_time_after <ms> or -y : for RS-485, time in ms after transmit with rts "
 "on\n"
 msgstr ""
-"--rts_time_after <ms> ou -x : pour RS-485, temps en ms après transmission "
-"avec rts activé\n"
 
 #: ../src/cmdline.c:55
 msgid "--echo or -e : switch on local echo\n"
-msgstr "--echo ou -e : écho local\n"
+msgstr "--echo 或 -e ：打开本地回显\n"
 
 #: ../src/cmdline.c:56
 msgid ""
 "--disable-port-lock or -L: does not lock serial port. Allows to send to "
 "serial port from different terminals\n"
 msgstr ""
+"--disable-port-lock 或 -L: 不锁定串行端口。允许从不同的终端发送到串口\n"
 
 #: ../src/cmdline.c:57
 msgid ""
 "                      Note: incoming data are displayed randomly on only "
 "one terminal\n"
-msgstr ""
+msgstr "                      注意: 传入数据仅在一个终端上随机显示\n"
 
 #: ../src/cmdline.c:167
 msgid "Undefined command line option\n"
-msgstr "Ligne de commande inconnue\n"
+msgstr "错误理解命令行选项\n"
 
 #: ../src/files.c:77
 msgid "Send RAW File"
-msgstr ""
+msgstr "发送 RAW 文件"
 
 #: ../src/files.c:96
 #, c-format
 msgid "Error opening file\n"
-msgstr "Erreur d'ouverture du fichier\n"
+msgstr "打开文件出错\n"
 
 #: ../src/files.c:110
 #, c-format
 msgid "%s : transfer in progress..."
-msgstr "%s : transfert en cours..."
+msgstr "%s ：传输中..."
 
 #: ../src/files.c:128
 msgid "Cancel"
-msgstr "Annuler"
+msgstr "取消"
 
 #: ../src/files.c:143
 #, c-format
 msgid "Cannot read file %s: %s\n"
-msgstr "Impossible de lire le fichier %s : %s\n"
+msgstr "无法读取文件 %s: %s\n"
 
 #: ../src/files.c:178
-#, fuzzy, c-format
+#, c-format
 msgid "Error sending file\n"
-msgstr "Erreur d'ouverture du fichier\n"
+msgstr "发送文件出错\n"
 
 #: ../src/files.c:206
-#, fuzzy, c-format
+#, c-format
 msgid "Error sending file: %s\n"
-msgstr "Erreur d'ouverture du fichier\n"
+msgstr "发送文件出错：%s\n"
 
 #: ../src/files.c:292
 msgid "Save RAW File"
-msgstr ""
+msgstr "保存 RAW 文件"
 
 #: ../src/files.c:311
 #, c-format
 msgid "File error\n"
-msgstr "Erreur de fichier\n"
+msgstr "文件错误\n"
 
 #: ../src/files.c:322 ../src/logging.c:68 ../src/logging.c:123
 #, c-format
 msgid "Cannot open file %s: %s\n"
-msgstr "Impossible d'ouvrir le fichier %s : %s\n"
+msgstr "无法打开文件 %s: %s\n"
 
 #. Toplevel
 #: ../src/interface.c:145
-#, fuzzy
 msgid "_File"
-msgstr "_Fichier"
+msgstr "文件(_F)"
 
 #: ../src/interface.c:146
 msgid "_Edit"
-msgstr ""
+msgstr "编辑(_E)"
 
 #: ../src/interface.c:147
-#, fuzzy
 msgid "_Log"
-msgstr "/_Log"
+msgstr "日志(_L)"
 
 #: ../src/interface.c:148
-#, fuzzy
 msgid "_Configuration"
-msgstr "/_Configuration"
+msgstr "配置(_C)"
 
 #: ../src/interface.c:149
-#, fuzzy
 msgid "Control _signals"
-msgstr "/_Signaux de contrôle"
+msgstr "控制信号(_S)"
 
 #: ../src/interface.c:150
-#, fuzzy
 msgid "_View"
-msgstr "/_Vue"
+msgstr "视图(_V)"
 
 #: ../src/interface.c:151
-#, fuzzy
 msgid "Hexadecimal _chars"
-msgstr "/Vue/_Largeur affichage hexadécimal"
+msgstr "十六进制字符(_C)"
 
 #: ../src/interface.c:152
-#, fuzzy
 msgid "_Help"
-msgstr "_Aide"
+msgstr "帮助(_F)"
 
 #: ../src/interface.c:156
-#, fuzzy
 msgid "_Clear screen"
-msgstr "/Fichier/Effacer l'écran"
+msgstr "清除屏幕(_C)"
 
 #: ../src/interface.c:157
 msgid "_Clear scrollback"
-msgstr ""
+msgstr "清除回滚(_C)"
 
 #: ../src/interface.c:158
-#, fuzzy
 msgid "Send _RAW file"
-msgstr "/Fichier/Envoi de _fichier brut"
+msgstr "发送 RAW 文件(_R)"
 
 #: ../src/interface.c:159
-#, fuzzy
 msgid "_Save RAW file"
-msgstr "/Fichier/_Sauvegarde en fichier brut"
+msgstr "保存 RAW 文件(_S)"
 
 #. Log Menu
 #: ../src/interface.c:167
-#, fuzzy
 msgid "To file..."
-msgstr "/Log/Dans le fichier..."
+msgstr "至文件..."
 
 #. Confuguration Menu
 #: ../src/interface.c:173
-#, fuzzy
 msgid "_Port"
-msgstr "Port :"
+msgstr "端口(_P)"
 
 #: ../src/interface.c:174
-#, fuzzy
 msgid "_Main window"
-msgstr "/Configuration/_Fenêtre prncipale"
+msgstr "主窗口(_M)"
 
 #: ../src/interface.c:175
 msgid "_Macros"
-msgstr ""
+msgstr "宏(_M)"
 
 #: ../src/interface.c:176
-#, fuzzy
 msgid "_Load configuration"
-msgstr "Charger une configuration"
+msgstr "加载配置(_L)"
 
 #: ../src/interface.c:177
-#, fuzzy
 msgid "_Save configuration"
-msgstr "Sauvegarde de la configuration"
+msgstr "保存配置(_S)"
 
 #: ../src/interface.c:178
-#, fuzzy
 msgid "_Delete configuration"
-msgstr "Supprimer une configuration"
+msgstr "删除配置(_D)"
 
 #. Signals Menu
 #: ../src/interface.c:181
 msgid "Send break"
-msgstr ""
+msgstr "发送中断"
 
 #: ../src/interface.c:182
-#, fuzzy
 msgid "_Open Port"
-msgstr "Aucun port ouvert"
+msgstr "打开端口(_O)"
 
 #: ../src/interface.c:183
 msgid "_Close Port"
-msgstr ""
+msgstr "关闭端口(_C)"
 
 #: ../src/interface.c:184
 msgid "Toggle DTR"
-msgstr ""
+msgstr "切换 DTR"
 
 #: ../src/interface.c:185
 msgid "Toggle RTS"
-msgstr ""
+msgstr "切换 RTS"
 
 #. Configuration Menu
 #: ../src/interface.c:194
 msgid "Local _echo"
-msgstr ""
+msgstr "本地回显(_E)"
 
 #: ../src/interface.c:195
 msgid "_CR LF auto"
-msgstr ""
+msgstr "CR LF 自动(_C)"
 
 #: ../src/interface.c:196
 msgid "Timestamp"
-msgstr ""
+msgstr "时间戳"
 
 #. View Menu
 #: ../src/interface.c:199
-#, fuzzy
 msgid "Show _index"
-msgstr "/Vue/Afficher l'index"
+msgstr "显示索引(_I)"
 
 #: ../src/interface.c:200
-#, fuzzy
 msgid "_Send hexadecimal data"
-msgstr "/Vue/_Envoi d'hexadécimal"
+msgstr "发送十六进制数据(_S)"
 
 #: ../src/interface.c:205
-#, fuzzy
 msgid "_ASCII"
-msgstr "/Vue/_ASCII"
+msgstr "ASCII(_A)"
 
 #: ../src/interface.c:206
-#, fuzzy
 msgid "_Hexadecimal"
-msgstr "/Vue/_Hexadécimal"
+msgstr "十六进制(_H)"
 
 #: ../src/interface.c:422
 msgid "Resume"
-msgstr "Reprendre"
+msgstr "恢复"
 
 #: ../src/interface.c:567
 msgid "Hexadecimal data to send (separator : ';' or space) : "
-msgstr "Donnée hexadécimale à envoyer (séparateur : ';' ou espace) : "
+msgstr "要发送的十六进制数据(分隔符 : ';' 或空格) : "
 
 #: ../src/interface.c:736
 msgid ""
 "GTKTerm is a simple GTK+ terminal used to communicate with the serial port."
 msgstr ""
+"GTKTerm 是一个简单的 GTK+ 终端，用于与串行端口进行通信。"
 
 #: ../src/interface.c:776
 msgid "Break signal sent!"
-msgstr "Signal break envoyé !"
+msgstr "中断信号发送！"
 
 #: ../src/interface.c:882
 #, c-format
 msgid "0 byte(s) sent!"
-msgstr "0 octet(s) envoyé(s) !"
+msgstr "已发送 0 个字节！"
 
 #: ../src/interface.c:896
 msgid "Improper formatted hex input, 0 bytes sent!"
-msgstr ""
+msgstr "十六进制输入格式不正确，已发送 0 个字节！"
 
 #: ../src/interface.c:907
-#, fuzzy, c-format
+#, c-format
 msgid "%d byte(s) sent!"
-msgstr "0 octet(s) envoyé(s) !"
+msgstr "已发送 %d 个字节！"
 
 #: ../src/logging.c:49
 #, c-format
 msgid "Filename error\n"
-msgstr "Erreur du nom du fichier\n"
+msgstr "文件名错误\n"
 
 #: ../src/logging.c:88
 msgid "Log file selection"
-msgstr "Sélection du fichier de log"
+msgstr "日志文件选择"
 
 #: ../src/logging.c:184
 msgid "Failed to log data\n"
-msgstr "Échec du log des données\n"
+msgstr "记录数据失败\n"
 
 #: ../src/macros.c:144
 #, c-format
 msgid "Macro \"%s\" sent !"
-msgstr "Macro \"%s\" envoyée !"
+msgstr "宏 \"%s\"已发送！"
 
 #: ../src/macros.c:275
 msgid "Shortcut"
-msgstr "Raccourci"
+msgstr "快捷键"
 
 #: ../src/macros.c:432
 msgid ""
@@ -401,40 +373,38 @@ msgid ""
 "\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n"
 "\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"
 msgstr ""
-"Le champ \"action\" de la macro est la donnée à envoyer sur le port. Du "
-"texte peut être entré, mais aussi des caractères spéciaux, comme \\n, \\t, "
-"\\r, etc. Vous pouvez aussi entrer un nombre hexadecimal précédé par un "
-"'\\'. La donnée hexadecimale ne doit pas commencer par une lettre (utiliser "
-"\\0FF et pas \\FF par exemple)\n"
-"Exemples :\n"
-"\t\"Bonjour\\n\" envoie \"Bonjour\" suivi d'un retour à la ligne (LF)\n"
-"\t\"Bonjour\\0A\" fait la même chose..."
+"宏的 \"action\" 字段是要在端口上发送的数据。 可以输入文本，但也可以输入特殊字"
+"符，例如\\n，\\t，\\r，等。您还可以输入以 '\\' 头的十六进制数据。 十六进制数"
+"据不应以字母开头(例如，使用 \\0FF 而不是\\FF)\n"
+"例如 ：\n"
+"\t\"Hello\\n\" 发送“ Hello”，后跟换行\n"
+"\t\"Hello\\0A\" 执行相同的操作，但是 LF 以十六进制输入"
 
 #: ../src/macros.c:452
 msgid "Configure Macros"
-msgstr "Configuration des Macros"
+msgstr "配置宏"
 
 #: ../src/macros.c:489
 msgid "_Add"
-msgstr "_Ajouter"
+msgstr "添加(_A)"
 
 #: ../src/macros.c:493
 msgid "_Delete"
-msgstr "_Supprimer"
+msgstr "删除(_D)"
 
 #: ../src/macros.c:497
 msgid "_Capture Shortcut"
-msgstr "_Capture le raccourci"
+msgstr "捕捉快捷键"
 
 #: ../src/parsecfg.c:355
 #, c-format
 msgid "Cannot open configuration file `%s'.\n"
-msgstr "Ne peut ouvrir le fichier de configuration `%s'.\n"
+msgstr "无法打开配置文件 `%s'.\n"
 
 #: ../src/parsecfg.c:358
 #, c-format
 msgid "Cannot create configuration file `%s'.\n"
-msgstr "Ne peut créer le fichier de configuration `%s'.\n"
+msgstr "无法创建配置文件 `%s'.\n"
 
 #: ../src/parsecfg.c:361
 #, c-format
@@ -443,7 +413,7 @@ msgid ""
 "Syntax error\n"
 msgstr ""
 "%s(%d): %s\n"
-"Erreur de syntaxe\n"
+"语法错误\n"
 
 #: ../src/parsecfg.c:364
 #, c-format
@@ -452,7 +422,7 @@ msgid ""
 "Unrecognized parameter\n"
 msgstr ""
 "%s(%d): %s\n"
-"Paramètre inconnu\n"
+"无法识别的参数\n"
 
 #: ../src/parsecfg.c:367
 #, c-format
@@ -461,7 +431,7 @@ msgid ""
 "Internal error\n"
 msgstr ""
 "%s(%d): %s\n"
-"Erreur interne\n"
+"内部错误\n"
 
 #: ../src/parsecfg.c:370
 #, c-format
@@ -470,7 +440,7 @@ msgid ""
 "Invalid number\n"
 msgstr ""
 "%s(%d): %s\n"
-"Nombre invalide\n"
+"无效数值\n"
 
 #: ../src/parsecfg.c:373
 #, c-format
@@ -479,7 +449,7 @@ msgid ""
 "Out of range\n"
 msgstr ""
 "%s(%d): %s\n"
-"En dehors des limites\n"
+"超出范围\n"
 
 #: ../src/parsecfg.c:376
 #, c-format
@@ -488,7 +458,7 @@ msgid ""
 "Cannot allocate memory.\n"
 msgstr ""
 "%s(%d): %s\n"
-"Ne peut allouer la mémoire\n"
+"无法分配内存。\n"
 
 #: ../src/parsecfg.c:379
 #, c-format
@@ -497,7 +467,7 @@ msgid ""
 "It must be specified TRUE or FALSE.\n"
 msgstr ""
 "%s(%d): %s\n"
-"Il faut spécifier TRUE ou FALSE.\n"
+"必须将其指定为 TRU E或 FALSE。\n"
 
 #: ../src/parsecfg.c:382
 #, c-format
@@ -506,7 +476,7 @@ msgid ""
 "The section name is already used.\n"
 msgstr ""
 "%s(%d): %s\n"
-"Le nom de section est déjà utilisé\n"
+"这个配置部分名称已被使用。\n"
 
 #: ../src/parsecfg.c:385
 #, c-format
@@ -515,7 +485,7 @@ msgid ""
 "There is no closing bracket.\n"
 msgstr ""
 "%s(%d)\n"
-"Il n'y a pas de crochet pour fermer l'expression.\n"
+"没有右括号。\n"
 
 #: ../src/parsecfg.c:390
 #, c-format
@@ -524,43 +494,42 @@ msgid ""
 "Unexplained error\n"
 msgstr ""
 "%s(%d): %s\n"
-"Erreur inconnue\n"
+"未知错误\n"
 
 #: ../src/serial.c:154
 #, c-format
 msgid "Cannot open %s: %s\n"
-msgstr "Impossible d'ouvrir %s : %s\n"
+msgstr "无法打开 %s: %s\n"
 
 #: ../src/serial.c:167
 #, c-format
 msgid ""
 "Cannot lock port! The serial port may currently be in use by another "
 "program.\n"
-msgstr ""
+msgstr "无法锁定端口！ 串行端口当前可能正在被另一个程序使用。\n"
 
 #: ../src/serial.c:235
 #, c-format
 msgid "Arbitrary baud rates not supported"
-msgstr ""
+msgstr "不支持任意波特率"
 
 #: ../src/serial.c:352 ../src/serial.c:398
 msgid "Control signals read"
-msgstr "Lecture des signaux de contrôle"
+msgstr "读取控制信号"
 
 #: ../src/serial.c:364
 msgid "DTR write"
-msgstr "Ecriture de DTR"
+msgstr "写入 DTR"
 
 #: ../src/serial.c:374
 msgid "RTS write"
-msgstr "Ecriture de RTS"
+msgstr "写入 RTS"
 
 #: ../src/serial.c:452
 msgid "No open port"
-msgstr "Aucun port ouvert"
+msgstr "无打开的端口"
 
 #: ../src/term_config.c:193
-#, fuzzy
 msgid ""
 "No serial devices found!\n"
 "\n"
@@ -572,68 +541,68 @@ msgid ""
 "\n"
 "Enter a different device path in the 'Port' box.\n"
 msgstr ""
-"Aucun périphérique série trouvé !\n"
+"找不到串行设备！\n"
 "\n"
-"Recherche parmi les périphériques suivants :\n"
-"/dev/ttyS*\n"
-"/dev/tts/*\n"
-"/dev/ttyUSB*\n"
-"/dev/usb/tts/*\n"
+"搜索以下路径：\n"
+"\t/dev/ttyS*\n"
+"\t/dev/tts/*\n"
+"\t/dev/ttyUSB*\n"
+"\t/dev/usb/tts/*\n"
 "\n"
-"Saisissez un autre périphérique dans la boîte 'Port'.\n"
+"在“端口”框中输入其他设备路径。\n"
 
 #: ../src/term_config.c:202
 msgid "Configuration"
-msgstr "Configuration"
+msgstr "配置"
 
 #: ../src/term_config.c:206
 msgid "Serial port"
-msgstr "Port série"
+msgstr "串行端口"
 
 #: ../src/term_config.c:212
 msgid "Port:"
-msgstr "Port :"
+msgstr "端口："
 
 #: ../src/term_config.c:214
 msgid "Baud Rate:"
-msgstr ""
+msgstr "波特率:"
 
 #: ../src/term_config.c:216
 msgid "Parity:"
-msgstr "Parité :"
+msgstr "奇偶校验:"
 
 #: ../src/term_config.c:362
 msgid "Bits:"
-msgstr "Bits :"
+msgstr "数据位:"
 
 #: ../src/term_config.c:364
 msgid "Stopbits:"
-msgstr "Bits de stop :"
+msgstr "停止位:"
 
 #: ../src/term_config.c:366
 msgid "Flow control:"
-msgstr "Contrôle de flux :"
+msgstr "数据流控制:"
 
 #. create an expander widget to hide the 'Advanced features'
 #: ../src/term_config.c:417
 msgid "Advanced Configuration Options"
-msgstr "Options de configurations avancées"
+msgstr "高级配置选项"
 
 #: ../src/term_config.c:422
 msgid "ASCII file transfer"
-msgstr "Transfert de fichier ASCII"
+msgstr "ASCII 文件传输"
 
 #: ../src/term_config.c:428
 msgid "End of line delay (milliseconds):"
-msgstr "Délai de fin de ligne (millisecondes) :"
+msgstr "行末延迟 (毫秒)："
 
 #: ../src/term_config.c:444
 msgid "Wait for this special character before passing to next line:"
-msgstr "Attendre le caractère suivant avant de passer à la ligne suivante :"
+msgstr "传递到下一行之前等待这个特殊字符:"
 
 #: ../src/term_config.c:457
 msgid "RS-485 half-duplex parameters (RTS signal used to send)"
-msgstr ""
+msgstr "RS-485 半双工参数(用于发送RTS信号)"
 
 #: ../src/term_config.c:464
 msgid "Time with RTS 'on' before transmit (milliseconds):"
@@ -645,79 +614,85 @@ msgstr ""
 
 #: ../src/term_config.c:591
 msgid "Load configuration"
-msgstr "Charger une configuration"
+msgstr "加载配置"
 
 #: ../src/term_config.c:601
 msgid "Delete configuration"
-msgstr "Supprimer une configuration"
+msgstr "删除配置"
 
 #: ../src/term_config.c:631 ../src/term_config.c:896
 msgid ""
 "Cannot read configuration file!\n"
 "Config file may contain invalid parameter.\n"
 msgstr ""
+"无法读取配置文件！\n"
+"配置文件可能包含无效的参数。\n"
 
 #: ../src/term_config.c:637
 msgid "Configurations"
-msgstr "Configurations"
+msgstr "配置"
 
 #: ../src/term_config.c:704
 msgid "Save configuration"
-msgstr "Sauvegarde de la configuration"
+msgstr "保存配置"
 
 #: ../src/term_config.c:716
 msgid "Configuration name: "
-msgstr "Nom de la configuration : "
+msgstr "配置名称： "
 
 #: ../src/term_config.c:750
 msgid ""
 "Cannot save configuration file!\n"
 "Config file may contain invalid parameter.\n"
 msgstr ""
+"无法保存配置文件！\n"
+"配置文件可能包含无效的参数。\n"
 
 #: ../src/term_config.c:770
 msgid "Cannot overwrite section!"
-msgstr "Impossible d'écraser la section !"
+msgstr "无法覆盖该配置部分！"
 
 #: ../src/term_config.c:775
 msgid "Cannot read configuration file!"
-msgstr "Impossible de lire le fichier de configuration !"
+msgstr "无法读取配置文件！"
 
 #: ../src/term_config.c:785
 #, c-format
 msgid "Configuration [%s] saved\n"
-msgstr "Configuration [%s] sauvée\n"
+msgstr "配置 [%s] 已保存\n"
 
 #: ../src/term_config.c:804
 msgid ""
 "Cannot write configuration file!\n"
 "Config file may contain invalid parameter.\n"
 msgstr ""
+"无法写入配置文件！\n"
+"配置文件可能包含无效的参数。\n"
 
 #: ../src/term_config.c:819
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "<b>Section [%s] already exists.</b>\n"
 "\n"
 "Do you want to overwrite it ?"
 msgstr ""
+"<b> [%s] 配置部分已存在。</b>\n"
 "\n"
-"La section [%s] existe déjà.\n"
-"Voulez vous l'écraser ?\n"
+"您要覆盖它吗？"
 
 #: ../src/term_config.c:879
 msgid "Cannot delete section!"
-msgstr "Impossible de supprimer la section !"
+msgstr "无法删除该配置部分！"
 
 #: ../src/term_config.c:1060
 #, c-format
 msgid "No section \"%s\" in configuration file\n"
-msgstr "Pas de section \"%s\" dans le fichier de configuration\n"
+msgstr "配置文件中无 \"%s\" 部分\n"
 
 #: ../src/term_config.c:1105
 #, c-format
 msgid "Baudrate %d may not be supported by all hardware"
-msgstr ""
+msgstr "不是所有硬件都支持波特率 %d"
 
 #: ../src/term_config.c:1112
 #, c-format
@@ -725,8 +700,8 @@ msgid ""
 "Invalid number of stop-bits: %d\n"
 "Falling back to default number of stop-bits number: %d\n"
 msgstr ""
-"Nombre de bits de stop impossible : %d\n"
-"Retour au nombre de bits de stop par défaut : %d\n"
+"无效的停止位：%d\n"
+"退回到默认的停止位：%d\n"
 
 #: ../src/term_config.c:1120
 #, c-format
@@ -734,8 +709,8 @@ msgid ""
 "Invalid number of bits: %d\n"
 "Falling back to default number of bits: %d\n"
 msgstr ""
-"Nombre de bits impossible : %d\n"
-"Retour au nombre de bits par défaut : %d\n"
+"无效的数据位：%d\n"
+"退回到默认的数据位：%d\n"
 
 #: ../src/term_config.c:1128
 #, c-format
@@ -743,8 +718,9 @@ msgid ""
 "Invalid delay: %d ms\n"
 "Falling back to default delay: %d ms\n"
 msgstr ""
-"Délai impossible : %d ms\n"
-"Retour au délai par défaut : %d ms\n"
+"无效的延迟： %d ms\n"
+"退回到默认延迟：%d ms\n"
+"\n"
 
 #: ../src/term_config.c:1158
 #, c-format
@@ -752,187 +728,32 @@ msgid ""
 "Configuration file (%s) with\n"
 "[default] configuration has been created.\n"
 msgstr ""
-"Le fichier de configuration %s a été créÂé\n"
-"avec une configuration [default].\n"
+"已创建包含 [default] 的\n"
+"配置文件 (%s) 。\n"
 
 #: ../src/term_config.c:1414
 #, c-format
 msgid "Cannot find section %s\n"
-msgstr "Impossible de trouver la section %s\n"
+msgstr "找不到 %s 配置部分\n"
 
 #: ../src/term_config.c:1454
 msgid "Main Window"
-msgstr ""
+msgstr "主窗口"
 
-#~ msgid "File selection"
-#~ msgstr "Sélection de fichier"
+#~ msgid "Terminal Font"
+#~ msgstr "终端字体"
 
-#~ msgid "OK"
-#~ msgstr "Ok"
+#~ msgid "Scrollback Lines"
+#~ msgstr "回滚行数"
 
-#~ msgid "Cannot write file %s\n"
-#~ msgstr "Impossible d'écrire le fichier %s\n"
+#~ msgid "Background color"
+#~ msgstr "背景颜色"
 
-#~ msgid "Help on macros"
-#~ msgstr "Aide sur les macros"
+#~ msgid "Text color"
+#~ msgstr "文本颜色"
 
-#~ msgid "Lockfile is stale. Overriding it..\n"
-#~ msgstr "Le fichier de lock est orphelin. Ecrasement...\n"
-
-#~ msgid "Device %s is locked.\n"
-#~ msgstr "Le device %s est vérouillé.\n"
-
-#~ msgid "Cannot create lockfile. Sorry.\n"
-#~ msgstr "Ne peut créer le fichier de lock, désolé\n"
-
-#~ msgid "/File/Separator"
-#~ msgstr "/Fichier/Separateur"
-
-#~ msgid "/File/E_xit"
-#~ msgstr "/Fichier/_Quitter"
-
-#~ msgid "/Edit/_Paste"
-#~ msgstr "/Édition/C_oller"
-
-#~ msgid "/Edit/_Copy"
-#~ msgstr "/Édition/_Copier"
-
-#~ msgid "/Edit/Copy _All"
-#~ msgstr "/Édition/Copier _tout"
-
-#~ msgid "/Log/Pause"
-#~ msgstr "/Log/Pause"
-
-#~ msgid "/Log/Stop"
-#~ msgstr "/Log/Stop"
-
-#~ msgid "/Log/Clear"
-#~ msgstr "/Log/Effacer"
-
-#~ msgid "/Configuration/_Port"
-#~ msgstr "/Configuration/_Port"
-
-#~ msgid "/Configuration/Local _echo"
-#~ msgstr "/Configuration/_Echo local"
-
-#~ msgid "/Configuration/_CR LF auto"
-#~ msgstr "/Configuration/_CR LF auto"
-
-#~ msgid "/Configuration/_Macros"
-#~ msgstr "/Configuration/_Macros"
-
-#~ msgid "/Configuration/Separator"
-#~ msgstr "/Configuration/Separateur"
-
-#~ msgid "/Configuration/_Load configuration"
-#~ msgstr "/Configuration/_Charger une configuration"
-
-#~ msgid "/Configuration/_Save configuration"
-#~ msgstr "/Configuration/_Enregistrer la configuration"
-
-#~ msgid "/Configuration/_Delete configuration"
-#~ msgstr "/Configuration/_Supprimer la configuration"
-
-#~ msgid "/Control signals/Send break"
-#~ msgstr "/Signaux de contrôle/Envoyer un break"
-
-#~ msgid "/Control signals/Toggle DTR"
-#~ msgstr "/Signaux de contrôle/Complémente DTR"
-
-#~ msgid "/Control signals/Toggle RTS"
-#~ msgstr "/Signaux de contrôle/Complémente RTS"
-
-#~ msgid "/View/Hexadecimal chars/_8"
-#~ msgstr "/Vue/Largeur affichage hexadécimal/_8"
-
-#~ msgid "/View/Hexadecimal chars/1_0"
-#~ msgstr "/Vue/Largeur affichage hexadécimal/1_0"
-
-#~ msgid "/View/Hexadecimal chars/_16"
-#~ msgstr "/Vue/Largeur affichage hexadécimal/_16"
-
-#~ msgid "/View/Hexadecimal chars/_24"
-#~ msgstr "/Vue/Largeur affichage hexadécimal/_24"
-
-#~ msgid "/View/Hexadecimal chars/_32"
-#~ msgstr "/Vue/Largeur affichage hexadécimal/_32"
-
-#~ msgid "/View/Separator"
-#~ msgstr "/Vue/Separateur"
-
-#~ msgid "/Help/_About..."
-#~ msgstr "/Aide/À _propos..."
-
-#~ msgid "Pause"
-#~ msgstr "Pause"
-
-#~ msgid "About..."
-#~ msgstr "à propos..."
-
-#~ msgid ""
-#~ "\n"
-#~ " <big><i> GTKTerm V. %s </i></big> \n"
-#~ "\n"
-#~ "\t(c) Julien Schmitt\n"
-#~ "\thttp://www.jls-info.com/julien/linux\n"
-#~ "\n"
-#~ "\tLatest Version Available on:\n"
-#~ "\thttps://fedorahosted.org/gtkterm/"
-#~ msgstr ""
-#~ "\n"
-#~ " <big><i> GTKTerm V. %s </i></big> \n"
-#~ "\n"
-#~ "\t(c) Julien Schmitt\n"
-#~ "\thttp://www.jls-info.com/julien/linux/index_fr.html\n"
-#~ "\n"
-#~ "\tDernière version disponible sur :\n"
-#~ "\thttps://fedorahosted.org/gtkterm/"
-
-#~ msgid "\"%s\" : %d byte(s) sent!"
-#~ msgstr "\"%s\" : %d octet(s) envoyé(s) !"
-
-#~ msgid "Font selection"
-#~ msgstr "Sélection de la police"
+#~ msgid "Block cursor"
+#~ msgstr "方块光标"
 
 #~ msgid "Cannot read configuration file!\n"
-#~ msgstr "Impossible de lire le fichier de configuration !\n"
-
-#~ msgid "Warning!"
-#~ msgstr "Attention !"
-
-#~ msgid "Terminal configuration"
-#~ msgstr "Configuration du Terminal"
-
-#~ msgid "\t http://www.jls-info.com/julien/linux\n"
-#~ msgstr "\t http://www.jls-info.com/julien/linux/index_fr.html\n"
-
-#~ msgid "Speed :"
-#~ msgstr "Vitesse :"
-
-#~ msgid ""
-#~ "Unknown speed : %d bauds\n"
-#~ "Falling back to default speed : %d bauds\n"
-#~ msgstr ""
-#~ "Vitesse inconnue : %d bauds\n"
-#~ "Sélection de la vitesse par défaut : %d bauds\n"
-
-#~ msgid "%v / %u Kb (%p %%)"
-#~ msgstr "%v / %u Ko (%p %%)"
-
-#~ msgid "%v / %u bytes (%p %%)"
-#~ msgstr "%v / %u octets (%p %%)"
-
-#~ msgid "/Configuration/Local echo"
-#~ msgstr "/Configuration/_Echo local"
-
-#~ msgid "/View/ASCII"
-#~ msgstr "/Vue/ASCII"
-
-#~ msgid "/View/Hexadecimal"
-#~ msgstr "/Vue/Hexadecimal"
-
-#~ msgid "/View/Hexadecimal chars"
-#~ msgstr "/Vue/_Largeur affichage hexadecimal"
-
-#~ msgid "/View/Show index"
-#~ msgstr "/Vue/Affichage de l'index"
+#~ msgstr "无法读取配置文件！\n"

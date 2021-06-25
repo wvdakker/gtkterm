@@ -45,7 +45,6 @@
 #include "serial.h"
 #include "term_config.h"
 #include "interface.h"
-#include "gresource.h"
 #include "parsecfg.h"
 #include "macros.h"
 #include "i18n.h"
@@ -191,8 +190,9 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 
 	if(liste == NULL)
 	{
-		show_message(_("No serial devices found!\n\n"
-		               "Searched the following paths:\n"
+		show_message(_("No serial devices found!\n"
+		               "\n"
+		               "Searched the following device path patterns:\n"
 		               "\t/dev/ttyS*\n\t/dev/tts/*\n\t/dev/ttyUSB*\n\t/dev/usb/tts/*\n\n"
 		               "Enter a different device path in the 'Port' box.\n"), MSG_WRN);
 	}
@@ -455,7 +455,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	Combos[7] = CheckBouton;
 
 
-	Frame = gtk_frame_new(_("RS485 half-duplex parameters (RTS signal used to send)"));
+	Frame = gtk_frame_new(_("RS-485 half-duplex parameters (RTS signal used to send)"));
 
 	gtk_container_add(GTK_CONTAINER(ExpanderVbox), Frame);
 
@@ -570,6 +570,11 @@ gint Grise_Degrise(GtkWidget *bouton, gpointer pointeur)
 		gtk_widget_set_sensitive(GTK_WIDGET(pointeur), TRUE);
 	}
 	return FALSE;
+}
+
+void clear_scrollback(void){
+    vte_terminal_set_scrollback_lines (VTE_TERMINAL(display), 0);
+    vte_terminal_set_scrollback_lines (VTE_TERMINAL(display), term_conf.scrollback);
 }
 
 void read_font_button(GtkFontButton *fontButton)
@@ -1447,6 +1452,7 @@ void Config_Terminal(GtkAction *action, gpointer data)
 	GtkWidget *dialog;
 	dialog = GTK_WIDGET(gtk_builder_get_object(builder, "dialog"));
 	gtk_window_set_transient_for(dialog, Fenetre);
+	gtk_window_set_title(GTK_WINDOW(dialog), _("Main Window"));
 
 	/** Connect signals **/
 	// Font Selection Button

@@ -396,7 +396,7 @@ static void cfgFatalFunc(cfgErrorCode error_code, const char *file, int line, co
 		i18n_fprintf(stderr, _("%s(%d): %s\nThe section name is already used.\n"), file, line, str);
 		break;
 	case CFG_NO_CLOSING_BRACE:
-		i18n_fprintf(stderr, _("%s(%d)\nThere is no closing brace.\n"), file, line);
+		i18n_fprintf(stderr, _("%s(%d)\nThere is no closing bracket.\n"), file, line);
 		break;
 	case CFG_JUST_RETURN_WITHOUT_MSG:
 		break;

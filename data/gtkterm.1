@@ -1,22 +1,8 @@
-.\"                                      Hey, EMACS: -*- nroff -*-
-.\" First parameter, NAME, should be all caps
-.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
-.\" other parameters are allowed: see man(7), man(1)
-.TH GTKTERM "1" "August 26, 2010"
+.TH GTKTerm "1" "September 15, 2019"
 .\" Please adjust this date whenever revising the manpage.
-.\"
-.\" Some roff macros, for reference:
-.\" .nh        disable hyphenation
-.\" .hy        enable hyphenation
-.\" .ad l      left justify
-.\" .ad b      justify to both left and right margins
-.\" .nf        disable filling
-.\" .fi        enable filling
-.\" .br        insert line break
-.\" .sp <n>    insert n+1 empty lines
-.\" for manpage-specific macros, see man(7)
+
 .SH NAME
-gtkterm \- A simple GTK+ serial port terminal
+GTKTerm \- A simple GTK+ serial port terminal
 
 .SH SYNOPSIS
 .B gtkterm [ options ]
@@ -39,7 +25,7 @@ Load configuration (default is "default").
 Serial port device (default /dev/ttyS0).
 .TP
 .B \-s, \-\-speed <speed>
-Serial port speed (default 9600).
+Serial port speed (default 115200).
 .TP
 .B \-b, \-\-bits <bits> 
 Number of bits (default 8).
@@ -64,12 +50,24 @@ Default file to send (default none).
 .TP
 .B \-e, \-\-echo
 Set local echo.
-
+.TP
+.B \-x, \-\-rts_time_before <ms>
+For rs485, time in ms before transmit with rts on
+.TP
+.B \-y, \-\-rts_time_after <ms>
+For rs485, time in ms after transmit with rts on
+.TP
+.B \-e, \-\-echo 
+Switch on local echo
+.TP
+.B \-L, \-\-disable-port-lock
+Do not lock serial port. Allows to send to serial port from different terminals.
 .SH AUTHOR
 .B gtkterm
 was written by Julien Schmitt.
-Maintained at https://fedorahosted.org/gtkterm/
-By Zach Davis
+Maintained at https://github.com/Jeija/gtkterm by Willem van den Akker,
+Florian Euchner
+
 .PP
 This manual page was written by Sebastien Bacher <seb128@debian.org>,
 for the Debian GNU/Linux system (but may be used by others).

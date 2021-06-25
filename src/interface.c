@@ -12,6 +12,11 @@
 /*   ChangeLog                                                         */
 /*   (All changes by Julien Schmitt except when explicitly written)    */
 /*                                                                     */
+/*       - 1.01  : The put_hexadecimal partly function rewritten.      */
+/*                 The vte_terminal_get_cursor_position function does  */
+/*                 not return always the actual column.                */
+/*                 Now it uses an internal column-index (virt_col_pos).*/
+/*                 (Willem van den Akker)                              */
 /*      - 0.99.7 : Changed keyboard shortcuts to <ctrl><shift>         */
 /*	            (Ken Peek)                                         */
 /*      - 0.99.6 : Added scrollbar and copy/paste (Zach Davis)         */
@@ -105,6 +110,7 @@ static gint bytes_per_line = 16;
 static gchar blank_data[128];
 static guint total_bytes;
 static gboolean show_index = FALSE;
+guint virt_col_pos = 0;
 
 /* Local functions prototype */
 void signals_send_break_callback(GtkAction *action, gpointer data);
@@ -148,6 +154,7 @@ const GtkActionEntry menu_entries[] =
 	/* File menu */
 	{"FileExit", GTK_STOCK_QUIT, NULL, "<shift><control>Q", NULL, gtk_main_quit},
 	{"ClearScreen", GTK_STOCK_CLEAR, N_("_Clear screen"), "<shift><control>L", NULL, G_CALLBACK(clear_buffer)},
+	{"ClearScrollback", GTK_STOCK_CLEAR, N_("_Clear scrollback"), "<shift><control>K", NULL, G_CALLBACK(clear_scrollback)},
 	{"SendFile", GTK_STOCK_JUMP_TO, N_("Send _RAW file"), "<shift><control>R", NULL, G_CALLBACK(send_raw_file)},
 	{"SaveFile", GTK_STOCK_SAVE_AS, N_("_Save RAW file"), "", NULL, G_CALLBACK(save_raw_file)},
 
@@ -213,6 +220,7 @@ static const char *ui_description =
     "  <menubar name='MenuBar'>"
     "    <menu action='File'>"
     "      <menuitem action='ClearScreen'/>"
+    "      <menuitem action='ClearScrollback'/>"
     "      <menuitem action='SendFile'/>"
     "      <menuitem action='SaveFile'/>"
     "      <separator/>"
@@ -330,6 +338,7 @@ void set_view(guint type)
 		gtk_action_set_sensitive(show_index_action, TRUE);
 		gtk_action_set_sensitive(hex_chars_action, TRUE);
 		total_bytes = 0;
+		virt_col_pos = 0;
 		set_display_func(put_hexadecimal);
 		break;
 	default:
@@ -467,7 +476,7 @@ void create_main_window(void)
 	g_signal_connect(GTK_WIDGET(Fenetre), "destroy", (GCallback)gtk_main_quit, NULL);
 	g_signal_connect(GTK_WIDGET(Fenetre), "delete_event", (GCallback)gtk_main_quit, NULL);
 
-	Set_window_title("GtkTerm");
+	Set_window_title("GTKTerm");
 
 	main_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_container_add(GTK_CONTAINER(Fenetre), main_vbox);
@@ -612,9 +621,7 @@ void put_hexadecimal(gchar *string, guint size)
 {
 	static gchar data[128];
 	static gchar data_byte[6];
-	static guint bytes;
-	glong column, row;
-
+	static gchar buffer[128];
 	gint i = 0;
 
 	if(size == 0)
@@ -623,38 +630,30 @@ void put_hexadecimal(gchar *string, guint size)
 	while(i < size)
 	{
 		while(gtk_events_pending()) gtk_main_iteration();
-		vte_terminal_get_cursor_position(VTE_TERMINAL(display), &column, &row);
-
-		if(show_index)
-		{
-			if(column == 0)
-				/* First byte on line */
-			{
-				sprintf(data, "%6d: ", total_bytes);
-				vte_terminal_feed(VTE_TERMINAL(display), data, strlen(data));
-				bytes = 0;
-			}
-		}
-		else
-		{
-			if(column == 0)
-				bytes = 0;
-		}
 
 		/* Print hexadecimal characters */
 		data[0] = 0;
 
-		while(bytes < bytes_per_line && i < size)
+		while(virt_col_pos < bytes_per_line && i < size)
 		{
 			gint avance=0;
 			gchar ascii[1];
+
+			if(show_index)
+			{
+				/* First byte on line */
+				if(virt_col_pos == 0)
+				{
+					sprintf(data, "%6d: ", total_bytes);
+					vte_terminal_feed(VTE_TERMINAL(display), data, strlen(data));
+				}
+			}
 
 			sprintf(data_byte, "%02X ", (guchar)string[i]);
 			log_chars(data_byte, 3);
 			vte_terminal_feed(VTE_TERMINAL(display), data_byte, 3);
 
-			avance = (bytes_per_line - bytes) * 3 + bytes + 2;
-
+			avance = (bytes_per_line - virt_col_pos) * 3 + virt_col_pos + 2;
 			/* Move forward */
 			sprintf(data_byte, "%c[%dC", 27, avance);
 			vte_terminal_feed(VTE_TERMINAL(display), data_byte, strlen(data_byte));
@@ -667,17 +666,18 @@ void put_hexadecimal(gchar *string, guint size)
 			sprintf(data_byte, "%c[%dD", 27, avance + 1);
 			vte_terminal_feed(VTE_TERMINAL(display), data_byte, strlen(data_byte));
 
-			if(bytes == bytes_per_line / 2 - 1)
+			if(virt_col_pos == bytes_per_line / 2 - 1)
 				vte_terminal_feed(VTE_TERMINAL(display), "- ", strlen("- "));
 
-			bytes++;
+			virt_col_pos++;
 			i++;
 
 			/* End of line ? */
-			if(bytes == bytes_per_line)
+			if(virt_col_pos == bytes_per_line)
 			{
 				vte_terminal_feed(VTE_TERMINAL(display), "\r\n", 2);
-				total_bytes += bytes;
+				total_bytes += virt_col_pos;
+				virt_col_pos = 0;
 			}
 
 		}
@@ -722,18 +722,21 @@ gboolean Envoie_car(GtkWidget *widget, GdkEventKey *event, gpointer pointer)
 
 void help_about_callback(GtkAction *action, gpointer data)
 {
-	gchar *authors[] = {"Julien Schimtt", "Zach Davis", "Florian Euchner", "Stephan Enderlein", 
+	gchar *authors[] = {"Julien Schimtt", "Zach Davis", "Florian Euchner", "Stephan Enderlein",
 			    "Kevin Picot", NULL};
+	gchar *comments_program = _("GTKTerm is a simple GTK+ terminal used to communicate with the serial port.");
+	gchar *comments[256];
 	GError *error = NULL;
 	GdkPixbuf *logo = NULL;
 
-	logo = gdk_pixbuf_new_from_resource ("/org/gtk/gtkterm/gtkterm_small.png", &error);
+	logo = gdk_pixbuf_new_from_resource ("/org/gtk/gtkterm/gtkterm_64x64.png", &error);
+	g_sprintf(comments, "%s\n\n%s", RELEASE_DATE, comments_program);;
 
 	gtk_show_about_dialog(GTK_WINDOW(Fenetre),
 	                      "program-name", "GTKTerm",
 	                      "logo", logo,
 	                      "version", VERSION,
-	                      "comments", _("Jun 2019\n\nGTKTerm is a simple GTK+ terminal used to communicate with the serial port."),
+	                      "comments", comments,
 	                      "copyright", "Copyright © Julien Schimtt",
 	                      "authors", authors,
 	                      "website", "https://github.com/Jeija/gtkterm",
@@ -788,24 +791,12 @@ void signals_toggle_RTS_callback(GtkAction *action, gpointer data)
 
 void signals_close_port(GtkAction *action, gpointer data)
 {
-	Close_port();
-
-	gchar *message;
-	message = get_port_string();
-	Set_status_message(message);
-	Set_window_title(message);
-	g_free(message);
+	interface_close_port();
 }
 
 void signals_open_port(GtkAction *action, gpointer data)
 {
-	Config_port();
-
-	gchar *message;
-	message = get_port_string();
-	Set_status_message(message);
-	Set_window_title(message);
-	g_free(message);
+	interface_open_port();
 }
 
 gboolean control_signals_read(void)
@@ -827,9 +818,31 @@ void Set_status_message(gchar *msg)
 
 void Set_window_title(gchar *msg)
 {
-	gchar* header = g_strdup_printf("GtkTerm - %s", msg);
+	gchar* header = g_strdup_printf("GTKTerm - %s", msg);
 	gtk_window_set_title(GTK_WINDOW(Fenetre), header);
 	g_free(header);
+}
+
+void interface_open_port(void)
+{
+	Config_port();
+
+	gchar *message;
+	message = get_port_string();
+	Set_status_message(message);
+	Set_window_title(message);
+	g_free(message);
+}
+
+void interface_close_port(void)
+{
+	Close_port();
+
+	gchar *message;
+	message = get_port_string();
+	Set_status_message(message);
+	Set_window_title(message);
+	g_free(message);
 }
 
 void show_message(gchar *message, gint type_msg)
@@ -948,4 +961,3 @@ void edit_select_all_callback(GtkAction *action, gpointer data)
 {
 	vte_terminal_select_all(VTE_TERMINAL(display));
 }
-
