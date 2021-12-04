@@ -29,6 +29,8 @@ void Set_local_echo(gboolean);
 void show_message(gchar *, gint);
 void clear_display(void);
 void set_view(guint);
+void Set_crlfauto(gboolean crlfauto);
+void Set_timestamp(gboolean timestamp);
 gint send_serial(gchar *, gint);
 void Put_temp_message(const gchar *, gint);
 void Set_window_title(gchar *msg);

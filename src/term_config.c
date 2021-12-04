@@ -483,11 +483,11 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	Combos[9] = Spin;
 
 
-	Bouton_OK = gtk_button_new_from_stock(GTK_STOCK_OK);
+	Bouton_OK = gtk_button_new_with_label(_("OK"));
 	gtk_box_pack_start(GTK_BOX(action_area), Bouton_OK, FALSE, TRUE, 0);
 	g_signal_connect(GTK_WIDGET(Bouton_OK), "clicked", G_CALLBACK(Lis_Config), (gpointer)Combos);
 	g_signal_connect_swapped(GTK_WIDGET(Bouton_OK), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialogue));
-	Bouton_annule = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
+	Bouton_annule = gtk_button_new_with_label(_("Cancel"));
 	g_signal_connect_swapped(GTK_WIDGET(Bouton_annule), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialogue));
 	gtk_box_pack_start(GTK_BOX(action_area), Bouton_annule, FALSE, TRUE, 0);
 
@@ -581,7 +581,7 @@ void clear_scrollback(void){
 void read_font_button(GtkFontButton *fontButton)
 {
 	g_free(term_conf.font);
-	term_conf.font = g_strdup(gtk_font_button_get_font_name(fontButton));
+	term_conf.font = g_strdup(gtk_font_chooser_get_font(GTK_FONT_CHOOSER(fontButton)));
 
 	if(term_conf.font != NULL)
 		vte_terminal_set_font(VTE_TERMINAL(display), pango_font_description_from_string(term_conf.font));
@@ -641,9 +641,9 @@ void Select_config(gchar *title, void *callback)
 		dialog = gtk_dialog_new_with_buttons (title,
 		                                      NULL,
 		                                      GTK_DIALOG_DESTROY_WITH_PARENT,
-		                                      GTK_STOCK_CANCEL,
+		                                      "_Cancel",
 		                                      GTK_RESPONSE_NONE,
-		                                      GTK_STOCK_OK,
+		                                      "_OK",
 		                                      GTK_RESPONSE_ACCEPT,
 		                                      NULL);
 
@@ -706,9 +706,9 @@ void Save_config_file(void)
 	dialog = gtk_dialog_new_with_buttons (_("Save configuration"),
 	                                      NULL,
 	                                      GTK_DIALOG_DESTROY_WITH_PARENT,
-	                                      GTK_STOCK_CANCEL,
+	                                      "_Cancel",
 	                                      GTK_RESPONSE_NONE,
-	                                      GTK_STOCK_OK,
+	                                      "_OK",
 	                                      GTK_RESPONSE_ACCEPT,
 	                                      NULL);
 	content_area = gtk_dialog_get_content_area (GTK_DIALOG(dialog));
@@ -822,9 +822,9 @@ void save_config(GtkDialog *Fenetre, gint id, GtkWidget *edit)
 				                 config_name);
 
 				gtk_dialog_add_buttons(GTK_DIALOG(message_dialog),
-				                       GTK_STOCK_CANCEL,
+				                       "_Cancel",
 				                       GTK_RESPONSE_NONE,
-				                       GTK_STOCK_YES,
+				                       "_Yes",
 				                       GTK_RESPONSE_ACCEPT,
 				                       NULL);
 
@@ -1452,7 +1452,7 @@ void Config_Terminal(GtkAction *action, gpointer data)
 
 	GtkWidget *dialog;
 	dialog = GTK_WIDGET(gtk_builder_get_object(builder, "dialog"));
-	gtk_window_set_transient_for(dialog, Fenetre);
+	gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(Fenetre));
 	gtk_window_set_title(GTK_WINDOW(dialog), _("Main Window"));
 
 	/** Connect signals **/
@@ -1476,13 +1476,13 @@ void Config_Terminal(GtkAction *action, gpointer data)
 	// Text color
 	GtkWidget *cfg_text_color;
 	cfg_text_color = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_text_color"));
-	gtk_color_button_set_rgba(GTK_COLOR_BUTTON(cfg_text_color), &term_conf.foreground_color);
+	gtk_color_chooser_set_rgba(GTK_COLOR_CHOOSER(cfg_text_color), &term_conf.foreground_color);
 	g_signal_connect(cfg_text_color, "color-set", G_CALLBACK (config_fg_color), 0);
 
 	// Background color
 	GtkWidget *cfg_background_color;
 	cfg_background_color = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_background_color"));
-	gtk_color_button_set_rgba(GTK_COLOR_BUTTON(cfg_background_color), &term_conf.background_color);
+	gtk_color_chooser_set_rgba(GTK_COLOR_CHOOSER(cfg_background_color), &term_conf.background_color);
 	g_signal_connect(cfg_background_color, "color-set", G_CALLBACK (config_bg_color), 0);
 
 	// Close button
@@ -1512,7 +1512,7 @@ void config_fg_color(GtkWidget *button, gpointer data)
 {
 	gchar *string;
 
-	gtk_color_button_get_rgba (GTK_COLOR_BUTTON (button), &term_conf.foreground_color);
+	gtk_color_chooser_get_rgba(GTK_COLOR_CHOOSER(button), &term_conf.foreground_color);
 
 	vte_terminal_set_color_foreground (VTE_TERMINAL(display), &term_conf.foreground_color);
 	gtk_widget_queue_draw (display);
@@ -1535,7 +1535,7 @@ void config_bg_color(GtkWidget *button, gpointer data)
 {
 	gchar *string;
 
-	gtk_color_button_get_rgba (GTK_COLOR_BUTTON (button), &term_conf.background_color);
+	gtk_color_chooser_get_rgba(GTK_COLOR_CHOOSER(button), &term_conf.background_color);
 
 	vte_terminal_set_color_background (VTE_TERMINAL(display), &term_conf.background_color);
 	gtk_widget_queue_draw (display);

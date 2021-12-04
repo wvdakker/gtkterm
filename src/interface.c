@@ -87,10 +87,6 @@ gboolean timestamp_on = 0;
 GtkWidget *StatusBar;
 GtkWidget *signals[6];
 static GtkWidget *Hex_Box;
-static GtkWidget *log_pause_resume_menu = NULL;
-static GtkWidget *log_start_menu = NULL;
-static GtkWidget *log_stop_menu = NULL;
-static GtkWidget *log_clear_menu = NULL;
 GtkWidget *scrolled_window;
 GtkWidget *Fenetre;
 GtkWidget *popup_menu;
@@ -621,7 +617,6 @@ void put_hexadecimal(gchar *string, guint size)
 {
 	static gchar data[128];
 	static gchar data_byte[6];
-	static gchar buffer[128];
 	gint i = 0;
 
 	if(size == 0)
