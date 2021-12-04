@@ -15,6 +15,7 @@
 #ifndef TERM_CONFIG_H_
 #define TERM_CONFIG_H_
 
+void config_file_init(void);
 void ConfigFlags(void);
 void Config_Port_Fenetre(GtkAction *action, gpointer data);
 gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos);
@@ -43,7 +44,7 @@ struct configuration_port
 	gint delai;                  // end of char delay: in ms
 	gint rs485_rts_time_before_transmit;
 	gint rs485_rts_time_after_transmit;
-	gchar car;                   // caractere à attendre
+	gchar car;                   // caractere attendre
 	gboolean echo;               // echo local
 	gboolean crlfauto;           // line feed auto
 	gboolean timestamp;
@@ -76,7 +77,5 @@ typedef struct
 #define DEFAULT_CHAR -1
 #define DEFAULT_DELAY_RS485 30
 #define DEFAULT_ECHO FALSE
-
-extern gchar *config_file;
 
 #endif

@@ -38,8 +38,7 @@ int main(int argc, char *argv[])
 {
 	gchar *message;
 
-	config_file = g_strdup_printf("%s/.gtktermrc", getenv("HOME"));
-
+	config_file_init();
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset(PACKAGE, "UTF-8");
 	textdomain(PACKAGE);
