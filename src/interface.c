@@ -70,6 +70,7 @@
 
 #include "term_config.h"
 #include "files.h"
+#include "search.h"
 #include "serial.h"
 #include "interface.h"
 #include "buffer.h"
@@ -87,6 +88,7 @@ gboolean timestamp_on = 0;
 GtkWidget *StatusBar;
 GtkWidget *signals[6];
 static GtkWidget *Hex_Box;
+GtkWidget *searchBar;
 GtkWidget *scrolled_window;
 GtkWidget *Fenetre;
 GtkWidget *popup_menu;
@@ -132,6 +134,7 @@ static void Got_Input(VteTerminal *, gchar *, guint, gpointer);
 void edit_copy_callback(GtkAction *action, gpointer data);
 void update_copy_sensivity(VteTerminal *terminal, gpointer data);
 void edit_paste_callback(GtkAction *action, gpointer data);
+void edit_find_callback(GtkAction *action);
 void edit_select_all_callback(GtkAction *action, gpointer data);
 
 /* Menu */
@@ -157,6 +160,7 @@ const GtkActionEntry menu_entries[] =
 	/* Edit menu */
 	{"EditCopy", GTK_STOCK_COPY, NULL, "<shift><control>C", NULL, G_CALLBACK(edit_copy_callback)},
 	{"EditPaste", GTK_STOCK_PASTE, NULL, "<shift><control>V", NULL, G_CALLBACK(edit_paste_callback)},
+	{"EditFind", GTK_STOCK_FIND, NULL, "<shift><control>F", NULL, G_CALLBACK(edit_find_callback)},
 	{"EditSelectAll", GTK_STOCK_SELECT_ALL, NULL, "<shift><control>A", NULL, G_CALLBACK(edit_select_all_callback)},
 
 	/* Log Menu */
@@ -225,6 +229,7 @@ static const char *ui_description =
     "    <menu action='Edit'>"
     "      <menuitem action='EditCopy'/>"
     "      <menuitem action='EditPaste'/>"
+    "      <menuitem action='EditFind'/>"
     "      <separator/>"
     "      <menuitem action='EditSelectAll'/>"
     "    </menu>"
@@ -274,6 +279,7 @@ static const char *ui_description =
     "  <popup name='PopupMenu'>"
     "    <menuitem action='EditCopy'/>"
     "    <menuitem action='EditPaste'/>"
+    "    <menuitem action='EditFind'/>"
     "    <separator/>"
     "    <menuitem action='EditSelectAll'/>"
     "  </popup>"
@@ -528,6 +534,9 @@ void create_main_window(void)
 
 	clear_display();
 
+	searchBar = search_bar_new(GTK_WINDOW(Fenetre), VTE_TERMINAL(display));
+	gtk_box_pack_start(GTK_BOX(main_vbox), GTK_WIDGET(searchBar), FALSE, FALSE, 0);
+
 	/* make vte window scrollable - inspired by gnome-terminal package */
 	scrolled_window = gtk_scrolled_window_new(NULL, gtk_scrollable_get_vadjustment (GTK_SCROLLABLE (display)));
 
@@ -603,6 +612,7 @@ void create_main_window(void)
 
 	gtk_window_set_default_size(GTK_WINDOW(Fenetre), 750, 550);
 	gtk_widget_show_all(Fenetre);
+	search_bar_hide(searchBar);
 	gtk_widget_hide(GTK_WIDGET(Hex_Box));
 }
 
@@ -950,6 +960,14 @@ void update_copy_sensivity(VteTerminal *terminal, gpointer data)
 void edit_paste_callback(GtkAction *action, gpointer data)
 {
 	vte_terminal_paste_clipboard(VTE_TERMINAL(display));
+}
+
+void edit_find_callback(GtkAction *action)
+{
+	if (gtk_widget_is_visible(searchBar))
+		search_bar_show(searchBar);
+	else
+		search_bar_show(searchBar);
 }
 
 void edit_select_all_callback(GtkAction *action, gpointer data)

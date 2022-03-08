@@ -18,6 +18,8 @@ sources = [
 	'macros.h',
 	'parsecfg.c',
 	'parsecfg.h',
+	'search.c',
+	'search.h',
 	'serial.c',
 	'serial.h',
 	'term_config.c',
