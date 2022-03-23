@@ -965,7 +965,7 @@ void edit_paste_callback(GtkAction *action, gpointer data)
 void edit_find_callback(GtkAction *action)
 {
 	if (gtk_widget_is_visible(searchBar))
-		search_bar_show(searchBar);
+		search_bar_hide(searchBar);
 	else
 		search_bar_show(searchBar);
 }

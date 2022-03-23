@@ -69,11 +69,11 @@ void search_callback(GtkWidget *widget, gpointer data)
 		{
 			GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
 			GtkWidget *dialog = gtk_message_dialog_new(parentWindow,
-								   flags,
-								   GTK_MESSAGE_ERROR,
-								   GTK_BUTTONS_OK,
-								   error->message,
-								   NULL);
+									 flags,
+									 GTK_MESSAGE_ERROR,
+									 GTK_BUTTONS_OK,
+									 error->message,
+									 NULL);
 			gtk_dialog_run(GTK_DIALOG(dialog));
 			gtk_widget_destroy(dialog);
 			g_error_free(error);
@@ -83,10 +83,42 @@ void search_callback(GtkWidget *widget, gpointer data)
 		vte_terminal_search_set_regex(term, regex, 0);
 	}
 
-	if(direction == FIND_PREVIOUS)
+	if (direction == FIND_PREVIOUS)
 		vte_terminal_search_find_previous(term);
 	else
 		vte_terminal_search_find_next(term);
+}
+
+
+static gboolean entry_key_press_event_callback(GtkEntry *entry, GdkEventKey *event, GtkWidget *searchBar)
+{
+	guint mask = gtk_accelerator_get_default_mod_mask();
+	gboolean handled = FALSE;
+
+	/*
+	 * Additional search keybindings
+	 * Escape key: Close search toolbar
+	 * Shift + Enter: Go to previous search result
+	 */
+	if ((event->state & mask) == 0) {
+		handled = TRUE;
+		switch (event->keyval) {
+			case GDK_KEY_Escape:
+				search_bar_hide(searchBar);
+				break;
+			default:
+				handled = FALSE;
+				break;
+		}
+	} else if ((event->state & mask) == GDK_SHIFT_MASK &&
+						 (event->keyval == GDK_KEY_Return ||
+							event->keyval == GDK_KEY_KP_Enter ||
+							event->keyval == GDK_KEY_ISO_Enter)) {
+		handled = TRUE;
+		search_callback(NULL, GUINT_TO_POINTER(FIND_PREVIOUS));
+	}
+
+	return handled;
 }
 
 GtkWidget *search_bar_new(GtkWindow *parent, VteTerminal *terminal)
@@ -102,12 +134,14 @@ GtkWidget *search_bar_new(GtkWindow *parent, VteTerminal *terminal)
 	gtk_search_bar_set_show_close_button (GTK_SEARCH_BAR(searchBar), TRUE);
 
 	box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	gtk_style_context_add_class(gtk_widget_get_style_context(box), "linked");
 	gtk_container_add(GTK_CONTAINER(searchBar), box);
 
 	entry = gtk_search_entry_new();
 	gtk_entry_set_width_chars(GTK_ENTRY(entry), 30);
 	gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
 	g_signal_connect(entry, "changed", G_CALLBACK(entry_changed_callback), NULL);
+	g_signal_connect(entry, "key-press-event", G_CALLBACK(entry_key_press_event_callback), searchBar);
 
 	prevImage = gtk_image_new_from_icon_name("go-up-symbolic", GTK_ICON_SIZE_MENU);
 	prevButton = gtk_button_new();
