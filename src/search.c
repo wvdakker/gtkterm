@@ -27,7 +27,7 @@ static GtkWidget *prevButton;
 static GtkWidget *nextImage;
 static GtkWidget *nextButton;
 static VteRegex *regex;
-static GtkWidget* entry;
+static GtkWidget *entry;
 
 typedef enum
 {
@@ -39,13 +39,13 @@ void entry_changed_callback()
 {
 	gboolean sensitive = FALSE;
 
-	if(regex != NULL)
+	if (regex != NULL)
 	{
 		vte_regex_unref(regex);
 		regex = NULL;
 	}
 
-	if(gtk_entry_get_text_length(GTK_ENTRY(entry)))
+	if (gtk_entry_get_text_length(GTK_ENTRY(entry)))
 		sensitive = TRUE;
 
 	gtk_widget_set_sensitive(prevButton, sensitive);
@@ -57,23 +57,23 @@ void search_callback(GtkWidget *widget, gpointer data)
 	(void)widget;
 	FindDirection direction = (FindDirection)GPOINTER_TO_UINT(data);
 
-	if(regex == NULL)
+	if (regex == NULL)
 	{
 		const gchar *pattern = gtk_entry_get_text(GTK_ENTRY(entry));
 		GError *error = NULL;
 		regex = vte_regex_new_for_search(pattern,
-						 strlen(pattern),
-						 PCRE2_MULTILINE,
-						 &error);
-		if(regex == NULL)
+										 strlen(pattern),
+										 PCRE2_MULTILINE | PCRE2_CASELESS,
+										 &error);
+		if (regex == NULL)
 		{
 			GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
 			GtkWidget *dialog = gtk_message_dialog_new(parentWindow,
-									 flags,
-									 GTK_MESSAGE_ERROR,
-									 GTK_BUTTONS_OK,
-									 error->message,
-									 NULL);
+													   flags,
+													   GTK_MESSAGE_ERROR,
+													   GTK_BUTTONS_OK,
+													   error->message,
+													   NULL);
 			gtk_dialog_run(GTK_DIALOG(dialog));
 			gtk_widget_destroy(dialog);
 			g_error_free(error);
@@ -89,7 +89,6 @@ void search_callback(GtkWidget *widget, gpointer data)
 		vte_terminal_search_find_next(term);
 }
 
-
 static gboolean entry_key_press_event_callback(GtkEntry *entry, GdkEventKey *event, GtkWidget *searchBar)
 {
 	guint mask = gtk_accelerator_get_default_mod_mask();
@@ -100,20 +99,24 @@ static gboolean entry_key_press_event_callback(GtkEntry *entry, GdkEventKey *eve
 	 * Escape key: Close search toolbar
 	 * Shift + Enter: Go to previous search result
 	 */
-	if ((event->state & mask) == 0) {
+	if ((event->state & mask) == 0)
+	{
 		handled = TRUE;
-		switch (event->keyval) {
-			case GDK_KEY_Escape:
-				search_bar_hide(searchBar);
-				break;
-			default:
-				handled = FALSE;
-				break;
+		switch (event->keyval)
+		{
+		case GDK_KEY_Escape:
+			search_bar_hide(searchBar);
+			break;
+		default:
+			handled = FALSE;
+			break;
 		}
-	} else if ((event->state & mask) == GDK_SHIFT_MASK &&
-						 (event->keyval == GDK_KEY_Return ||
-							event->keyval == GDK_KEY_KP_Enter ||
-							event->keyval == GDK_KEY_ISO_Enter)) {
+	}
+	else if ((event->state & mask) == GDK_SHIFT_MASK &&
+			 (event->keyval == GDK_KEY_Return ||
+			  event->keyval == GDK_KEY_KP_Enter ||
+			  event->keyval == GDK_KEY_ISO_Enter))
+	{
 		handled = TRUE;
 		search_callback(NULL, GUINT_TO_POINTER(FIND_PREVIOUS));
 	}
@@ -131,7 +134,7 @@ GtkWidget *search_bar_new(GtkWindow *parent, VteTerminal *terminal)
 	searchBar = gtk_search_bar_new();
 	gtk_search_bar_connect_entry(GTK_SEARCH_BAR(searchBar), GTK_ENTRY(entry));
 	gtk_search_bar_set_search_mode(GTK_SEARCH_BAR(searchBar), FALSE);
-	gtk_search_bar_set_show_close_button (GTK_SEARCH_BAR(searchBar), TRUE);
+	gtk_search_bar_set_show_close_button(GTK_SEARCH_BAR(searchBar), TRUE);
 
 	box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 	gtk_style_context_add_class(gtk_widget_get_style_context(box), "linked");
@@ -165,7 +168,7 @@ void search_bar_show(GtkWidget *self)
 	gtk_widget_show(self);
 	gtk_search_bar_set_search_mode(GTK_SEARCH_BAR(searchBar), TRUE);
 
-	gtk_widget_grab_focus (entry);
+	gtk_widget_grab_focus(entry);
 
 	/* Set Enter key to "press" next button by default */
 	gtk_widget_set_can_default(nextButton, TRUE);
@@ -178,4 +181,10 @@ void search_bar_hide(GtkWidget *self)
 	gtk_widget_hide(self);
 	vte_terminal_search_set_regex(term, NULL, 0);
 	gtk_search_bar_set_search_mode(GTK_SEARCH_BAR(searchBar), FALSE);
+
+	if (regex != NULL)
+	{
+		vte_regex_unref(regex);
+		regex = NULL;
+	}
 }
