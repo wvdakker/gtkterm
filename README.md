@@ -18,10 +18,14 @@ Key Combination | Effect
 ---:|---
 `<ctrl><shift>L` | Clear screen
 `<ctrl><shift>R` | Send file
-`<ctrl><shift>Q` | Quit 
+`<ctrl><shift>Q` | Quit
 `<ctrl><shift>S` | Configure port
 `<ctrl><shift>V` | Paste
 `<ctrl><shift>C` | Copy
+`<ctrl><shift>F` | Find
+`<ctrl><shift>K` | Clear Scrollback
+`<ctrl><shift>A` | Select All
+`<ctrl><shift>B` | Send Break
 `<ctrl>B` | Send break
 F5 | Open Port
 F6 | Close Port
