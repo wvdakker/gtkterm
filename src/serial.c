@@ -175,7 +175,7 @@ gboolean Config_port(void)
 	tcgetattr(serial_port_fd, &termios_p);
 	memcpy(&termios_save, &termios_p, sizeof(struct termios));
 
-	switch(config.vitesse)
+	switch(config.speed)
 	{
 	case 300:
 		termios_p.c_cflag = B300;
@@ -231,7 +231,7 @@ gboolean Config_port(void)
 
 	default:
 #ifdef HAVE_LINUX_SERIAL_H
-		set_custom_speed(config.vitesse, serial_port_fd);
+		set_custom_speed(config.speed, serial_port_fd);
 		termios_p.c_cflag |= B38400;
 #else
 		Close_port();
@@ -475,7 +475,7 @@ gchar* get_port_string(void)
 		/* "GtkTerm: device  baud-bits-parity-stops"  */
 		msg = g_strdup_printf("%.15s  %d-%d-%c-%d",
 		                      config.port,
-		                      config.vitesse,
+		                      config.speed,
 		                      config.bits,
 		                      parity,
 		                      config.stops

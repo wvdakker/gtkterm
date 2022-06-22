@@ -14,7 +14,7 @@
 /*                                                                     */
 /*      - 0.99.5 : changed all calls to strerror() by strerror_utf8()  */
 /*      - 0.99.4 : added auto CR LF function by Sebastien              */
-/*                 modified ecriture() to use send_serial()            */
+/*                 modified write_to_file() to use send_serial()            */
 /*      - 0.99.2 : Internationalization                                */
 /*      - 0.98.4 : modified to use new buffer                          */
 /*      - 0.98 : file transfer completely rewritten / optimized        */
@@ -46,7 +46,7 @@ gint current_buffer_position;
 gint bytes_read;
 GtkAdjustment *adj;
 GtkWidget *ProgressBar;
-gint Fichier;
+gint file_pointer;
 guint callback_handler;
 gchar *fic_defaut = NULL;
 GtkWidget *Window;
@@ -57,10 +57,10 @@ gchar *str = NULL;
 FILE *Fic;
 
 /* Local functions prototype */
-gint Envoie_fichier(GtkFileChooser *FS);
-gint Sauve_fichier(GtkFileChooser *FS);
+gint send_file(GtkFileChooser *FS);
+gint save_file(GtkFileChooser *FS);
 gint close_all(void);
-void ecriture(gpointer data, gint source);
+void write_to_file(gpointer data, gint source);
 gboolean timer(gpointer pointer);
 gboolean idle(gpointer pointer);
 void remove_input(void);
@@ -101,8 +101,8 @@ void send_raw_file(GtkAction *action, gpointer data)
 			return;
 		}
 
-		Fichier = open(fileName, O_RDONLY);
-		if(Fichier != -1)
+		file_pointer = open(fileName, O_RDONLY);
+		if(file_pointer != -1)
 		{
 			GtkWidget *Bouton_annuler, *Box;
 
@@ -113,8 +113,8 @@ void send_raw_file(GtkAction *action, gpointer data)
 			car_written = 0;
 			current_buffer_position = 0;
 			bytes_read = 0;
-			nb_car = lseek(Fichier, 0L, SEEK_END);
-			lseek(Fichier, 0L, SEEK_SET);
+			nb_car = lseek(file_pointer, 0L, SEEK_END);
+			lseek(file_pointer, 0L, SEEK_SET);
 
 			Window = gtk_dialog_new();
 			gtk_window_set_title(GTK_WINDOW(Window), msg);
@@ -149,7 +149,7 @@ void send_raw_file(GtkAction *action, gpointer data)
 	gtk_widget_destroy(file_select);
 }
 
-void ecriture(gpointer data, gint source)
+void write_to_file(gpointer data, gint source)
 {
 	static gchar buffer[BUFFER_EMISSION];
 	static gchar *current_buffer;
@@ -164,7 +164,7 @@ void ecriture(gpointer data, gint source)
 		/* Read the file only if buffer totally sent or if buffer empty */
 		if(current_buffer_position == bytes_read)
 		{
-			bytes_read = read(Fichier, buffer, BUFFER_EMISSION);
+			bytes_read = read(file_pointer, buffer, BUFFER_EMISSION);
 
 			current_buffer_position = 0;
 			current_buffer = buffer;
@@ -253,7 +253,7 @@ void add_input(void)
 		callback_handler = g_io_add_watch_full(g_io_channel_unix_new(serial_port_fd),
 		                                       10,
 		                                       G_IO_OUT,
-		                                       (GIOFunc)ecriture,
+		                                       (GIOFunc)write_to_file,
 		                                       NULL, NULL);
 
 	}
@@ -274,7 +274,7 @@ gint close_all(void)
 	waiting_for_char = FALSE;
 	waiting_for_timer = FALSE;
 	gtk_statusbar_pop(GTK_STATUSBAR(StatusBar), id);
-	close(Fichier);
+	close(file_pointer);
 	gtk_widget_destroy(Window);
 
 	return FALSE;

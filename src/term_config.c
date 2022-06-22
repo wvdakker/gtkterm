@@ -290,7 +290,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "2000000");
 
 	/* set the current choice to the previous setting */
-	switch(config.vitesse)
+	switch(config.speed)
 	{
 	case 300:
 		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
@@ -345,7 +345,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 5);
 	default:
 		/* custom baudrate */
-		string = g_strdup_printf("%d", config.vitesse);
+		string = g_strdup_printf("%d", config.speed);
 		gtk_entry_set_text(GTK_ENTRY(gtk_bin_get_child (GTK_BIN (Combo))), string);
 		g_free(string);
 	}
@@ -520,7 +520,7 @@ gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos)
 	g_free(message);
 
 	message = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(Combos[1]));
-	config.vitesse = atoi(message);
+	config.speed = atoi(message);
 	g_free(message);
 
 	message = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(Combos[3]));
@@ -927,7 +927,7 @@ gint Load_configuration_from_file(gchar *config_name)
 				if(port[i] != NULL)
 					strcpy(config.port, port[i]);
 				if(speed[i] != 0)
-					config.vitesse = speed[i];
+					config.speed = speed[i];
 				if(bits[i] != 0)
 					config.bits = bits[i];
 				if(stopbits[i] != 0)
@@ -1100,7 +1100,7 @@ void Verify_configuration(void)
 {
 	gchar *string = NULL;
 
-	switch(config.vitesse)
+	switch(config.speed)
 	{
 	case 300:
 	case 600:
@@ -1121,7 +1121,7 @@ void Verify_configuration(void)
 		break;
 
 	default:
-		string = g_strdup_printf(_("Baudrate %d may not be supported by all hardware"), config.vitesse);
+		string = g_strdup_printf(_("Baudrate %d may not be supported by all hardware"), config.speed);
 		show_message(string, MSG_ERR);
 		g_free(string);
 	}
@@ -1188,7 +1188,7 @@ gint Check_configuration_file(void)
 void Hard_default_configuration(void)
 {
 	strcpy(config.port, DEFAULT_PORT);
-	config.vitesse = DEFAULT_SPEED;
+	config.speed = DEFAULT_SPEED;
 	config.parite = DEFAULT_PARITY;
 	config.bits = DEFAULT_BITS;
 	config.stops = DEFAULT_STOP;
@@ -1224,7 +1224,7 @@ void Copy_configuration(int pos)
 	cfgStoreValue(cfg, "port", string, CFG_INI, pos);
 	g_free(string);
 
-	string = g_strdup_printf("%d", config.vitesse);
+	string = g_strdup_printf("%d", config.speed);
 	cfgStoreValue(cfg, "speed", string, CFG_INI, pos);
 	g_free(string);
 

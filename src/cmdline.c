@@ -100,7 +100,7 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 			break;
 
 		case 's':
-			config.vitesse = atoi(optarg);
+			config.speed = atoi(optarg);
 			break;
 
 		case 'a':

@@ -36,7 +36,7 @@ void clear_scrollback(void);
 struct configuration_port
 {
 	gchar port[1024];
-	gint vitesse;                // 300 - 600 - 1200 - ... - 2000000
+	gint speed;                // 300 - 600 - 1200 - ... - 2000000
 	gint bits;                   // 5 - 6 - 7 - 8
 	gint stops;                  // 1 - 2
 	gint parite;                 // 0 : None, 1 : Odd, 2 : Even
