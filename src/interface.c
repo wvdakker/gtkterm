@@ -80,6 +80,7 @@
 
 #include <config.h>
 #include <glib/gi18n.h>
+#include <glib/gprintf.h>
 
 guint id;
 gboolean echo_on;

@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <glib-unix.h>
 #include "interface.h"
 
 static gboolean handle_usr1(gpointer user_data)
