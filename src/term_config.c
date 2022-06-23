@@ -181,8 +181,8 @@ void ConfigFlags(void)
 
 void Config_Port_dlg_window(GtkAction *action, gpointer data)
 {
-	GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule,
-	          *Combo, *dialog_window, *Frame, *CheckBouton,
+	GtkWidget *Table, *Label, *ok_button, *cancel_button,
+	          *Combo, *dialog_window, *Frame, *check_button,
 	          *Spin, *Expander, *ExpanderVbox,
 	          *content_area, *action_area;
 
@@ -460,17 +460,17 @@ void Config_Port_dlg_window(GtkAction *action, gpointer data)
 	gtk_widget_set_sensitive(GTK_WIDGET(Entry), FALSE);
 	gtk_table_attach(GTK_TABLE(Table), Entry, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
 
-	CheckBouton = gtk_check_button_new_with_label(_("Wait for this special character before passing to next line:"));
+	check_button = gtk_check_button_new_with_label(_("Wait for this special character before passing to next line:"));
 
-	g_signal_connect(GTK_WIDGET(CheckBouton), "clicked", G_CALLBACK(Grise_Degrise), (gpointer)Spin);
+	g_signal_connect(GTK_WIDGET(check_button), "clicked", G_CALLBACK(Grise_Degrise), (gpointer)Spin);
 
 	if(config.car != -1)
 	{
 		gtk_entry_set_text(GTK_ENTRY(Entry), &(config.car));
-		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(CheckBouton), TRUE);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(check_button), TRUE);
 	}
-	gtk_table_attach_defaults(GTK_TABLE(Table), CheckBouton, 0, 1, 1, 2);
-	Combos[7] = CheckBouton;
+	gtk_table_attach_defaults(GTK_TABLE(Table), check_button, 0, 1, 1, 2);
+	Combos[7] = check_button;
 
 
 	Frame = gtk_frame_new(_("RS-485 half-duplex parameters (RTS signal used to send)"));
@@ -500,13 +500,13 @@ void Config_Port_dlg_window(GtkAction *action, gpointer data)
 	Combos[9] = Spin;
 
 
-	Bouton_OK = gtk_button_new_with_label(_("OK"));
-	gtk_box_pack_start(GTK_BOX(action_area), Bouton_OK, FALSE, TRUE, 0);
-	g_signal_connect(GTK_WIDGET(Bouton_OK), "clicked", G_CALLBACK(Lis_Config), (gpointer)Combos);
-	g_signal_connect_swapped(GTK_WIDGET(Bouton_OK), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog_window));
-	Bouton_annule = gtk_button_new_with_label(_("Cancel"));
-	g_signal_connect_swapped(GTK_WIDGET(Bouton_annule), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog_window));
-	gtk_box_pack_start(GTK_BOX(action_area), Bouton_annule, FALSE, TRUE, 0);
+	ok_button = gtk_button_new_with_label(_("OK"));
+	gtk_box_pack_start(GTK_BOX(action_area), ok_button, FALSE, TRUE, 0);
+	g_signal_connect(GTK_WIDGET(ok_button), "clicked", G_CALLBACK(Lis_Config), (gpointer)Combos);
+	g_signal_connect_swapped(GTK_WIDGET(ok_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog_window));
+	cancel_button = gtk_button_new_with_label(_("Cancel"));
+	g_signal_connect_swapped(GTK_WIDGET(cancel_button), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog_window));
+	gtk_box_pack_start(GTK_BOX(action_area), cancel_button, FALSE, TRUE, 0);
 
 	gtk_widget_show_all(dialog_window);
 }
