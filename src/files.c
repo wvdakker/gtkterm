@@ -75,7 +75,7 @@ void send_raw_file(GtkAction *action, gpointer data)
 	GtkWidget *file_select;
 
 	file_select = gtk_file_chooser_dialog_new(_("Send RAW File"),
-	              GTK_WINDOW(Fenetre),
+	              GTK_WINDOW(dlg_window),
 	              GTK_FILE_CHOOSER_ACTION_OPEN,
 	              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 	              GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
@@ -290,7 +290,7 @@ void save_raw_file(GtkAction *action, gpointer data)
 	GtkWidget *file_select;
 
 	file_select = gtk_file_chooser_dialog_new(_("Save RAW File"),
-	              GTK_WINDOW(Fenetre),
+	              GTK_WINDOW(dlg_window),
 	              GTK_FILE_CHOOSER_ACTION_SAVE,
 	              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 	              GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,

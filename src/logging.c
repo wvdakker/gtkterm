@@ -85,7 +85,7 @@ void logging_start(GtkAction *action, gpointer data)
 	GtkWidget *file_select;
 	gint retval;
 
-	file_select = gtk_file_chooser_dialog_new(_("Log file selection"), GTK_WINDOW(Fenetre),
+	file_select = gtk_file_chooser_dialog_new(_("Log file selection"), GTK_WINDOW(dlg_window),
 	              GTK_FILE_CHOOSER_ACTION_SAVE,
 	              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 	              GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);

@@ -91,7 +91,7 @@ GtkWidget *signals[6];
 static GtkWidget *Hex_Box;
 GtkWidget *searchBar;
 GtkWidget *scrolled_window;
-GtkWidget *Fenetre;
+GtkWidget *dlg_window;
 GtkWidget *popup_menu;
 GtkUIManager *ui_manager;
 GtkAccelGroup *shortcuts;
@@ -171,7 +171,7 @@ const GtkActionEntry menu_entries[] =
 	{"LogClear", GTK_STOCK_CLEAR, NULL, "", NULL, G_CALLBACK(logging_clear)},
 
 	/* Confuguration Menu */
-	{"ConfigPort", GTK_STOCK_PROPERTIES, N_("_Port"), "<shift><control>S", NULL, G_CALLBACK(Config_Port_Fenetre)},
+	{"ConfigPort", GTK_STOCK_PROPERTIES, N_("_Port"), "<shift><control>S", NULL, G_CALLBACK(Config_Port_dlg_window)},
 	{"ConfigTerminal", GTK_STOCK_PREFERENCES, N_("_Main window"), "", NULL, G_CALLBACK(Config_Terminal)},
 	{"Macros", NULL, N_("_Macros"), NULL, NULL, G_CALLBACK(Config_macros)},
 	{"SelectConfig", GTK_STOCK_OPEN, N_("_Load configuration"), "", NULL, G_CALLBACK(select_config_callback)},
@@ -471,24 +471,24 @@ void create_main_window(void)
 	GtkAccelGroup *accel_group;
 	GError *error;
 
-	Fenetre = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	dlg_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 	shortcuts = gtk_accel_group_new();
-	gtk_window_add_accel_group(GTK_WINDOW(Fenetre), GTK_ACCEL_GROUP(shortcuts));
+	gtk_window_add_accel_group(GTK_WINDOW(dlg_window), GTK_ACCEL_GROUP(shortcuts));
 
-	g_signal_connect(GTK_WIDGET(Fenetre), "destroy", (GCallback)gtk_main_quit, NULL);
-	g_signal_connect(GTK_WIDGET(Fenetre), "delete_event", (GCallback)gtk_main_quit, NULL);
+	g_signal_connect(GTK_WIDGET(dlg_window), "destroy", (GCallback)gtk_main_quit, NULL);
+	g_signal_connect(GTK_WIDGET(dlg_window), "delete_event", (GCallback)gtk_main_quit, NULL);
 
 	Set_window_title("GTKTerm");
 
 	main_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	gtk_container_add(GTK_CONTAINER(Fenetre), main_vbox);
+	gtk_container_add(GTK_CONTAINER(dlg_window), main_vbox);
 
 	/* Create the UIManager */
 	ui_manager = gtk_ui_manager_new();
 
 	accel_group = gtk_ui_manager_get_accel_group (ui_manager);
-	gtk_window_add_accel_group (GTK_WINDOW (Fenetre), accel_group);
+	gtk_window_add_accel_group (GTK_WINDOW (dlg_window), accel_group);
 
 	/* Create the actions */
 	action_group = gtk_action_group_new("MenuActions");
@@ -496,18 +496,18 @@ void create_main_window(void)
 
 	gtk_action_group_add_actions(action_group, menu_entries,
 	                             G_N_ELEMENTS (menu_entries),
-	                             Fenetre);
+	                             dlg_window);
 	gtk_action_group_add_toggle_actions(action_group, menu_toggle_entries,
 	                                    G_N_ELEMENTS (menu_toggle_entries),
-	                                    Fenetre);
+	                                    dlg_window);
 	gtk_action_group_add_radio_actions(action_group, menu_view_radio_entries,
 	                                   G_N_ELEMENTS (menu_view_radio_entries),
 	                                   -1, G_CALLBACK(view_radio_callback),
-	                                   Fenetre);
+	                                   dlg_window);
 	gtk_action_group_add_radio_actions(action_group, menu_hex_chars_length_radio_entries,
 	                                   G_N_ELEMENTS (menu_hex_chars_length_radio_entries),
 	                                   16, G_CALLBACK(view_hexadecimal_chars_radio_callback),
-	                                   Fenetre);
+	                                   dlg_window);
 
 	gtk_ui_manager_insert_action_group (ui_manager, action_group, 0);
 
@@ -535,7 +535,7 @@ void create_main_window(void)
 
 	clear_display();
 
-	searchBar = search_bar_new(GTK_WINDOW(Fenetre), VTE_TERMINAL(display));
+	searchBar = search_bar_new(GTK_WINDOW(dlg_window), VTE_TERMINAL(display));
 	gtk_box_pack_start(GTK_BOX(main_vbox), GTK_WIDGET(searchBar), FALSE, FALSE, 0);
 
 	/* make vte window scrollable - inspired by gnome-terminal package */
@@ -611,8 +611,8 @@ void create_main_window(void)
 
 	g_timeout_add(POLL_DELAY, (GSourceFunc)control_signals_read, NULL);
 
-	gtk_window_set_default_size(GTK_WINDOW(Fenetre), 750, 550);
-	gtk_widget_show_all(Fenetre);
+	gtk_window_set_default_size(GTK_WINDOW(dlg_window), 750, 550);
+	gtk_widget_show_all(dlg_window);
 	search_bar_hide(searchBar);
 	gtk_widget_hide(GTK_WIDGET(Hex_Box));
 }
@@ -738,7 +738,7 @@ void help_about_callback(GtkAction *action, gpointer data)
 	logo = gdk_pixbuf_new_from_resource ("/org/gtk/gtkterm/gtkterm_64x64.png", &error);
 	g_sprintf(comments, "%s\n\n%s", RELEASE_DATE, comments_program);;
 
-	gtk_show_about_dialog(GTK_WINDOW(Fenetre),
+	gtk_show_about_dialog(GTK_WINDOW(dlg_window),
 	                      "program-name", "GTKTerm",
 	                      "logo", logo,
 	                      "version", VERSION,
@@ -825,7 +825,7 @@ void Set_status_message(gchar *msg)
 void Set_window_title(gchar *msg)
 {
 	gchar* header = g_strdup_printf("GTKTerm - %s", msg);
-	gtk_window_set_title(GTK_WINDOW(Fenetre), header);
+	gtk_window_set_title(GTK_WINDOW(dlg_window), header);
 	g_free(header);
 }
 
@@ -853,11 +853,11 @@ void interface_close_port(void)
 
 void show_message(gchar *message, gint type_msg)
 {
-	GtkWidget *Fenetre_msg;
+	GtkWidget *dlg_window_msg;
 
 	if(type_msg==MSG_ERR)
 	{
-		Fenetre_msg = gtk_message_dialog_new(GTK_WINDOW(Fenetre),
+		dlg_window_msg = gtk_message_dialog_new(GTK_WINDOW(dlg_window),
 		                                     GTK_DIALOG_DESTROY_WITH_PARENT,
 		                                     GTK_MESSAGE_ERROR,
 		                                     GTK_BUTTONS_OK,
@@ -865,7 +865,7 @@ void show_message(gchar *message, gint type_msg)
 	}
 	else if(type_msg==MSG_WRN)
 	{
-		Fenetre_msg = gtk_message_dialog_new(GTK_WINDOW(Fenetre),
+		dlg_window_msg = gtk_message_dialog_new(GTK_WINDOW(dlg_window),
 		                                     GTK_DIALOG_DESTROY_WITH_PARENT,
 		                                     GTK_MESSAGE_WARNING,
 		                                     GTK_BUTTONS_OK,
@@ -874,8 +874,8 @@ void show_message(gchar *message, gint type_msg)
 	else
 		return;
 
-	gtk_dialog_run(GTK_DIALOG(Fenetre_msg));
-	gtk_widget_destroy(Fenetre_msg);
+	gtk_dialog_run(GTK_DIALOG(dlg_window_msg));
+	gtk_widget_destroy(dlg_window_msg);
 }
 
 gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointer)

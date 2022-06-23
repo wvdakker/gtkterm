@@ -40,7 +40,7 @@ void interface_open_port(void);
 void toggle_logging_pause_resume(gboolean currentlyLogging);
 void toggle_logging_sensitivity(gboolean currentlyLogging);
 
-extern GtkWidget *Fenetre;
+extern GtkWidget *dlg_window;
 extern GtkWidget *StatusBar;
 extern guint id;
 extern GtkWidget *Text;

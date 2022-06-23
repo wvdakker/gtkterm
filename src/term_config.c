@@ -179,7 +179,7 @@ void ConfigFlags(void)
 	Set_timestamp(config.timestamp);
 }
 
-void Config_Port_Fenetre(GtkAction *action, gpointer data)
+void Config_Port_dlg_window(GtkAction *action, gpointer data)
 {
 	GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule,
 	          *Combo, *Dialogue, *Frame, *CheckBouton,
@@ -753,7 +753,7 @@ void Save_config_file(void)
 	gtk_widget_show_all (dialog);
 }
 
-void really_save_config(GtkDialog *Fenetre, gint id, gpointer data)
+void really_save_config(GtkDialog *dlg_window, gint id, gpointer data)
 {
 	int max, cfg_num, i;
 	gchar *string = NULL;
@@ -809,7 +809,7 @@ void really_save_config(GtkDialog *Fenetre, gint id, gpointer data)
 		Save_config_file();
 }
 
-void save_config(GtkDialog *Fenetre, gint id, GtkWidget *edit)
+void save_config(GtkDialog *dlg_window, gint id, GtkWidget *edit)
 {
 	int max, i;
 	const gchar *config_name;
@@ -831,7 +831,7 @@ void save_config(GtkDialog *Fenetre, gint id, GtkWidget *edit)
 			if(!strcmp(config_name, cfgSectionNumberToName(i)))
 			{
 				GtkWidget *message_dialog;
-				message_dialog = gtk_message_dialog_new_with_markup(GTK_WINDOW(Fenetre),
+				message_dialog = gtk_message_dialog_new_with_markup(GTK_WINDOW(dlg_window),
 				                 GTK_DIALOG_DESTROY_WITH_PARENT,
 				                 GTK_MESSAGE_QUESTION,
 				                 GTK_BUTTONS_NONE,
@@ -846,7 +846,7 @@ void save_config(GtkDialog *Fenetre, gint id, GtkWidget *edit)
 				                       NULL);
 
 				if (gtk_dialog_run(GTK_DIALOG(message_dialog)) == GTK_RESPONSE_ACCEPT)
-					really_save_config(Fenetre, GTK_RESPONSE_ACCEPT, (gpointer)config_name);
+					really_save_config(dlg_window, GTK_RESPONSE_ACCEPT, (gpointer)config_name);
 
 				gtk_widget_destroy(message_dialog);
 
@@ -854,11 +854,11 @@ void save_config(GtkDialog *Fenetre, gint id, GtkWidget *edit)
 			}
 		}
 		if(i == max) /* Section does not exist */
-			really_save_config(Fenetre, GTK_RESPONSE_ACCEPT, (gpointer)config_name);
+			really_save_config(dlg_window, GTK_RESPONSE_ACCEPT, (gpointer)config_name);
 	}
 }
 
-void load_config(GtkDialog *Fenetre, gint id, GtkTreeSelection *Selection_Liste)
+void load_config(GtkDialog *dlg_window, gint id, GtkTreeSelection *Selection_Liste)
 {
 	GtkTreeIter iter;
 	GtkTreeModel *Modele;
@@ -883,7 +883,7 @@ void load_config(GtkDialog *Fenetre, gint id, GtkTreeSelection *Selection_Liste)
 	}
 }
 
-void delete_config(GtkDialog *Fenetre, gint id, GtkTreeSelection *Selection_Liste)
+void delete_config(GtkDialog *dlg_window, gint id, GtkTreeSelection *Selection_Liste)
 {
 	GtkTreeIter iter;
 	GtkTreeModel *Modele;
@@ -1469,7 +1469,7 @@ void Config_Terminal(GtkAction *action, gpointer data)
 
 	GtkWidget *dialog;
 	dialog = GTK_WIDGET(gtk_builder_get_object(builder, "dialog"));
-	gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(Fenetre));
+	gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(dlg_window));
 	gtk_window_set_title(GTK_WINDOW(dialog), _("Main Window"));
 
 	/** Connect signals **/

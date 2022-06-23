@@ -17,7 +17,7 @@
 
 void config_file_init(void);
 void ConfigFlags(void);
-void Config_Port_Fenetre(GtkAction *action, gpointer data);
+void Config_Port_dlg_window(GtkAction *action, gpointer data);
 gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos);
 void Config_Terminal(GtkAction *action, gpointer data);
 void select_config_callback(GtkAction *action, gpointer data);
