@@ -182,7 +182,7 @@ void ConfigFlags(void)
 void Config_Port_dlg_window(GtkAction *action, gpointer data)
 {
 	GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule,
-	          *Combo, *Dialogue, *Frame, *CheckBouton,
+	          *Combo, *dialog_window, *Frame, *CheckBouton,
 	          *Spin, *Expander, *ExpanderVbox,
 	          *content_area, *action_area;
 
@@ -214,11 +214,11 @@ void Config_Port_dlg_window(GtkAction *action, gpointer data)
 		               "Enter a different device path in the 'Port' box.\n"), MSG_WRN);
 	}
 
-	Dialogue = gtk_dialog_new();
-	content_area = gtk_dialog_get_content_area(GTK_DIALOG(Dialogue));
-	action_area = gtk_dialog_get_action_area(GTK_DIALOG(Dialogue));
-	gtk_window_set_title(GTK_WINDOW(Dialogue), _("Configuration"));
-	gtk_window_set_resizable(GTK_WINDOW(Dialogue), FALSE);
+	dialog_window = gtk_dialog_new();
+	content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog_window));
+	action_area = gtk_dialog_get_action_area(GTK_DIALOG(dialog_window));
+	gtk_window_set_title(GTK_WINDOW(dialog_window), _("Configuration"));
+	gtk_window_set_resizable(GTK_WINDOW(dialog_window), FALSE);
 	gtk_container_set_border_width(GTK_CONTAINER(content_area), 5);
 
 	Frame = gtk_frame_new(_("Serial port"));
@@ -503,12 +503,12 @@ void Config_Port_dlg_window(GtkAction *action, gpointer data)
 	Bouton_OK = gtk_button_new_with_label(_("OK"));
 	gtk_box_pack_start(GTK_BOX(action_area), Bouton_OK, FALSE, TRUE, 0);
 	g_signal_connect(GTK_WIDGET(Bouton_OK), "clicked", G_CALLBACK(Lis_Config), (gpointer)Combos);
-	g_signal_connect_swapped(GTK_WIDGET(Bouton_OK), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialogue));
+	g_signal_connect_swapped(GTK_WIDGET(Bouton_OK), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog_window));
 	Bouton_annule = gtk_button_new_with_label(_("Cancel"));
-	g_signal_connect_swapped(GTK_WIDGET(Bouton_annule), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(Dialogue));
+	g_signal_connect_swapped(GTK_WIDGET(Bouton_annule), "clicked", G_CALLBACK(gtk_widget_destroy), GTK_WIDGET(dialog_window));
 	gtk_box_pack_start(GTK_BOX(action_area), Bouton_annule, FALSE, TRUE, 0);
 
-	gtk_widget_show_all(Dialogue);
+	gtk_widget_show_all(dialog_window);
 }
 
 gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos)
