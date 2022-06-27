@@ -18,26 +18,24 @@
 /***********************************************************************/
 
 #include <gtk/gtk.h>
+#include <glib/gi18n.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
 
 #include "term_config.h"
 #include "files.h"
-#include "auto_config.h"
 #include "i18n.h"
 
 #include <config.h>
-#include <glib/gi18n.h>
 
 extern struct configuration_port config;
 
 void display_help(void)
 {
-	i18n_printf(_("\nGTKTerm version %s\n"), VERSION);
+	i18n_printf(_("\nGTKTerm version %s\n"), PACKAGE_VERSION);
 	i18n_printf(_("\t (c) Julien Schmitt\n"));
-	i18n_printf(_("\nThis program is released under the terms of the GPL V.2\n"));
-	i18n_printf(_("\t ** Use at your own risks ! **\n"));
+	i18n_printf(_("\nThis program is released under the terms of the GPL V3 or later\n"));
 	i18n_printf(_("\nCommand line options\n"));
 	i18n_printf(_("--help or -h : this help screen\n"));
 	i18n_printf(_("--config <configuration> or -c : load configuration\n"));
@@ -58,7 +56,7 @@ void display_help(void)
 	i18n_printf("\n");
 }
 
-int read_command_line(int argc, char **argv, gchar *configuration_to_read)
+int read_command_line(int argc, char **argv, char *configuration_to_read)
 {
 	int c;
 	int option_index = 0;
@@ -84,7 +82,7 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 	};
 
 	/* need a working configuration file ! */
-	Check_configuration_file();
+	check_configuration_file();
 
 	while(1)
 	{
@@ -96,7 +94,7 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 		switch(c)
 		{
 		case 'c':
-			Load_configuration_from_file(optarg);
+			load_configuration_from_file(optarg);
 			break;
 
 		case 's':
@@ -104,10 +102,10 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 			break;
 
 		case 'a':
-			if(!strcmp(optarg, "odd"))
-				config.parite = 1;
-			else if(!strcmp(optarg, "even"))
-				config.parite = 2;
+			if (!strcmp(optarg, "odd"))
+				config.parity = 1;
+			else if (!strcmp(optarg, "even"))
+				config.parity = 2;
 			break;
 
 		case 't':
@@ -119,7 +117,7 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 			break;
 
 		case 'f':
-			fic_defaut = g_strdup(optarg);
+			default_filename = g_strdup(optarg);
 			break;
 
 		case 'p':
@@ -127,20 +125,20 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 			break;
 
 		case 'w':
-			if(!strcmp(optarg, "Xon"))
+			if (!strcmp(optarg, "Xon"))
 				config.flux = 1;
-			else if(!strcmp(optarg, "RTS"))
+			else if (!strcmp(optarg, "RTS"))
 				config.flux = 2;
-			else if(!strcmp(optarg, "RS485"))
+			else if (!strcmp(optarg, "RS485"))
 				config.flux = 3;
 			break;
 
 		case 'd':
-			config.delai = atoi(optarg);
+			config.delay = atoi(optarg);
 			break;
 
 		case 'r':
-			config.car = *optarg;
+			config.char_queue = *optarg;
 			break;
 
 		case 'e':
@@ -168,6 +166,8 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 			return -1;
 		}
 	}
-	Verify_configuration();
+
+	verify_configuration();
+	
 	return 0;
 }

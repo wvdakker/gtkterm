@@ -1,13 +1,13 @@
 project(
 	'gtkterm',
 	'c',
-	version: '1.1.1',
-	meson_version : '>= 0.46.0'
+	version: '1.99.0',
+	meson_version : '>= 0.49.0'
 )
 
 # Find dependencies
-gtk_deps = dependency('gtk+-3.0', version : '>= 3.0.0')
-vte_deps = dependency('vte-2.91', version : '>= 0.28.0')
+gtk_deps = dependency('gtk4', version : '>= 4.6.0')
+vte_deps = dependency('vte-2.91-gtk4', version : '>= 0.28.0')
 gudev_deps = dependency('gudev-1.0', version: '>= 230')
 
 # Find install paths
@@ -17,7 +17,7 @@ localedir = join_paths(prefix, get_option('localedir'))
 
 # Configure GTKTerm
 conf = configuration_data()
-conf.set_quoted('VERSION', meson.project_version())
+conf.set_quoted('PACKAGE_VERSION', meson.project_version())
 conf.set_quoted('PACKAGE', meson.project_name())
 conf.set_quoted('RELEASE_DATE', 'December 2020')
 conf.set_quoted('LOCALEDIR', localedir)
@@ -34,3 +34,5 @@ config = declare_dependency(include_directories : include_directories('.'))
 subdir('data')
 subdir('src')
 subdir('po')
+
+meson.add_install_script('meson_post_install.py')

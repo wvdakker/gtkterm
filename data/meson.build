@@ -28,6 +28,11 @@ if desktop_file_validate.found()
 	)
 endif
 
+schemas_dir = get_option('prefix') / get_option('datadir') / 'glib-2.0' / 'schemas'
+settings_schemas = [ 'com.github.jeija.gtkterm.gschema.xml' ]
+
+install_data(settings_schemas, install_dir: schemas_dir)
+
 # Icon
 install_data('gtkterm_256x256.png',
 	install_dir: join_paths(datadir, 'icons', 'hicolor', '256x256', 'apps'),
@@ -48,7 +53,6 @@ install_data('gtkterm_48x48.png',
 	install_dir: join_paths(datadir, 'icons', 'hicolor', '48x48', 'apps'),
 	rename : 'gtkterm.png'
 )
-
 
 install_data('gtkterm_48x48.png',
 	install_dir: join_paths(datadir, 'icons', 'hicolor', '48x48', 'apps'),

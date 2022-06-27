@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <menu id="menubar">
+    <submenu>
+      <attribute name="label" translatable="yes">_File</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Clear screen</attribute>
+          <attribute name="action">app.new</attribute>
+          <attribute name="accel">&lt;Control&gt;&lt;Shift&gt;L</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Clear scrollback</attribute>
+          <attribute name="action">app.open</attribute>
+          <attribute name="accel">&lt;Control&gt;&lt;Shift&gt;K</attribute>          
+        </item>
+      </section>
+      <section>        
+        <item>
+          <attribute name="label" translatable="yes">_Send raw file</attribute>
+          <attribute name="action">app.save</attribute>
+          <attribute name="accel">&lt;Control&gt;&lt;Shift&gt;R</attribute>  
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Save raw file</attribute>
+          <attribute name="action">app.save-as</attribute>
+          <attribute name="accel">&lt;Control&gt;&lt;Shift&gt;s</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Quit</attribute>
+          <attribute name="action">app.quit</attribute>
+          <attribute name="accel">&lt;Control&gt;q</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Edit</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Copy</attribute>
+          <attribute name="action">app.dark</attribute>
+          <attribute name="accel">&lt;Control&gt;&lt;Shift&gt;C</attribute>          
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Paste</attribute>
+          <attribute name="action">app.dark</attribute>
+          <attribute name="accel">&lt;Control&gt;&lt;Shift&gt;V</attribute>            
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Select all</attribute>
+          <attribute name="action">app.dark</attribute>
+          <attribute name="accel">&lt;Control&gt;&lt;Shift&gt;V</attribute>            
+        </item>
+      </section>      
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Log</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_To file</attribute>
+          <attribute name="action">app.dark</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Resume</attribute>
+          <attribute name="action">app.dark</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Stop</attribute>
+          <attribute name="action">app.dark</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Clear</attribute>
+          <attribute name="action">app.dark</attribute>
+        </item>
+      </section>                  
+    </submenu>      
+    <submenu>
+      <attribute name="label" translatable="yes">_Configuration</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Prefer Dark Theme</attribute>
+          <attribute name="action">app.dark</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Port</attribute>
+          <attribute name="action">win.bold</attribute>
+          <attribute name="accel">&lt;Control&gt;&lt;Shift&gt;S</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Main window</attribute>
+          <attribute name="action">win.bold</attribute>
+        </item>        
+      </section> 
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Local echo</attribute>
+          <attribute name="action">win.bold</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_CR LF auto</attribute>
+          <attribute name="action">win.bold</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Timestamp</attribute>
+          <attribute name="action">win.bold</attribute>
+        </item>         
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Macros</attribute>
+          <attribute name="action">win.bold</attribute>
+        </item>       
+      </section>       
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Load configuration</attribute>
+          <attribute name="action">win.bold</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Save configuration</attribute>
+          <attribute name="action">win.bold</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Delete configuration</attribute>
+          <attribute name="action">win.bold</attribute>
+        </item>         
+      </section>          
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Control signals</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Send break</attribute>
+          <attribute name="action">app.dark</attribute>
+          <attribute name="accel">&lt;Control&gt;&lt;Shift&gt;V</attribute>               
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Open Port</attribute>
+          <attribute name="action">app.dark</attribute>            
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Close Port</attribute>
+          <attribute name="action">app.dark</attribute>              
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Toggle DTR</attribute>
+          <attribute name="action">app.dark</attribute>            
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Toggle RTS</attribute>
+          <attribute name="action">app.dark</attribute>              
+        </item>             
+      </section>      
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_View</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_ASCII</attribute>
+          <attribute name="action">app.dark</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Hexadecimal</attribute>
+          <attribute name="action">app.dark</attribute>
+        </item>    
+        <submenu>
+          <attribute name="label" translatable="yes">_Hexadecimal chars</attribute>
+          <section>
+            <item>
+              <attribute name="label" translatable="yes">_8</attribute>
+              <attribute name="action">app.color</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">_10</attribute>
+              <attribute name="action">app.color</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">_16</attribute>
+              <attribute name="action">app.color</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">_24</attribute>
+              <attribute name="action">app.color</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">_32</attribute>
+              <attribute name="action">app.color</attribute>
+            </item>
+          </section>          
+        </submenu> 
+      </section> 
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Show index</attribute>
+          <attribute name="action">app.dark</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Send hexadecimal data</attribute>
+          <attribute name="action">app.dark</attribute>
+        </item>
+      </section>              
+    </submenu>       
+    <submenu>
+      <attribute name="label" translatable="yes">_Help</attribute>
+      <item>
+        <attribute name="label" translatable="yes">_About</attribute>
+        <attribute name="action">win.about</attribute>
+        <attribute name="accel">&lt;Control&gt;a</attribute>
+      </item>
+    </submenu>
+  </menu>
+</interface>

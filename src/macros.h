@@ -17,16 +17,12 @@
 
 typedef struct
 {
-	gchar *shortcut;
-	gchar *action;
+	char *shortcut;
+	char *action;
 	GClosure *closure;
 }
 macro_t;
 
-void Config_macros(GtkAction *action, gpointer data);
-void remove_shortcuts(void);
-void add_shortcuts(void);
-void create_shortcuts(macro_t *, gint);
-macro_t *get_shortcuts(gint *);
+macro_t *get_shortcuts(int *);
 
 #endif

@@ -19,6 +19,7 @@
 
 #include <glib.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include "buffer.h"
 #include "i18n.h"
@@ -90,7 +91,7 @@ void put_chars(const char *chars, unsigned int size, gboolean crlf_auto)
 {
 	// buffer must still be valid after cr conversion or adding timestamp
 	// only pointer is copied below
-	char out_buffer[(BUFFER_RECEPTION*2) + TIMESTAMP_SIZE];
+	char out_buffer[(RECEIVE_BUFFER * 2) + TIMESTAMP_SIZE];
 	const char *characters;
 
 	/* If the auto CR LF mode on, read the buffer to add \r before \n */

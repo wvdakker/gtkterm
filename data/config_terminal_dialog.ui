@@ -1,216 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.18.3 -->
 <interface>
-  <requires lib="gtk+" version="3.12"/>
-  <object class="GtkAdjustment" id="cfg_scrollback_lines">
-    <property name="lower">100</property>
-    <property name="upper">99999</property>
-    <property name="value">3000</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkDialog" id="dialog">
-    <property name="width_request">290</property>
-    <property name="height_request">245</property>
-    <property name="can_focus">False</property>
-    <property name="resizable">False</property>
-    <property name="modal">True</property>
-    <property name="window_position">center-on-parent</property>
-    <property name="destroy_with_parent">True</property>
-    <property name="type_hint">dialog</property>
-    <property name="gravity">center</property>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="dialog-vbox1">
-        <property name="can_focus">False</property>
-        <property name="halign">center</property>
-        <property name="valign">center</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="dialog-action_area1">
-            <property name="can_focus">False</property>
+  <template class="GtkTermWindow" parent="GtkApplicationWindow">
+    <property name="title" translatable="yes">GTKTerm</property>
+    <property name="default-width">750</property>
+    <property name="default-height">550</property>
+    <property name="icon-name">document-open</property>
+    <child>
+      <object class="GtkGrid">
+        <child>
+          <object class="GtkBox">
+            <property name="hexpand">1</property>
             <child>
-              <object class="GtkButton" id="close">
-                <property name="label">Close</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="image_position">bottom</property>
+              <object class="GtkMenuButton" id="menubutton">
+                <property name="icon-name">document-open</property>
               </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
             </child>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">application-exit</property>
+                <property name="action-name">app.quit</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">applications-other</property>
+                <property name="action-name">win.logo</property>
+              </object>
+            </child>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">1</property>
-          </packing>
         </child>
         <child>
-          <object class="GtkGrid" id="grid1">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="halign">center</property>
-            <property name="valign">start</property>
-            <property name="margin_bottom">5</property>
-            <property name="row_spacing">6</property>
-            <property name="column_spacing">12</property>
-            <property name="row_homogeneous">True</property>
+          <object class="GtkInfoBar" id="infobar">
+            <property name="visible">0</property>
+            <property name="hexpand">1</property>
             <child>
-              <object class="GtkLabel" id="label1">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Terminal Font</property>
-                <property name="angle">0.01</property>
-                <property name="xalign">1</property>
-                <attributes>
-                  <attribute name="foreground" value="#555557575353"/>
-                </attributes>
+              <object class="GtkLabel" id="message">
+                <property name="hexpand">1</property>
               </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">0</property>
-              </packing>
             </child>
-            <child>
-              <object class="GtkFontButton" id="cfg_terminal_font">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="font">Sans 12</property>
-                <property name="preview_text"/>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="label5">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Scrollback Lines</property>
-                <property name="xalign">1</property>
-                <attributes>
-                  <attribute name="foreground" value="#555557575353"/>
-                </attributes>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinButton" id="cfg_scrollback_lines_spinner">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="max_width_chars">5</property>
-                <property name="adjustment">cfg_scrollback_lines</property>
-                <property name="value">100</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="label4">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Background color</property>
-                <property name="xalign">1</property>
-                <attributes>
-                  <attribute name="foreground" value="#555557575353"/>
-                </attributes>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">4</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkColorButton" id="cfg_background_color">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="halign">start</property>
-                <property name="title" translatable="yes">Background color</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">4</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="label3">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Text color</property>
-                <property name="xalign">1</property>
-                <attributes>
-                  <attribute name="foreground" value="#555557575353"/>
-                </attributes>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">3</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkColorButton" id="cfg_text_color">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="halign">start</property>
-                <property name="title" translatable="yes">Text color</property>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">3</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="label2">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Block cursor</property>
-                <property name="ellipsize">end</property>
-                <property name="xalign">1</property>
-                <attributes>
-                  <attribute name="foreground" value="#555557575353"/>
-                </attributes>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSwitch" id="cfg_block_cursor">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="halign">start</property>
+            <child type="action">
+              <object class="GtkButton">
                 <property name="valign">center</property>
-                <property name="active">True</property>
-                <property name="state">True</property>
+                <property name="label" translatable="yes">_OK</property>
+                <property name="use-underline">1</property>
+                <signal name="clicked" handler="clicked_cb"/>
               </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">2</property>
-              </packing>
             </child>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="has-frame">1</property>
+            <child>
+              <object class="GtkTextView">
+                <property name="hexpand">1</property>
+                <property name="vexpand">1</property>
+                <property name="buffer">buffer</property>
+              </object>
+            </child>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStatusbar" id="status">
+            <property name="hexpand">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">3</property>
+            </layout>
+          </object>
         </child>
       </object>
     </child>
+  </template>
+  <menu id="toolmenu">
+    <item>
+      <attribute name="label">File1</attribute>
+      <attribute name="action">win.file1</attribute>
+    </item>
+  </menu>
+  <object class="GtkTextBuffer" id="buffer">
+    <signal name="changed" handler="update_statusbar"/>
+    <signal name="mark-set" handler="mark_set_callback"/>
   </object>
 </interface>

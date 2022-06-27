@@ -12,15 +12,14 @@
 /*                                                                     */
 /***********************************************************************/
 
-#ifndef FICHIER_H_
-#define FICHIER_H_
+#ifndef FILES_H_
+#define FILES_H_
 
-void send_raw_file(GtkAction *action, gpointer data);
-void save_raw_file(GtkAction *action, gpointer data);
+void send_raw_file (GAction *action, gpointer data);
+void save_raw_file (GAction *action, gpointer data);
 void add_input(void);
 
 extern gboolean waiting_for_char;
-extern gchar *fic_defaut;
-
+extern char *default_filename;
 
 #endif
