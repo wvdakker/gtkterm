@@ -13,14 +13,12 @@
 
 #include <config.h>
 
-
 // load old config file with parsecfg
 extern int load_old_configuration_from_file (char *);
 
 // Define external variables here
-// configuration for terminal window
+// configuration for terminal window and serial port
 display_config_t term_conf;
-// configuration for serial port
 port_config_t port_conf;
 
 // This is the cli version of the one in gtkterm
@@ -32,6 +30,7 @@ int main (int argc, char **argv) {
 
 	char *section = "default";
 	int error = 0;
+	GKeyFile *configrc;
 
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset(PACKAGE, "UTF-8");
@@ -47,9 +46,14 @@ int main (int argc, char **argv) {
 
 	// load old config file with parsecfg and put output on cli
 	error = load_old_configuration_from_file (section);
+
 	if (error == 0) {
+		configrc  = g_key_file_new ();
+
+		copy_configuration(configrc, section);
+		save_configuration_to_file(configrc, section);
 		dump_configuration_to_cli (section);
 
-		validate_configuration();
+		g_key_file_unref (configrc);
 	}
 }
