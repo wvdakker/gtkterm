@@ -193,7 +193,7 @@ void dump_configuration_to_cli (char *section) {
 		i18n_printf ("[%2d]  %-8s  %s\n", i, macros[i].shortcut, macros[i].action);
 	}
 
-	i18n_printf (_("%d macro's found\n\n"), macro_count());
+	i18n_printf (_("\n%d macro's found\n\n"), macro_count());
 }
 
 /* Save section configuration to file */
@@ -359,8 +359,6 @@ int check_configuration_file(void)
 	else
 	{
 		GKeyFile *config;
-//		GError *error = NULL;
-
 
 		string = g_strdup_printf(_("Configuration file (%s) with [default] configuration has been created.\n"), g_file_get_path(config_file));
 		show_message(string, MSG_WRN);
@@ -370,11 +368,6 @@ int check_configuration_file(void)
 		hard_default_configuration();
 		copy_configuration(config, "default");
 		save_configuration_to_file(config, "default");		
-
-	//	if (!g_key_file_save_to_file (config, g_file_get_path(config_file), &error)) {
-	//		g_debug ("Error saving config file: %s", error->message);
-	//		g_error_free (error);
-	//	}
 
 		g_key_file_unref (config);
 	}
