@@ -1,19 +1,19 @@
-/***********************************************************************/
-/* resource_config.c                                                   */
-/* -----------------                                                   */
-/*           GTKTerm Software                                          */
-/*                      (c) Julien Schmitt                             */
-/*                                                                     */
-/* ------------------------------------------------------------------- */
-/*                                                                     */
-/*   Purpose                                                           */
-/*      Save and load configuration from resource file                 */
-/*                                                                     */
-/*   ChangeLog                                                         */
-/*      - 2.0 : Remove parsecfg. Switch to GKeyFile                    */
-/*              Migration done by Jens Georg (phako)                   */
-/*                                                                     */
-/***********************************************************************/
+/***********************************************************************
+ * resource_config.c                                 
+ * -----------------                                    
+ *           GTKTerm Software                              
+ *                      (c) Julien Schmitt  
+ *                                              
+ * ------------------------------------------------------------------- 
+ *                                           
+ *   \brief Purpose                               
+ *      Save and load configuration from resource file          
+ *                                              
+ *   ChangeLog                                
+ *      - 2.0 : Remove parsecfg. Switch to GKeyFile  
+ *              Migration done by Jens Georg (phako)       
+ *                                                                
+ ***********************************************************************/
 
 #include <stdio.h>
 #include <sys/stat.h>
@@ -32,9 +32,13 @@
 #include "interface.h"
 #include "macros.h"
 
+//! Default configuration filename
 #define CONFIGURATION_FILENAME ".gtktermrc"
+//! The key file
 GFile *config_file;
 
+//! Define all configuration items which are used
+//! in the resource file. it is an index to ConfigurationItem.
 enum {
 		CONF_ITEM_PORT,
 		CONF_ITEM_SPEED,
@@ -123,6 +127,8 @@ void dump_configuration_to_cli (char *section) {
 	char str_buffer[32];
 
 	i18n_printf (_("Configuration loaded from file: [%s]\n"), section);
+
+	//! Print the serial port items
 	i18n_printf (_("\nSerial port\n"));
 	i18n_printf (_("Port                     : %s\n"), port_conf.port);
 	i18n_printf (_("Speed                    : %ld\n"), port_conf.speed);
@@ -165,6 +171,7 @@ void dump_configuration_to_cli (char *section) {
 	i18n_printf (_("RS485 RTS time after TX  : %d\n"), port_conf.rs485_rts_time_after_transmit);
 	i18n_printf (_("Disable port lock        : %s\n"), port_conf.disable_port_lock ? "True" : "False");
 
+	//! Print the terminal items
 	i18n_printf (_("\nTerminal\n"));
 	i18n_printf (_("Font                     : %s\n"), pango_font_description_to_string (term_conf.font));
 	i18n_printf (_("Echo                     : %s\n"), term_conf.echo ? _("True") : _("False"));
@@ -187,22 +194,20 @@ void dump_configuration_to_cli (char *section) {
 	i18n_printf (_("Foreground color green   : %f\n"), term_conf.foreground_color.green);
 	i18n_printf (_("Foreground color alpha   : %f\n"), term_conf.foreground_color.alpha);
 
+	//! ... and the macro's
 	i18n_printf (_("\nMacro's\n"));
 	i18n_printf (_(" Nr  Shortcut  Command\n"));
 	for (int i = 0; i < macro_count(); i++) {
 		i18n_printf ("[%2d] %-8s  %s\n", i, macros[i].shortcut, macros[i].action);
 	}
-
-	i18n_printf (_("\n%d macro's found\n\n"), macro_count());
 }
 
-/* Save section configuration to file */
+/* Save <section> configuration to file */
 void save_configuration_to_file(GKeyFile *config, const char *section)
 {
 	char *string = NULL;
 	GError *error = NULL;
 
-//	copy_configuration(config, section);
 	g_key_file_save_to_file (config, g_file_get_path(config_file), &error);
 
 	string = g_strdup_printf(_("Configuration [%s] saved\n"), section);
@@ -223,6 +228,8 @@ int load_configuration_from_file(const char *section)
 
 	char *string = NULL;
 
+	//! Load the key file
+	//! Note: all sections are loaded into memory.
 	config_object = g_key_file_new ();
 	if (!g_key_file_load_from_file (config_object, g_file_get_path (config_file), G_KEY_FILE_NONE, &error)) {
 		g_debug ("Failed to load configuration file: %s", error->message);
@@ -232,6 +239,7 @@ int load_configuration_from_file(const char *section)
 		return -1;
 	}
 
+	//! Check if the <section> exists in the key file.
 	if (!g_key_file_has_group (config_object, section)) {
 		string = g_strdup_printf(_("No section \"%s\" in configuration file\n"), section);
 		show_message(string, MSG_ERR);
@@ -240,7 +248,11 @@ int load_configuration_from_file(const char *section)
 		return -1;
 	}
 
+	//! First initialize with a default structure.
+	//! Not really needed.
 	hard_default_configuration();
+
+	// Load all key file items into the port_conf or term_conf so we can use it 
 	str = g_key_file_get_string (config_object, section, ConfigurationItem[CONF_ITEM_PORT], NULL);
 	if (str != NULL) {
 		g_strlcpy (port_conf.port, str, sizeof (port_conf.port) - 1);
@@ -302,6 +314,8 @@ int load_configuration_from_file(const char *section)
 	term_conf.crlfauto = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_CRLF_AUTO], NULL);
 	port_conf.disable_port_lock = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_DISABLE_PORT_LOCK], NULL);
 
+	//! The Font is a Pango structure. This only can be added to a terminal
+	//! So we have to convert it.
 	g_clear_pointer (&term_conf.font, pango_font_description_free);
 	str = g_key_file_get_string (config_object, section, ConfigurationItem[CONF_ITEM_FONT], NULL);
 	term_conf.font = pango_font_description_from_string (str);
@@ -341,6 +355,8 @@ int load_configuration_from_file(const char *section)
 	return 0;
 }
 
+//! This checks if the configuration file exists. If not it creates a
+//! new [default]
 int check_configuration_file(void)
 {
 	struct stat my_stat;
@@ -366,7 +382,11 @@ int check_configuration_file(void)
 
 		config = g_key_file_new ();
 		hard_default_configuration();
+
+		//! Put the new default in the key file
 		copy_configuration(config, "default");
+
+		//! And save the config to file
 		save_configuration_to_file(config, "default");		
 
 		g_key_file_unref (config);
@@ -375,6 +395,7 @@ int check_configuration_file(void)
 	return 0;
 }
 
+//! Copy the active configuration into <section> of the Key file
 void copy_configuration(GKeyFile *configrc, const char *section)
 {
 	char *string = NULL;
@@ -440,6 +461,8 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 	g_key_file_set_string (configrc, section, ConfigurationItem[CONF_ITEM_FONT], string);
 	g_free(string);
 
+	//! Macros are an array of strings, so we have to convert it
+	//! All macros ends up in the string_list
 	string_list = g_malloc ( macro_count () * sizeof (char *) * 2 + 1);
 	nr_of_strings = convert_macros_to_string (string_list);
 	g_key_file_set_string_list (configrc, section, ConfigurationItem[CONF_ITEM_MACROS], (const char * const*) string_list, nr_of_strings);
@@ -462,6 +485,8 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_ALPHA], term_conf.background_color.alpha);
 }
 
+//! Remove a section from the file
+//! TODO: Perhaps remove because we dont need it.
 int remove_section(char *cfg_file, char *section)
 {
 	FILE *f = NULL;
@@ -545,6 +570,7 @@ int remove_section(char *cfg_file, char *section)
 	return 0;
 }
 
+//! Create a new <default> configuration
 void hard_default_configuration(void)
 {
 	g_strlcpy(port_conf.port, DEFAULT_PORT, sizeof (port_conf.port));
@@ -574,6 +600,7 @@ void hard_default_configuration(void)
 	set_color (&term_conf.background_color, 0, 0, 0, 1.0);
 }
 
+//! validate the active configuration
 void validate_configuration(void)
 {
 	char *string = NULL;
@@ -636,6 +663,7 @@ void validate_configuration(void)
 		term_conf.font = pango_font_description_from_string (DEFAULT_FONT);
 }
 
+//! Convert the colors RGB to internal color scheme
 void set_color(GdkRGBA *color, float R, float G, float B, float A)
 {
 	color->red = R;

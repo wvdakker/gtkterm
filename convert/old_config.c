@@ -11,6 +11,8 @@
 #include "term_config.h"
 #include "resource_file.h"
 
+extern int nr_of_macros;
+
 /* Configuration file variables */
 char **port;
 int *speed;
@@ -74,6 +76,23 @@ cfgStruct cfg[] =
     {"term_background_alpha", CFG_FLOAT, &background_alpha},
     {NULL, CFG_END, NULL}
 };
+
+//! Proberbly we only need it for old_config
+//! So can be removed from gtkterm
+void create_shortcuts(macro_t *macro, int size)
+{
+	macros = g_malloc((size + 1) * sizeof(macro_t));
+	if(macros != NULL)
+	{
+		memcpy(macros, macro, size * sizeof(macro_t));
+		macros[size].shortcut = NULL;
+		macros[size].action = NULL;
+
+		nr_of_macros = size;
+	}
+	else
+		perror("malloc");
+}
 
 int load_old_configuration_from_file(int section_nr)
 {
