@@ -24,7 +24,7 @@
 
 #include <config.h>
 
-//#include "i18n.h"
+#include "i18n.h"
 #include "serial.h"
 #include "term_config.h"
 #include "resource_file.h"
@@ -33,6 +33,67 @@
 
 #define CONFIGURATION_FILENAME ".gtktermrc"
 GFile *config_file;
+
+enum {
+		CONF_ITEM_PORT,
+		CONF_ITEM_SPEED,
+		CONF_ITEM_BITS,
+		CONF_ITEM_STOPBITS,
+		CONF_ITEM_PARITY,
+		CONF_ITEM_FLOW_CONTROL,
+		CONF_ITEM_WAIT_DELAY,
+		CONF_ITEM_WAIT_CHAR,
+		CONF_ITEM_RS485_RTS_TIME_BEFORE_TX,
+		CONF_ITEM_RS485_RTS_TIME_AFTER_TX,
+		CONF_ITEM_ECHO,
+		CONF_ITEM_CRLF_AUTO,
+		CONF_ITEM_DISABLE_PORT_LOCK,
+		CONF_ITEM_FONT,
+		CONF_ITEM_TERM_SHOW_CURSOR,
+		CONF_ITEM_TERM_ROWS,
+		CONF_ITEM_TERM_COLS,
+		CONF_ITEM_TERM_SCROLLBACK,
+		CONF_ITEM_TERM_VISUAL_BELL,
+		CONF_ITEM_TERM_FOREGROUND_RED,
+		CONF_ITEM_TERM_FOREGROUND_GREEN,
+		CONF_ITEM_TERM_FOREGROUND_BLUE,
+		CONF_ITEM_TERM_FOREGROUND_ALPHA,
+		CONF_ITEM_TERM_BACKGROUND_RED,
+		CONF_ITEM_TERM_BACKGROUND_GREEN,
+		CONF_ITEM_TERM_BACKGROUND_BLUE,
+		CONF_ITEM_TERM_BACKGROUND_ALPHA
+};
+
+// Used configuration options to hold consistency between load/save functions
+char ConfigurationItem [][32] = {
+		"port",
+		"speed",
+		"bits",
+		"stopbits",
+		"parity",
+		"flow_control",
+		"wait_delay",
+		"wait_char",
+		"rs485_rts_time_before_tx",
+		"rs485_rts_time_after_tx",
+		"echo",
+		"crlfauto",
+		"disable_port_lock",
+		"font",
+		"term_show_cursor",
+		"term_rows",
+		"term_columns",
+		"term_scrollback",
+		"term_visual_bell",
+		"term_foreground_red",
+		"term_foreground_green",
+		"term_foreground_blue",
+		"term_foreground_alpha",
+		"term_background_red",
+		"term_background_green",
+		"term_background_blue",
+		"term_background_alpha"
+};
 
 void config_file_init(void)
 {
@@ -169,28 +230,28 @@ int load_configuration_from_file(const char *section)
 	}
 
 	hard_default_configuration();
-	str = g_key_file_get_string (config_object, section, "port", NULL);
+	str = g_key_file_get_string (config_object, section, ConfigurationItem[CONF_ITEM_PORT], NULL);
 	if (str != NULL) {
 		g_strlcpy (port_conf.port, str, sizeof (port_conf.port) - 1);
 		g_free (str);
 	}
 
-	value = g_key_file_get_integer (config_object, section, "speed", NULL);
+	value = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_SPEED], NULL);
 	if (value != 0) {
 		port_conf.speed = value;
 	}
 
-	value = g_key_file_get_integer (config_object, section, "bits", NULL);
+	value = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_BITS], NULL);
 	if (value != 0) {
 		port_conf.bits = value;
 	}
 
-	value = g_key_file_get_integer (config_object, section, "stopbits", NULL);
+	value = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_STOPBITS], NULL);
 	if (value != 0) {
 		port_conf.stops = value;
 	}
 
-	str = g_key_file_get_string (config_object, section, "parity", NULL);
+	str = g_key_file_get_string (config_object, section, ConfigurationItem[CONF_ITEM_PARITY], NULL);
 	if (str != NULL) {
 		if(!g_ascii_strcasecmp(str, "none"))
 			port_conf.parity = 0;
@@ -201,7 +262,7 @@ int load_configuration_from_file(const char *section)
 		g_free (str);
 	}
 
-	str = g_key_file_get_string (config_object, section, "flow_control", NULL);
+	str = g_key_file_get_string (config_object, section,  ConfigurationItem[CONF_ITEM_FLOW_CONTROL],NULL);
 	if (str != NULL) {
 		if(!g_ascii_strcasecmp(str, "none"))
 			port_conf.flow_control = 0;
@@ -215,51 +276,49 @@ int load_configuration_from_file(const char *section)
 		g_free (str);
 	}
 
-	term_conf.delay = g_key_file_get_integer (config_object, section, "wait_delay", NULL);
+	term_conf.delay = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_WAIT_DELAY], NULL);
 
-	value = g_key_file_get_integer (config_object, section, "wait_char", NULL);
+	value = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_WAIT_CHAR], NULL);
 	if (value != 0) {
 		term_conf.char_queue = (signed char) value;
 	} else {
 		term_conf.char_queue = -1;
 	}
     
-	port_conf.rs485_rts_time_before_transmit = g_key_file_get_integer (config_object, section, "rs485_rts_time_before_tx", NULL);
-	port_conf.rs485_rts_time_after_transmit = g_key_file_get_integer (config_object, section, "rs485_rts_time_after_tx", NULL);
-	term_conf.echo = g_key_file_get_boolean (config_object, section, "echo", NULL);
-	term_conf.crlfauto = g_key_file_get_boolean (config_object, section, "crlfauto", NULL);
-	port_conf.disable_port_lock = g_key_file_get_boolean (config_object, section, "disable_port_lock", NULL);
+	port_conf.rs485_rts_time_before_transmit = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_RS485_RTS_TIME_BEFORE_TX], NULL);
+	port_conf.rs485_rts_time_after_transmit = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_RS485_RTS_TIME_AFTER_TX], NULL);
+	term_conf.echo = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_ECHO], NULL);
+	term_conf.crlfauto = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_CRLF_AUTO], NULL);
+	port_conf.disable_port_lock = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_DISABLE_PORT_LOCK], NULL);
 
 	g_clear_pointer (&term_conf.font, pango_font_description_free);
-	str = g_key_file_get_string (config_object, section, "font", NULL);
+	str = g_key_file_get_string (config_object, section, ConfigurationItem[CONF_ITEM_FONT], NULL);
 	term_conf.font = pango_font_description_from_string (str);
 	g_free (str);
 
 	/* FIXME: Fix macros */
 //	remove_shortcuts ();
 
-	term_conf.show_cursor = g_key_file_get_boolean (config_object, section, "term_show_cursor", NULL);
-	term_conf.rows = g_key_file_get_integer (config_object, section, "term_rows", NULL);
-	term_conf.columns = g_key_file_get_integer (config_object, section, "term_columns", NULL);
-
-	value = g_key_file_get_integer (config_object, section, "term_scrollback", NULL);
+	term_conf.show_cursor = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_SHOW_CURSOR], NULL);
+	term_conf.rows = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_TERM_ROWS], NULL);
+	term_conf.columns = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_TERM_COLS], NULL);
+	value = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_TERM_SCROLLBACK], NULL);
 	if (value != 0) {
 		term_conf.scrollback = value;
 	}
 
-	term_conf.visual_bell = g_key_file_get_boolean (config_object, section, "term_visual_bell", NULL);
-	term_conf.foreground_color.red = g_key_file_get_double (config_object, section, "term_foreground_red", NULL);
-	term_conf.foreground_color.green = g_key_file_get_double (config_object, section, "term_foreground_green", NULL);
-	term_conf.foreground_color.blue = g_key_file_get_double (config_object, section, "term_foreground_blue", NULL);
-	term_conf.foreground_color.alpha = g_key_file_get_double (config_object, section, "term_foreground_alpha", NULL);
-	term_conf.background_color.red = g_key_file_get_double (config_object, section, "term_background_red", NULL);
-	term_conf.background_color.green = g_key_file_get_double (config_object, section, "term_background_green", NULL);
-	term_conf.background_color.blue = g_key_file_get_double (config_object, section, "term_background_blue", NULL);
-	term_conf.background_color.alpha = g_key_file_get_double (config_object, section, "term_background_alpha", NULL);
+	term_conf.visual_bell = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_VISUAL_BELL], NULL);
+	term_conf.foreground_color.red = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_RED], NULL);
+	term_conf.foreground_color.green = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_GREEN], NULL);
+	term_conf.foreground_color.blue = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_BLUE], NULL);
+	term_conf.foreground_color.alpha = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_ALPHA], NULL);
+	term_conf.background_color.red = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_RED], NULL);
+	term_conf.background_color.green = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_GREEN], NULL);
+	term_conf.background_color.blue = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_BLUE], NULL);
+	term_conf.background_color.alpha = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_ALPHA], NULL);
 
 	// @@TODO put in term_conf.c after loading the file
 //	vte_terminal_set_font (VTE_TERMINAL(display), term_conf.font);
-
 //	vte_terminal_set_size (VTE_TERMINAL(display), term_conf.rows, term_conf.columns);
 //	vte_terminal_set_scrollback_lines (VTE_TERMINAL(display), term_conf.scrollback);
 //	vte_terminal_set_color_foreground (VTE_TERMINAL(display), (const GdkRGBA *)&term_conf.foreground_color);
@@ -312,10 +371,10 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 {
 	char *string = NULL;
 
-	g_key_file_set_string (configrc, section, "port", port_conf.port);
-	g_key_file_set_integer (configrc, section, "speed", port_conf.speed);
-	g_key_file_set_integer (configrc, section,"bits", port_conf.bits);
-	g_key_file_set_integer (configrc, section, "stopbits", port_conf.stops);
+	g_key_file_set_string (configrc, section, ConfigurationItem[CONF_ITEM_PORT], port_conf.port);
+	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_SPEED], port_conf.speed);
+	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_BITS], port_conf.bits);
+	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_STOPBITS], port_conf.stops);
 
 	switch(port_conf.parity)
 	{
@@ -332,7 +391,7 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 		    string = g_strdup_printf("none");
 	}
 
-	g_key_file_set_string (configrc, section, "parity", string);
+	g_key_file_set_string (configrc, section, ConfigurationItem[CONF_ITEM_PARITY], string);
 	g_free(string);
 
 	switch(port_conf.flow_control)
@@ -353,22 +412,22 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 			string = g_strdup_printf("none");
 	}
 
-	g_key_file_set_string (configrc, section, "flow_control", string);
+	g_key_file_set_string (configrc, section, ConfigurationItem[CONF_ITEM_FLOW_CONTROL], string);
 	g_free(string);
 
-	g_key_file_set_integer (configrc, section, "wait_delay", term_conf.delay);
-	g_key_file_set_integer (configrc, section, "wait_char", term_conf.char_queue);
-	g_key_file_set_integer (configrc, section, "rs485_rts_time_before_tx",
+	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_WAIT_DELAY], term_conf.delay);
+	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_WAIT_CHAR], term_conf.char_queue);
+	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_RS485_RTS_TIME_BEFORE_TX],
     	                        port_conf.rs485_rts_time_before_transmit);
-	g_key_file_set_integer (configrc, section, "rs485_rts_time_after_tx",
+	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_RS485_RTS_TIME_AFTER_TX],
     	                        port_conf.rs485_rts_time_after_transmit);
 
-	g_key_file_set_boolean (configrc, section, "echo", term_conf.echo);
-	g_key_file_set_boolean (configrc, section, "crlfauto", term_conf.crlfauto);
-	g_key_file_set_boolean (configrc, section, "disable_port_lock", port_conf.disable_port_lock);
+	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_ECHO], term_conf.echo);
+	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_CRLF_AUTO], term_conf.crlfauto);
+	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_DISABLE_PORT_LOCK], port_conf.disable_port_lock);
 
 	string = pango_font_description_to_string (term_conf.font);
-	g_key_file_set_string (configrc, section, "font", string);
+	g_key_file_set_string (configrc, section, ConfigurationItem[CONF_ITEM_FONT], string);
 	g_free(string);
 
     /* FIXME: Fix macros! */
@@ -382,21 +441,21 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 	}
 #endif
 
-	g_key_file_set_boolean (configrc, section, "term_show_cursor", term_conf.show_cursor);
-	g_key_file_set_integer (configrc, section, "term_rows", term_conf.rows);
-	g_key_file_set_integer (configrc, section, "term_columns", term_conf.columns);
-	g_key_file_set_integer (configrc, section, "term_scrollback", term_conf.scrollback);
-	g_key_file_set_boolean (configrc, section, "term_visual_bell", term_conf.visual_bell);
+	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_TERM_SHOW_CURSOR], term_conf.show_cursor);
+	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_TERM_ROWS], term_conf.rows);
+	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_TERM_COLS], term_conf.columns);
+	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_TERM_SCROLLBACK], term_conf.scrollback);
+	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_TERM_VISUAL_BELL], term_conf.visual_bell);
 
-	g_key_file_set_double (configrc, section, "term_foreground_red", term_conf.foreground_color.red);
-	g_key_file_set_double (configrc, section, "term_foreground_green", term_conf.foreground_color.green);
-	g_key_file_set_double (configrc, section, "term_foreground_blue", term_conf.foreground_color.blue);
-	g_key_file_set_double (configrc, section, "term_foreground_alpha", term_conf.foreground_color.alpha);
+	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_RED], term_conf.foreground_color.red);
+	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_GREEN], term_conf.foreground_color.green);
+	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_BLUE], term_conf.foreground_color.blue);
+	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_ALPHA], term_conf.foreground_color.alpha);
 
-	g_key_file_set_double (configrc, section, "term_background_red", term_conf.background_color.red);
-	g_key_file_set_double (configrc, section, "term_background_green", term_conf.background_color.green);
-	g_key_file_set_double (configrc, section, "term_background_blue", term_conf.background_color.blue);
-	g_key_file_set_double (configrc, section, "term_background_alpha", term_conf.background_color.alpha);
+	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_RED], term_conf.background_color.red);
+	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_GREEN], term_conf.background_color.green);
+	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_BLUE], term_conf.background_color.blue);
+	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_ALPHA], term_conf.background_color.alpha);
 }
 
 int remove_section(char *cfg_file, char *section)
