@@ -23,7 +23,9 @@
 #include <getopt.h>
 #include <string.h>
 
+#include "resource_file.h"
 #include "term_config.h"
+#include "serial.h"
 #include "files.h"
 #include "i18n.h"
 
@@ -39,6 +41,7 @@ void display_help(void)
 	i18n_printf(_("\nCommand line options\n"));
 	i18n_printf(_("--help or -h : this help screen\n"));
 	i18n_printf(_("--config <configuration> or -c : load configuration\n"));
+	i18n_printf(_("--show_config or -o : show configuration\n"));
 	i18n_printf(_("--port <device> or -p : serial port device (default /dev/ttyS0)\n"));
 	i18n_printf(_("--speed <speed> or -s : serial port speed (default 9600)\n"));
 	i18n_printf(_("--bits <bits> or -b : number of bits (default 8)\n"));
@@ -78,6 +81,7 @@ int read_command_line(int argc, char **argv, char *configuration_to_read)
 		{"rts_time_before", 1, 0, 'x'},
 		{"rts_time_after", 1, 0, 'y'},
 		{"config", 1, 0, 'c'},
+		{"show_config", 1, 0, 'w'},
 		{0, 0, 0, 0}
 	};
 
@@ -86,7 +90,7 @@ int read_command_line(int argc, char **argv, char *configuration_to_read)
 
 	while(1)
 	{
-		c = getopt_long (argc, argv, "s:a:t:b:f:p:w:d:r:heLc:x:y:", long_options, &option_index);
+		c = getopt_long (argc, argv, "s:a:t:b:f:p:w:d:r:heLco:x:y:", long_options, &option_index);
 
 		if(c == -1)
 			break;
@@ -97,23 +101,30 @@ int read_command_line(int argc, char **argv, char *configuration_to_read)
 			load_configuration_from_file(optarg);
 			break;
 
+		case 'o':
+			// load configuration and show it
+			// This will also be used for auto pkg testing.
+			load_configuration_from_file(optarg);
+			dump_configuration_to_cli(optarg);
+			return -1;
+
 		case 's':
-			config.speed = atoi(optarg);
+			port_conf.speed = atoi(optarg);
 			break;
 
 		case 'a':
 			if (!strcmp(optarg, "odd"))
-				config.parity = 1;
+				port_conf.parity = 1;
 			else if (!strcmp(optarg, "even"))
-				config.parity = 2;
+				port_conf.parity = 2;
 			break;
 
 		case 't':
-			config.stops = atoi(optarg);
+			port_conf.stops = atoi(optarg);
 			break;
 
 		case 'b':
-			config.bits = atoi(optarg);
+			port_conf.bits = atoi(optarg);
 			break;
 
 		case 'f':
@@ -121,40 +132,40 @@ int read_command_line(int argc, char **argv, char *configuration_to_read)
 			break;
 
 		case 'p':
-			strcpy(config.port, optarg);
+			strcpy(port_conf.port, optarg);
 			break;
 
 		case 'w':
 			if (!strcmp(optarg, "Xon"))
-				config.flux = 1;
+				port_conf.flow_control = 1;
 			else if (!strcmp(optarg, "RTS"))
-				config.flux = 2;
+				port_conf.flow_control = 2;
 			else if (!strcmp(optarg, "RS485"))
-				config.flux = 3;
+				port_conf.flow_control = 3;
 			break;
 
 		case 'd':
-			config.delay = atoi(optarg);
+			term_conf.delay = atoi(optarg);
 			break;
 
 		case 'r':
-			config.char_queue = *optarg;
+			term_conf.char_queue = *optarg;
 			break;
 
 		case 'e':
-			config.echo = TRUE;
+			term_conf.echo = TRUE;
 			break;
 
 		case 'L':
-			config.disable_port_lock = TRUE;
+			port_conf.disable_port_lock = TRUE;
 			break;
 
 		case 'x':
-			config.rs485_rts_time_before_transmit = atoi(optarg);
+			port_conf.rs485_rts_time_before_transmit = atoi(optarg);
 			break;
 
 		case 'y':
-			config.rs485_rts_time_after_transmit = atoi(optarg);
+			port_conf.rs485_rts_time_after_transmit = atoi(optarg);
 			break;
 
 		case 'h':
@@ -167,7 +178,7 @@ int read_command_line(int argc, char **argv, char *configuration_to_read)
 		}
 	}
 
-	verify_configuration();
-	
+	validate_configuration();
+
 	return 0;
 }
