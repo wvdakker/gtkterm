@@ -50,8 +50,8 @@ You may find it useful to send these signals in your own firmware flashing scrip
 
 ## Installation
 GTKTerm has a few dependencies-
-* Gtk+3.0 (version 3.12 or higher)
-* vte (version 0.40 or higher)
+* Gtk+4.0 (version 4.6 or higher)
+* vte-gtk4 (version 0.68 or higher)
 * intltool (version 0.40.0 or higher)
 * libgudev (version 229 or higher)
 
