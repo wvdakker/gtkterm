@@ -30,6 +30,7 @@
 #include "resource_file.h"
 #include "i18n.h"
 #include "interface.h"
+#include "macros.h"
 
 #define CONFIGURATION_FILENAME ".gtktermrc"
 GFile *config_file;
@@ -45,6 +46,7 @@ enum {
 		CONF_ITEM_WAIT_CHAR,
 		CONF_ITEM_RS485_RTS_TIME_BEFORE_TX,
 		CONF_ITEM_RS485_RTS_TIME_AFTER_TX,
+		CONF_ITEM_MACROS,
 		CONF_ITEM_ECHO,
 		CONF_ITEM_CRLF_AUTO,
 		CONF_ITEM_DISABLE_PORT_LOCK,
@@ -76,10 +78,11 @@ char ConfigurationItem [][32] = {
 		"wait_char",
 		"rs485_rts_time_before_tx",
 		"rs485_rts_time_after_tx",
+		"macros",
 		"echo",
 		"crlfauto",
 		"disable_port_lock",
-		"font",
+		"term_font",
 		"term_show_cursor",
 		"term_rows",
 		"term_columns",
@@ -185,6 +188,12 @@ void dump_configuration_to_cli (char *section) {
 	i18n_printf (_("Foreground color alpha   : %f\n"), term_conf.foreground_color.alpha);
 
 	i18n_printf (_("\nMacro's\n"));
+	i18n_printf (_(" Nr  Shortcut  Command\n"));
+	for (int i = 0; i < macro_count(); i++) {
+		i18n_printf ("[%2d]  %-8s  %s\n", i, macros[i].shortcut, macros[i].action);
+	}
+
+	i18n_printf (_("%d macro's found\n\n"), macro_count());
 }
 
 /* Save section configuration to file */
@@ -193,7 +202,7 @@ void save_configuration_to_file(GKeyFile *config, const char *section)
 	char *string = NULL;
 	GError *error = NULL;
 
-	copy_configuration(config, section);
+//	copy_configuration(config, section);
 	g_key_file_save_to_file (config, g_file_get_path(config_file), &error);
 
 	string = g_strdup_printf(_("Configuration [%s] saved\n"), section);
@@ -208,6 +217,8 @@ int load_configuration_from_file(const char *section)
 	GKeyFile *config_object = NULL;
 	GError *error = NULL;
 	char *str = NULL;
+	char **macrostring;
+	gsize nr_of_macros;
 	int value = 0;
 
 	char *string = NULL;
@@ -262,7 +273,7 @@ int load_configuration_from_file(const char *section)
 		g_free (str);
 	}
 
-	str = g_key_file_get_string (config_object, section,  ConfigurationItem[CONF_ITEM_FLOW_CONTROL],NULL);
+	str = g_key_file_get_string (config_object, section,  ConfigurationItem[CONF_ITEM_FLOW_CONTROL], NULL);
 	if (str != NULL) {
 		if(!g_ascii_strcasecmp(str, "none"))
 			port_conf.flow_control = 0;
@@ -296,8 +307,10 @@ int load_configuration_from_file(const char *section)
 	term_conf.font = pango_font_description_from_string (str);
 	g_free (str);
 
-	/* FIXME: Fix macros */
-//	remove_shortcuts ();
+	/// Convert the stringlist to macros. Existing shortcuts will be delete from convert_string_to_macros
+	macrostring = g_key_file_get_string_list (config_object, section, ConfigurationItem[CONF_ITEM_MACROS], &nr_of_macros, NULL);
+	convert_string_to_macros (macrostring);
+	g_strfreev(macrostring);
 
 	term_conf.show_cursor = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_SHOW_CURSOR], NULL);
 	term_conf.rows = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_TERM_ROWS], NULL);
@@ -346,7 +359,8 @@ int check_configuration_file(void)
 	else
 	{
 		GKeyFile *config;
-		GError *error = NULL;
+//		GError *error = NULL;
+
 
 		string = g_strdup_printf(_("Configuration file (%s) with [default] configuration has been created.\n"), g_file_get_path(config_file));
 		show_message(string, MSG_WRN);
@@ -355,11 +369,12 @@ int check_configuration_file(void)
 		config = g_key_file_new ();
 		hard_default_configuration();
 		copy_configuration(config, "default");
+		save_configuration_to_file(config, "default");		
 
-		if (!g_key_file_save_to_file (config, g_file_get_path(config_file), &error)) {
-			g_debug ("Error saving config file: %s", error->message);
-			g_error_free (error);
-		}
+	//	if (!g_key_file_save_to_file (config, g_file_get_path(config_file), &error)) {
+	//		g_debug ("Error saving config file: %s", error->message);
+	//		g_error_free (error);
+	//	}
 
 		g_key_file_unref (config);
 	}
@@ -370,6 +385,8 @@ int check_configuration_file(void)
 void copy_configuration(GKeyFile *configrc, const char *section)
 {
 	char *string = NULL;
+	char **string_list = NULL;
+	gsize nr_of_strings = 0;
 
 	g_key_file_set_string (configrc, section, ConfigurationItem[CONF_ITEM_PORT], port_conf.port);
 	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_SPEED], port_conf.speed);
@@ -430,8 +447,11 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 	g_key_file_set_string (configrc, section, ConfigurationItem[CONF_ITEM_FONT], string);
 	g_free(string);
 
-    /* FIXME: Fix macros! */
+	nr_of_strings = convert_macros_to_string (string_list);
+	g_key_file_set_string_list (configrc, section, ConfigurationItem[CONF_ITEM_MACROS], (const char * const*) string_list, nr_of_strings);
+	g_free(string_list);	
 #if 0
+
 	macros = get_shortcuts(&size);
 	for(i = 0; i < size; i++)
 	{
