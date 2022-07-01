@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* serie.c                                                             */
+/* serial.c                                                             */
 /* -------                                                             */
 /*           GTKTerm Software                                          */
 /*                      (c) Julien Schmitt                             */
@@ -37,6 +37,7 @@
 #include <linux/serial.h>
 #endif
 
+port_config_t port_conf;
 struct termios termios_save;
 int serial_port_fd = -1;
 
@@ -52,7 +53,7 @@ char* get_port_string(void)
 	else
 	{
 		// 0: none, 1: odd, 2: even
-		switch(config.parity)
+		switch(port_conf.parity)
 		{
 			case 0:
 				parity = 'N';
@@ -68,12 +69,12 @@ char* get_port_string(void)
 		}
 
 		/* "GtkTerm: device  baud-bits-parity-stops"  */
-		msg = g_strdup_printf("%.15s  %d-%d-%c-%d",
-		                      config.port,
-		                      config.speed,
-		                      config.bits,
+		msg = g_strdup_printf("%.15s  %ld-%d-%c-%d",
+		                      port_conf.port,
+		                      port_conf.speed,
+		                      port_conf.bits,
 		                      parity,
-		                      config.stops
+		                      port_conf.stops
 		                     );
 	}
 

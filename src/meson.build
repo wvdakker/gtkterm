@@ -6,9 +6,9 @@ gtkterm_sources = [
 	'i18n.c',
 	'interface.c',
 	'macros.c',
-	'parsecfg.c',
 	'serial.c',
 	'term_config.c',
+	'resource_file.c',
 	gresources
 ]
 

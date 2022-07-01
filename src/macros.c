@@ -37,6 +37,27 @@ enum
 
 macro_t *macros = NULL;
 
+static void macros_destroy(void)
+{
+	int i = 0;
+
+	if(macros == NULL)
+		return;
+
+	while(macros[i].shortcut != NULL)
+	{
+		g_free(macros[i].shortcut);
+		g_free(macros[i].action);
+		/*
+		    g_closure_unref(macros[i].closure);
+		*/
+		i++;
+	}
+
+	g_free(macros);
+	macros = NULL;
+}
+
 macro_t *get_shortcuts(int *size)
 {
 	int i = 0;
@@ -51,3 +72,31 @@ macro_t *get_shortcuts(int *size)
 	return macros;
 }
 
+void create_shortcuts(macro_t *macro, int size)
+{
+	macros = g_malloc((size + 1) * sizeof(macro_t));
+	if(macros != NULL)
+	{
+		memcpy(macros, macro, size * sizeof(macro_t));
+		macros[size].shortcut = NULL;
+		macros[size].action = NULL;
+	}
+	else
+		perror("malloc");
+}
+
+void remove_shortcuts(void)
+{
+	int i = 0;
+
+	if(macros == NULL)
+		return;
+
+	while(macros[i].shortcut != NULL)
+	{
+//		gtk_accel_group_disconnect(shortcuts, macros[i].closure);
+		i++;
+	}
+
+	macros_destroy();
+}

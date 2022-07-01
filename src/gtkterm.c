@@ -25,6 +25,7 @@
 
 #include "buffer.h"
 #include "cmdline.h"
+#include "resource_file.h"
 #include "interface.h"
 #include "term_config.h"
 #include "serial.h"
@@ -239,7 +240,8 @@ static void activate_about (GSimpleAction *action,
     "Zach Davis", 
     "Florian Euchner", 
     "Stephan Enderlein",
-		"Kevin Picot", 
+    "Kevin Picot",
+    "Jens Georg",
     NULL};
 
   const char *comments =  _("GTKTerm is a simple GTK+ terminal used to communicate with the serial port.");
@@ -405,8 +407,6 @@ static void gtkterm_init (GtkTerm *app)
 
   settings = g_settings_new ("com.github.jeija.gtkterm");
 
-  config_file_init ();
-
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset(PACKAGE, "UTF-8");
 	textdomain(PACKAGE);
@@ -564,6 +564,8 @@ static void gtkterm_window_class_init (GtkTermWindowClass *class)
 int main (int argc, char *argv[])
 {
   GtkApplication *app;
+
+  config_file_init ();
 
   if(read_command_line(argc, argv) < 0)
     exit (1);
