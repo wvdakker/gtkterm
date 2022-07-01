@@ -37,6 +37,25 @@ enum
 
 macro_t *macros = NULL;
 
+static int nr_of_macros = 0;
+
+int macro_count () {
+	return (nr_of_macros);
+}
+
+void convert_string_to_macros (char **string_list) {
+
+}
+
+int convert_macros_to_string (char **string_list) {
+	// Remove existing macro's
+	remove_shortcuts ();
+
+//	string = g_strdup_printf("%s::%s", macros[i].shortcut, macros[i].action);
+
+	return (nr_of_macros * 2);
+}
+
 static void macros_destroy(void)
 {
 	int i = 0;
