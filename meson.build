@@ -28,11 +28,19 @@ if have_serial_h
   conf.set('HAVE_LINUX_SERIAL_H', '1')
 endif
 
+doxygen = find_program('doxygen', required : false)
+if doxygen.found()
+  message('Doxygen found')
+else
+  warning('Documentation disabled without doxygen')
+endif
+
 configure_file(output : 'config.h', configuration : conf)
 config = declare_dependency(include_directories : include_directories('.'))
 
 subdir('data')
 subdir('src')
 subdir('po')
+subdir('doc')
 
 meson.add_install_script('meson_post_install.py')
