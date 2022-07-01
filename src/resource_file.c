@@ -190,7 +190,7 @@ void dump_configuration_to_cli (char *section) {
 	i18n_printf (_("\nMacro's\n"));
 	i18n_printf (_(" Nr  Shortcut  Command\n"));
 	for (int i = 0; i < macro_count(); i++) {
-		i18n_printf ("[%2d]  %-8s  %s\n", i, macros[i].shortcut, macros[i].action);
+		i18n_printf ("[%2d] %-8s  %s\n", i, macros[i].shortcut, macros[i].action);
 	}
 
 	i18n_printf (_("\n%d macro's found\n\n"), macro_count());
@@ -218,7 +218,7 @@ int load_configuration_from_file(const char *section)
 	GError *error = NULL;
 	char *str = NULL;
 	char **macrostring;
-	gsize nr_of_macros;
+	gsize nr_of_strings;
 	int value = 0;
 
 	char *string = NULL;
@@ -308,8 +308,8 @@ int load_configuration_from_file(const char *section)
 	g_free (str);
 
 	/// Convert the stringlist to macros. Existing shortcuts will be delete from convert_string_to_macros
-	macrostring = g_key_file_get_string_list (config_object, section, ConfigurationItem[CONF_ITEM_MACROS], &nr_of_macros, NULL);
-	convert_string_to_macros (macrostring);
+	macrostring = g_key_file_get_string_list (config_object, section, ConfigurationItem[CONF_ITEM_MACROS], &nr_of_strings, NULL);
+	convert_string_to_macros (macrostring, nr_of_strings);
 	g_strfreev(macrostring);
 
 	term_conf.show_cursor = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_SHOW_CURSOR], NULL);
@@ -440,19 +440,10 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 	g_key_file_set_string (configrc, section, ConfigurationItem[CONF_ITEM_FONT], string);
 	g_free(string);
 
+	string_list = g_malloc ( macro_count () * sizeof (char *) * 2 + 1);
 	nr_of_strings = convert_macros_to_string (string_list);
 	g_key_file_set_string_list (configrc, section, ConfigurationItem[CONF_ITEM_MACROS], (const char * const*) string_list, nr_of_strings);
 	g_free(string_list);	
-#if 0
-
-	macros = get_shortcuts(&size);
-	for(i = 0; i < size; i++)
-	{
-		string = g_strdup_printf("%s::%s", macros[i].shortcut, macros[i].action);
-		cfgStoreValue(cfg, "macros", string, CFG_INI, pos);
-		g_free(string);
-	}
-#endif
 
 	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_TERM_SHOW_CURSOR], term_conf.show_cursor);
 	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_TERM_ROWS], term_conf.rows);

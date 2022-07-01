@@ -10,11 +10,13 @@
 #include "interface.h"
 #include "resource_file.h"
 #include "i18n.h"
+#include "parsecfg.h"
 
 #include <config.h>
 
 // load old config file with parsecfg
-extern int load_old_configuration_from_file (char *);
+extern int load_old_configuration_from_file (int);
+extern cfgStruct cfg[];
 
 // Define external variables here
 // configuration for terminal window and serial port
@@ -28,8 +30,9 @@ void show_message (char * msg, int type) {
 
 int main (int argc, char **argv) {
 
-	char *section = "default";
 	int error = 0;
+	int i;
+	int section_count = 0;
 	GKeyFile *configrc;
 
 	bindtextdomain(PACKAGE, LOCALEDIR);
@@ -39,21 +42,35 @@ int main (int argc, char **argv) {
 	i18n_printf(_("\nGTKTerm version %s\n"), PACKAGE_VERSION);
 	i18n_printf(_("\t (c) Julien Schmitt\n"));
 	i18n_printf(_("\nThis program is released under the terms of the GPL V3 or later\n"));
-	i18n_printf(_("GTKTerm_conv converts the 1.x resource file (.gtktermrc) to 2.0 rc structure.\n\n"));
+	i18n_printf(_("GTKTerm_conv converts the 1.x resource file (.gtktermrc) to 2.0 resource structure.\n\n"));
 
 	// Check if the file exists
 	config_file_init ();
 
-	// load old config file with parsecfg and put output on cli
-	error = load_old_configuration_from_file (section);
+	section_count  = cfgParse(g_file_get_path(config_file), cfg, CFG_INI);
 
-	if (error == 0) {
-		configrc  = g_key_file_new ();
+	for (i = 0; i < section_count; i++)
+		i18n_printf(_("Found section [%s]\n"), cfgSectionNumberToName(i));
 
-		copy_configuration(configrc, section);
-		save_configuration_to_file(configrc, section);
-		dump_configuration_to_cli (section);
+	i18n_printf("\n");
 
-		g_key_file_unref (configrc);
+	configrc  = g_key_file_new ();
+
+	for (i = 0; i < section_count; i++) {
+
+		i18n_printf(_("Converting section [%s]\n"), cfgSectionNumberToName(i));
+		// load old config file with parsecfg and put output on cli
+		error = load_old_configuration_from_file (i);
+
+		if (error == 0) {
+
+
+			copy_configuration(configrc, cfgSectionNumberToName(i));
+			save_configuration_to_file(configrc, cfgSectionNumberToName(i));
+//			dump_configuration_to_cli (section);
+
+		}
 	}
+
+	g_key_file_unref (configrc);
 }

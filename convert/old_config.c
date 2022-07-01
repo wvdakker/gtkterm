@@ -75,169 +75,143 @@ cfgStruct cfg[] =
     {NULL, CFG_END, NULL}
 };
 
-int load_old_configuration_from_file(char *config_name)
+int load_old_configuration_from_file(int section_nr)
 {
-	int max, i, j, k, size;
-	char *string = NULL;
+	int j, k, size;
 	char *str;
 	macro_t *macros = NULL;
 	cfgList *t;
 
-	max = cfgParse(g_file_get_path(config_file), cfg, CFG_INI);
+	hard_default_configuration();
 
-	if(max == -1)
+	if(port[section_nr] != NULL)
+		strcpy(port_conf.port, port[section_nr]);
+	if(speed[section_nr] != 0)
+		port_conf.speed = speed[section_nr];
+	if(bits[section_nr] != 0)
+		port_conf.bits = bits[section_nr];
+	if(stopbits[section_nr] != 0)
+		port_conf.stops = stopbits[section_nr];
+	if(parity[section_nr] != NULL)
 	{
-		show_message(_("Cannot read configuration file!\nIf no previous file is used this conversion can be ommited.\n"), MSG_ERR);
-		return -1;
+		if(!g_ascii_strcasecmp(parity[section_nr], "none"))
+			port_conf.parity = 0;
+		else if(!g_ascii_strcasecmp(parity[section_nr], "odd"))
+			port_conf.parity = 1;
+		else if(!g_ascii_strcasecmp(parity[section_nr], "even"))
+			port_conf.parity = 2;
 	}
-	else
+	if(flow[section_nr] != NULL)
 	{
-		for(i = 0; i < max; i++)
+		if(!g_ascii_strcasecmp(flow[section_nr], "none"))
+			port_conf.flow_control = 0;
+		else if(!g_ascii_strcasecmp(flow[section_nr], "xon"))
+			port_conf.flow_control = 1;
+		else if(!g_ascii_strcasecmp(flow[section_nr], "rts"))
+			port_conf.flow_control = 2;
+		else if(!g_ascii_strcasecmp(flow[section_nr], "rs485"))
+			port_conf.flow_control = 3;
+	}
+
+	term_conf.delay = wait_delay[section_nr];
+
+	if(wait_char[section_nr] != 0)
+		term_conf.char_queue = (signed char)wait_char[section_nr];
+	else
+		term_conf.char_queue = -1;
+
+	port_conf.rs485_rts_time_before_transmit = rts_time_before_tx[section_nr];
+	port_conf.rs485_rts_time_after_transmit = rts_time_after_tx[section_nr];
+
+	if(echo[section_nr] != -1)
+		term_conf.echo = (gboolean)echo[section_nr];
+	else
+		term_conf.echo = FALSE;
+
+	if(crlfauto[section_nr] != -1)
+		term_conf.crlfauto = (gboolean)crlfauto[section_nr];
+	else
+		term_conf.crlfauto = FALSE;
+
+	if(timestamp[section_nr] != -1)
+		term_conf.timestamp = (gboolean)timestamp[section_nr];
+	else
+		term_conf.timestamp = FALSE;
+
+	if (term_conf.font != NULL)
+		g_clear_pointer (&term_conf.font, pango_font_description_free);
+	term_conf.font = pango_font_description_from_string(font[section_nr]);
+
+	// remove old macro's and free memory
+	remove_shortcuts ();
+
+	t = macro_list[section_nr];
+	size = 0;
+	if(t != NULL)
+	{
+		size++;
+		while(t->next != NULL)
 		{
-			if(!strcmp(config_name, cfgSectionNumberToName(i)))
-			{
-				hard_default_configuration();
-
-				if(port[i] != NULL)
-					strcpy(port_conf.port, port[i]);
-				if(speed[i] != 0)
-					port_conf.speed = speed[i];
-				if(bits[i] != 0)
-					port_conf.bits = bits[i];
-				if(stopbits[i] != 0)
-					port_conf.stops = stopbits[i];
-				if(parity[i] != NULL)
-				{
-					if(!g_ascii_strcasecmp(parity[i], "none"))
-						port_conf.parity = 0;
-					else if(!g_ascii_strcasecmp(parity[i], "odd"))
-						port_conf.parity = 1;
-					else if(!g_ascii_strcasecmp(parity[i], "even"))
-						port_conf.parity = 2;
-				}
-				if(flow[i] != NULL)
-				{
-					if(!g_ascii_strcasecmp(flow[i], "none"))
-						port_conf.flow_control = 0;
-					else if(!g_ascii_strcasecmp(flow[i], "xon"))
-						port_conf.flow_control = 1;
-					else if(!g_ascii_strcasecmp(flow[i], "rts"))
-						port_conf.flow_control = 2;
-					else if(!g_ascii_strcasecmp(flow[i], "rs485"))
-						port_conf.flow_control = 3;
-				}
-
-				term_conf.delay = wait_delay[i];
-
-				if(wait_char[i] != 0)
-					term_conf.char_queue = (signed char)wait_char[i];
-				else
-					term_conf.char_queue = -1;
-
-				port_conf.rs485_rts_time_before_transmit = rts_time_before_tx[i];
-				port_conf.rs485_rts_time_after_transmit = rts_time_after_tx[i];
-
-				if(echo[i] != -1)
-					term_conf.echo = (gboolean)echo[i];
-				else
-					term_conf.echo = FALSE;
-
-				if(crlfauto[i] != -1)
-					term_conf.crlfauto = (gboolean)crlfauto[i];
-				else
-					term_conf.crlfauto = FALSE;
-
-				if(timestamp[i] != -1)
-					term_conf.timestamp = (gboolean)timestamp[i];
-				else
-					term_conf.timestamp = FALSE;
-
-				if (term_conf.font != NULL)
-					g_clear_pointer (&term_conf.font, pango_font_description_free);
-				term_conf.font = pango_font_description_from_string(font[i]);
-
-				t = macro_list[i];
-				size = 0;
-				if(t != NULL)
-				{
-					size++;
-					while(t->next != NULL)
-					{
-						t = t->next;
-						size++;
-					}
-				}
-
-				if(size != 0)
-				{
-					t = macro_list[i];
-					macros = g_malloc(size * sizeof(macro_t));
-					if(macros == NULL)
-					{
-						perror("malloc");
-						return -1;
-					}
-					for(j = 0; j < size; j++)
-					{
-						for(k = 0; k < (strlen(t->str) - 1); k++)
-						{
-							if((t->str[k] == ':') && (t->str[k + 1] == ':'))
-								break;
-						}
-						macros[j].shortcut = g_strndup(t->str, k);
-						str = &(t->str[k + 2]);
-						macros[j].action = g_strdup(str);
-
-						t = t->next;
-					}
-				}
-
-//				remove_shortcuts();
-				create_shortcuts(macros, size);
-				g_free(macros);
-
-				if(block_cursor[i] != -1)
-					term_conf.block_cursor = (gboolean)block_cursor[i];
-				else
-					term_conf.block_cursor = TRUE;
-
-				if(rows[i] != 0)
-					term_conf.rows = rows[i];
-
-				if(columns[i] != 0)
-					term_conf.columns = columns[i];
-
-				if(scrollback[i] != 0)
-					term_conf.scrollback = scrollback[i];
-
-				if(visual_bell[i] != -1)
-					term_conf.visual_bell = (gboolean)visual_bell[i];
-				else
-					term_conf.visual_bell = FALSE;
-
-				term_conf.foreground_color.red = foreground_red[i];
-				term_conf.foreground_color.green = foreground_green[i];
-				term_conf.foreground_color.blue = foreground_blue[i];
-				term_conf.foreground_color.alpha = foreground_alpha[i];
-
-				term_conf.background_color.red = background_red[i];
-				term_conf.background_color.green = background_green[i];
-				term_conf.background_color.blue = background_blue[i];
-				term_conf.background_color.alpha = background_alpha[i];
-
-				i = max + 1;
-			}
+			t = t->next;
+			size++;
 		}
+	}
 
-
-		if(i == max)
+	if(size != 0)
+	{
+		t = macro_list[section_nr];
+		macros = g_malloc(size * sizeof(macro_t));
+		if(macros == NULL)
 		{
-			string = g_strdup_printf(_("No section \"%s\" in configuration file\n"), config_name);
-			show_message(string, MSG_ERR);
-			g_free(string);
+			perror("malloc");
 			return -1;
 		}
+		for(j = 0; j < size; j++)
+		{
+			for(k = 0; k < (strlen(t->str) - 1); k++)
+			{
+				if((t->str[k] == ':') && (t->str[k + 1] == ':'))
+					break;
+			}
+			macros[j].shortcut = g_strndup(t->str, k);
+			str = &(t->str[k + 2]);
+			macros[j].action = g_strdup(str);
+
+			t = t->next;
+		}
 	}
+
+	create_shortcuts(macros, size);
+	g_free(macros);
+
+	if(block_cursor[section_nr] != -1)
+		term_conf.block_cursor = (gboolean)block_cursor[section_nr];
+	else
+		term_conf.block_cursor = TRUE;
+
+	if(rows[section_nr] != 0)
+		term_conf.rows = rows[section_nr];
+
+	if(columns[section_nr] != 0)
+		term_conf.columns = columns[section_nr];
+
+	if(scrollback[section_nr] != 0)
+		term_conf.scrollback = scrollback[section_nr];
+
+	if(visual_bell[section_nr] != -1)
+		term_conf.visual_bell = (gboolean)visual_bell[section_nr];
+	else
+		term_conf.visual_bell = FALSE;
+
+	term_conf.foreground_color.red = foreground_red[section_nr];
+	term_conf.foreground_color.green = foreground_green[section_nr];
+	term_conf.foreground_color.blue = foreground_blue[section_nr];
+	term_conf.foreground_color.alpha = foreground_alpha[section_nr];
+
+	term_conf.background_color.red = background_red[section_nr];
+	term_conf.background_color.green = background_green[section_nr];
+	term_conf.background_color.blue = background_blue[section_nr];
+	term_conf.background_color.alpha = background_alpha[section_nr];
 
 	return 0;
 }

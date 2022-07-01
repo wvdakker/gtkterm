@@ -29,7 +29,7 @@ void add_shortcuts(void);
 void create_shortcuts(macro_t *, gint);
 macro_t *get_shortcuts(gint *);
 
-void convert_string_to_macros (char **);
+void convert_string_to_macros (char **, int);
 int convert_macros_to_string (char **);
 
 int macro_count ();

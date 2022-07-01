@@ -43,15 +43,33 @@ int macro_count () {
 	return (nr_of_macros);
 }
 
-void convert_string_to_macros (char **string_list) {
-
-}
-
-int convert_macros_to_string (char **string_list) {
+void convert_string_to_macros (char **string_list, int size) {
+	char **strptr = string_list;
+	
 	// Remove existing macro's
 	remove_shortcuts ();
 
-//	string = g_strdup_printf("%s::%s", macros[i].shortcut, macros[i].action);
+	if (macros)
+		g_free(macros);
+
+	macros = g_malloc(size * sizeof(macro_t));
+	nr_of_macros = 0;
+
+	while  (*strptr) {
+		macros[nr_of_macros].shortcut = g_strdup(*strptr++);
+		macros[nr_of_macros++].action = g_strdup(*strptr++);
+	}
+}
+
+int convert_macros_to_string (char **string_list) {
+	char **strptr = string_list;
+
+	for (int i = 0; i < nr_of_macros; i++) {
+		*strptr++ = macros[i].shortcut;
+		*strptr++ = macros[i].action;
+	}
+
+	*strptr++ = NULL;
 
 	return (nr_of_macros * 2);
 }
@@ -99,6 +117,8 @@ void create_shortcuts(macro_t *macro, int size)
 		memcpy(macros, macro, size * sizeof(macro_t));
 		macros[size].shortcut = NULL;
 		macros[size].action = NULL;
+
+		nr_of_macros = size;
 	}
 	else
 		perror("malloc");
