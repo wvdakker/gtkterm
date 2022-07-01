@@ -36,10 +36,11 @@ else
 endif
 
 configure_file(output : 'config.h', configuration : conf)
-config = declare_dependency(include_directories : include_directories('.'))
+config = declare_dependency(include_directories : include_directories('.', 'src', '../src'))
 
 subdir('data')
 subdir('src')
+subdir('convert')
 subdir('po')
 subdir('doc')
 
