@@ -42,8 +42,6 @@
 #include "term_config.h"
 #include "macros.h"
 
-#define CONFIGURATION_FILENAME ".gtktermrc"
-
 display_config_t term_conf;
 
 /* Configuration file variables */

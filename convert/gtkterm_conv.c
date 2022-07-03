@@ -67,7 +67,7 @@ int main (int argc, char **argv) {
 		if (error == 0) {
 			//! Copy the section into the '2.0' structure and save it
 			copy_configuration(configrc, cfgSectionNumberToName(i));
-			save_configuration_to_file(configrc, cfgSectionNumberToName(i));
+			save_configuration_to_file(configrc);
 		}
 	}
 

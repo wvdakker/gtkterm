@@ -41,7 +41,8 @@ void display_help(void)
 	i18n_printf(_("\nCommand line options\n"));
 	i18n_printf(_("--help or -h : this help screen\n"));
 	i18n_printf(_("--config <configuration> or -c : load configuration\n"));
-	i18n_printf(_("--show_config or -o : show configuration\n"));
+	i18n_printf(_("--show_config <configuration> or -o : show configuration\n"));
+	i18n_printf(_("--remove_config <configuration> or -R : remove configuration\n"));	
 	i18n_printf(_("--port <device> or -p : serial port device (default /dev/ttyS0)\n"));
 	i18n_printf(_("--speed <speed> or -s : serial port speed (default 9600)\n"));
 	i18n_printf(_("--bits <bits> or -b : number of bits (default 8)\n"));
@@ -81,7 +82,8 @@ int read_command_line(int argc, char **argv, char *configuration_to_read)
 		{"rts_time_before", 1, 0, 'x'},
 		{"rts_time_after", 1, 0, 'y'},
 		{"config", 1, 0, 'c'},
-		{"show_config", 1, 0, 'w'},
+		{"show_config", 1, 0, 'o'},
+		{"remove_config", 1, 0, 'R'},		
 		{0, 0, 0, 0}
 	};
 
@@ -90,7 +92,7 @@ int read_command_line(int argc, char **argv, char *configuration_to_read)
 
 	while(1)
 	{
-		c = getopt_long (argc, argv, "s:a:t:b:f:p:w:d:r:heLco:x:y:", long_options, &option_index);
+		c = getopt_long (argc, argv, "s:a:t:b:f:p:w:d:r:heLc:o:R:x:y:", long_options, &option_index);
 
 		if(c == -1)
 			break;
@@ -107,6 +109,16 @@ int read_command_line(int argc, char **argv, char *configuration_to_read)
 			load_configuration_from_file(optarg);
 			dump_configuration_to_cli(optarg);
 			return -1;
+
+		case 'R':
+			// load configuration and remove the specified section
+			// This will also be used for auto pkg testing.
+//			load_configuration_from_file(optarg);
+			remove_section(optarg);
+			
+			i18n_printf(_("Section [%s] removed.\n"), optarg);
+
+			return -1;			
 
 		case 's':
 			port_conf.speed = atoi(optarg);

@@ -34,6 +34,8 @@
 
 //! Default configuration filename
 #define CONFIGURATION_FILENAME ".gtktermrc"
+#define DEFAULT_SECTION "default"
+
 //! The key file
 GFile *config_file;
 
@@ -203,21 +205,20 @@ void dump_configuration_to_cli (char *section) {
 }
 
 /* Save <section> configuration to file */
-void save_configuration_to_file(GKeyFile *config, const char *section)
+void save_configuration_to_file(GKeyFile *config)
 {
-	char *string = NULL;
 	GError *error = NULL;
 
-	g_key_file_save_to_file (config, g_file_get_path(config_file), &error);
-
-	string = g_strdup_printf(_("Configuration [%s] saved\n"), section);
-	show_message(string, MSG_WRN);
-	g_free(string);
+	if (!g_key_file_save_to_file (config, g_file_get_path(config_file), &error))
+	{
+		g_debug ("Failed to save configuration file: %s", error->message);
+		g_error_free (error);
+	}
 }
 
 /* Load the configuration from <section> into the port and term config */
 /* If it does not exists it creates one from the defaults              */
-int load_configuration_from_file(const char *section)
+int load_configuration_from_file(char *section)
 {
 	GKeyFile *config_object = NULL;
 	GError *error = NULL;
@@ -228,6 +229,7 @@ int load_configuration_from_file(const char *section)
 
 	char *string = NULL;
 
+	printf ("Loading %s\n", section);
 	//! Load the key file
 	//! Note: all sections are loaded into memory.
 	config_object = g_key_file_new ();
@@ -241,7 +243,7 @@ int load_configuration_from_file(const char *section)
 
 	//! Check if the <section> exists in the key file.
 	if (!g_key_file_has_group (config_object, section)) {
-		string = g_strdup_printf(_("No section \"%s\" in configuration file\n"), section);
+		string = g_strdup_printf(_("No section [%s] in configuration file\n"), section);
 		show_message(string, MSG_ERR);
 		g_free(string);
 		g_key_file_unref (config_object);
@@ -249,7 +251,7 @@ int load_configuration_from_file(const char *section)
 	}
 
 	//! First initialize with a default structure.
-	//! Not really needed.
+	//! Not really needed but good practice.
 	hard_default_configuration();
 
 	// Load all key file items into the port_conf or term_conf so we can use it 
@@ -344,6 +346,10 @@ int load_configuration_from_file(const char *section)
 	term_conf.background_color.blue = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_BLUE], NULL);
 	term_conf.background_color.alpha = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_ALPHA], NULL);
 
+	if (term_conf.active_section)
+		g_free(term_conf.active_section);
+	term_conf.active_section = g_strdup(section);
+
 	// @@TODO put in term_conf.c after loading the file
 //	vte_terminal_set_font (VTE_TERMINAL(display), term_conf.font);
 //	vte_terminal_set_size (VTE_TERMINAL(display), term_conf.rows, term_conf.columns);
@@ -366,7 +372,7 @@ int check_configuration_file(void)
 	if(stat(g_file_get_path(config_file), &my_stat) == 0)
 	{
 		/* If bad configuration file, fallback to _hardcoded_ defaults! */
-		if(load_configuration_from_file("default") == -1)
+		if(load_configuration_from_file(DEFAULT_SECTION) == -1)
 		{
 			hard_default_configuration();
 			return -1;
@@ -384,10 +390,14 @@ int check_configuration_file(void)
 		hard_default_configuration();
 
 		//! Put the new default in the key file
-		copy_configuration(config, "default");
+		copy_configuration(config, DEFAULT_SECTION);
 
 		//! And save the config to file
-		save_configuration_to_file(config, "default");		
+		save_configuration_to_file(config);		
+
+		string = g_strdup_printf(_("Configuration [%s] saved\n"), term_conf.active_section);
+		show_message(string, MSG_WRN);
+		g_free(string);
 
 		g_key_file_unref (config);
 	}
@@ -485,87 +495,55 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_ALPHA], term_conf.background_color.alpha);
 }
 
-//! Remove a section from the file
-//! TODO: Perhaps remove because we dont need it.
-int remove_section(char *cfg_file, char *section)
+//! Remove a section from the GKeyFile 
+//! If it is the active section then switch back to default.
+//! If it is the default section then create a new 'default' default section
+int remove_section(char *section)
 {
-	FILE *f = NULL;
-	char *buffer = NULL;
-	char *buf;
-	size_t size;
-	char *to_search;
-	size_t i, j, length, sect;
+	char *string = NULL;
+	GError *error = NULL;
+	GKeyFile *config = NULL;
 
-	f = fopen(cfg_file, "r");
-	if(f == NULL)
-	{
-		perror(cfg_file);
+	//! Load the key file
+	//! Note: all sections are loaded into memory.
+	//! TODO: make it a own function if this works.....
+	config = g_key_file_new ();
+	if (!g_key_file_load_from_file (config, g_file_get_path (config_file), G_KEY_FILE_NONE, &error)) {
+		g_debug ("Failed to load configuration file: %s", error->message);
+		g_error_free (error);
+		g_key_file_unref (config);
+
 		return -1;
 	}
 
-	fseek(f, 0L, SEEK_END);
-	size = ftell(f);
-	rewind(f);
-
-	buffer = g_malloc(size);
-	if(buffer == NULL)
-	{
-		perror("malloc");
-		return -1;
+	//! If we remove the DEFAULT_SECTION then create a new one
+	if (!g_strcmp0 ((const char *) section, (const char *)&DEFAULT_SECTION)) {
+		hard_default_configuration();
 	}
-
-	if(fread(buffer, 1, size, f) != size)
-	{
-		perror(cfg_file);
-		fclose(f);
-		return -1;
-	}
-
-	to_search = g_strdup_printf("[%s]", section);
-	length = strlen(to_search);
-
-	/* Search section */
-	for(i = 0; i < size - length; i++)
-	{
-		for(j = 0; j < length; j++)
-		{
-			if(to_search[j] != buffer[i + j])
-				break;
+	else {
+		//! We remove the active session? Switch back to DEFAULT_SECTION
+		if (!g_strcmp0 ((const char *) section, (const char *)term_conf.active_section)) {
+			load_configuration_from_file (DEFAULT_SECTION);
 		}
 
-		if(j == length)
-			break;
+		//! Remove the group from GKeyFile
+		if (!g_key_file_remove_group (config, section, &error)) {
+
+			g_debug ("Failed to remove section: %s", error->message);
+			g_error_free (error);
+			g_key_file_unref (config);
+
+			return -1;
+		}
 	}
 
-	if(i == size - length)
-	{
-		i18n_printf(_("Cannot find section %s\n"), to_search);
-		return -1;
-	}
+	save_configuration_to_file(config);	
 
-	sect = i;
+	string = g_strdup_printf(_("Configuration [%s] removed\n"), section);
+	show_message(string, MSG_WRN);
+	g_free(string);
 
-	/* Search for next section */
-	for(i = sect + length; i < size; i++)
-	{
-		if(buffer[i] == '[')
-			break;
-	}
-
-	f = fopen(cfg_file, "w");
-	if(f == NULL)
-	{
-		perror(cfg_file);
-		return -1;
-	}
-
-	fwrite(buffer, 1, sect, f);
-	buf = buffer + i;
-	fwrite(buf, 1, size - i, f);
-	fclose(f);
-
-	g_free(to_search);
-	g_free(buffer);
+	g_key_file_unref (config);
 
 	return 0;
 }
@@ -595,6 +573,11 @@ void hard_default_configuration(void)
 	term_conf.columns = 25;
 	term_conf.scrollback = DEFAULT_SCROLLBACK;
 	term_conf.visual_bell = TRUE;
+
+	//! Store session, so we know in which active section we are
+	if (term_conf.active_section)
+		g_free (term_conf.active_section );
+	term_conf.active_section = g_strdup(DEFAULT_SECTION);
 
 	set_color (&term_conf.foreground_color, 0.66, 0.66, 0.66, 1.0);
 	set_color (&term_conf.background_color, 0, 0, 0, 1.0);

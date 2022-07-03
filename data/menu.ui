@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <menu id="menubar">
+  <menu id="gtkterm_menubar">
     <submenu>
       <attribute name="label" translatable="yes">_File</attribute>
       <section>

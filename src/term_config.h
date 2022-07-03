@@ -39,6 +39,7 @@ typedef struct
 	GdkRGBA foreground_color;
 	GdkRGBA background_color;
 	PangoFontDescription *font;
+	char *active_section;
 
 } display_config_t;
 
