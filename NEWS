@@ -1,3 +1,6 @@
+1.2    : Searchbar added
+	 Load/save config from XDG_CONFIG_HOME
+
 1.1.1  : Fixed many typos (Thanks to Markus Hiereth)
 
 1.1    : Clear scrollbuffer option
