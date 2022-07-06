@@ -1,7 +1,7 @@
 project(
 	'gtkterm',
 	'c',
-	version: '1.1.1',
+	version: '1.2',
 	meson_version : '>= 0.46.0'
 )
 
@@ -19,7 +19,7 @@ localedir = join_paths(prefix, get_option('localedir'))
 conf = configuration_data()
 conf.set_quoted('VERSION', meson.project_version())
 conf.set_quoted('PACKAGE', meson.project_name())
-conf.set_quoted('RELEASE_DATE', 'December 2020')
+conf.set_quoted('RELEASE_DATE', 'July 2022')
 conf.set_quoted('LOCALEDIR', localedir)
 
 cc = meson.get_compiler('c')
