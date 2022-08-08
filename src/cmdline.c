@@ -38,7 +38,9 @@ static bool on_remove_config (const char *name, const char *value, gpointer data
     //! Signal to load the configuration and dump it to the cli
     g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_REMOVE_SECTION], 0, value);
 
-    return true;
+    //! TODO: Exit without error-message
+    //! Exit is not the way to do it, but it dont print an error message
+    exit(0);
 }
 
 static bool on_print_section (const char *name, const char *value, gpointer data,  GError **error) {
@@ -47,14 +49,15 @@ static bool on_print_section (const char *name, const char *value, gpointer data
     g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_PRINT_SECTION], 0, value);
 
     //! TODO: Exit without error-message
-    return 0;
+    //! Exit is not the way to do it, but it dont print an error message
+    exit(0);
 }
 
 static bool on_use_config (const char *name, const char *value, gpointer data,  GError **error) {
+ 
+    if (strlen (value) < MAX_SECTION_LENGTH)  {
 
-    if (strlen (value) < MAX_SECTION_LENGTH) {
-
-        GTKTERM_APP(data)->initial_section = g_strdup (value);
+        GTKTERM_APP(data)->initial_section = g_strdup ( value);
         return true;
 
     } else {
