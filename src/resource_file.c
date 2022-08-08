@@ -194,6 +194,8 @@ static int gtkterm_configuration_save_keyfile (GtkTermConfiguration *self, gpoin
 //! We will use this with auto package testing within Debian
 static int gtkterm_configuration_print_section (GtkTermConfiguration *self, gpointer data, gpointer user_data) {
 	char *section = (char *) data;
+	gsize nr_of_strings;
+	char **macrostring;
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
 	//! Load keyfile if it is nog loaded yet
@@ -258,12 +260,21 @@ static int gtkterm_configuration_print_section (GtkTermConfiguration *self, gpoi
 	g_printf (_("%-24s : %f\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_GREEN], g_key_file_get_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_GREEN], NULL));
 	g_printf (_("%-24s : %f\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_ALPHA], g_key_file_get_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_ALPHA], NULL));
 
+ 	//! Convert the stringlist to macros. Existing shortcuts will be deleted from convert_string_to_macros
+ 	macrostring = g_key_file_get_string_list (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_MACROS], &nr_of_strings, NULL);
+ 	convert_string_to_macros (macrostring, nr_of_strings);
+ 	g_strfreev(macrostring);
+
 	//! ... and the macro's
-	g_printf (_("\nMacro's\n"));
-	g_printf (_(" Nr  Shortcut  Command\n"));
-//	for (int i = 0; i < macro_count(); i++) {
-//		g_printf ("[%2d] %-8s  %s\n", i, macros[i].shortcut, macros[i].action);
-//	}
+ 	g_printf (_("\nMacros:\n"));
+ 	g_printf (_(" Nr  Shortcut  Command\n"));
+
+	if (macro_count() == 0)
+		g_printf ("No macros defined in this section\n");
+	else {
+		for (int i = 0; i < macro_count(); i++) 
+			g_printf ("[%2d] %-8s  %s\n", i, macros[i].shortcut, macros[i].action);
+	}
 
 	gtkterm_configuration_validate (priv, section);
 
@@ -353,6 +364,8 @@ void gtkterm_configuration_default_configuration (GtkTermConfigurationPrivate *p
  	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_GREEN], 0);
  	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_BLUE], 0);
  	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_ALPHA], 1);
+
+	g_key_file_set_string (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_MACROS], "");
 }
 
 //! @brief
