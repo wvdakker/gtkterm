@@ -99,7 +99,7 @@ void gtkterm_configuration_validate(GtkTermConfigurationPrivate *, char *);
 static void gtkterm_configuration_class_constructed (GObject *object) {
 	GtkTermConfiguration *self = GTKTERM_CONFIGURATION(object);
  
-	g_signal_connect (self, "config_dump", G_CALLBACK(gtkterm_configuration_print_section), NULL);
+	g_signal_connect (self, "config_print", G_CALLBACK(gtkterm_configuration_print_section), NULL);
 	g_signal_connect (self, "config_remove", G_CALLBACK(gtkterm_configuration_remove_section), NULL);		
 	g_signal_connect (self, "config_load", G_CALLBACK(gtkterm_configuration_load_keyfile), NULL);
 	g_signal_connect (self, "config_save", G_CALLBACK(gtkterm_configuration_save_keyfile), NULL);

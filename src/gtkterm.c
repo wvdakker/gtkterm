@@ -427,7 +427,7 @@ static void gtkterm_class_init (GtkTermClass *class)
                                                 0,
                                                 NULL);
 
-  gtkterm_signals[SIGNAL_PRINT_SECTION] = g_signal_new ("config_dump",
+  gtkterm_signals[SIGNAL_PRINT_SECTION] = g_signal_new ("config_print",
                                                  GTKTERM_TYPE_CONFIGURATION ,
                                                  G_SIGNAL_RUN_FIRST,
                                                  0,
