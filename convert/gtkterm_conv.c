@@ -7,8 +7,8 @@
 
 #include "serial.h"
 #include "term_config.h"
-#include "interface.h"
-#include "resource_file.h"
+//#include "interface.h"
+#include "resource_file_conv.h"
 #include "i18n.h"
 #include "parsecfg.h"
 
@@ -67,9 +67,10 @@ int main (int argc, char **argv) {
 		if (error == 0) {
 			//! Copy the section into the '2.0' structure and save it
 			copy_configuration(configrc, cfgSectionNumberToName(i));
-			save_configuration_to_file(configrc);
 		}
 	}
+
+	save_configuration_to_file(configrc);
 
 	//! Dump all sections to cli
 	for (i = 0; i < section_count; i++)

@@ -1,9 +1,9 @@
 gtkterm_conv_sources = [
 	'gtkterm_conv.c',
-	'../src/resource_file.c',
-	'../src/i18n.c',
+	'resource_file_conv.c',
 	'old_config.c',
 	'parsecfg.c',
+	'i18n.c',
 	'../src/macros.c'
 ]
 
