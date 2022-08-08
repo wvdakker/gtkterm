@@ -40,7 +40,7 @@ config = declare_dependency(include_directories : include_directories('.', 'src'
 
 subdir('data')
 subdir('src')
-#subdir('convert')
+subdir('convert')
 subdir('po')
 subdir('doc')
 
