@@ -7,9 +7,10 @@
 /* ------------------------------------------------------------------- */
 /*                                                                     */
 /*   Purpose                                                           */
-/*      Reads the command line                                         */
+/*      Parse cmdline options                                          */
 /*                                                                     */
 /*   ChangeLog                                                         */
+/*      - 2.0 : Switch to GOptionEntry (thanks to Jens Georg (phako))  */
 /*      - 0.99.2 : Internationalization                                */
 /*      - 0.98.3 : modified for configuration file                     */
 /*      - 0.98.2 : added --echo                                        */
@@ -17,180 +18,104 @@
 /*                                                                     */
 /***********************************************************************/
 
-#include <gtk/gtk.h>
+#include <glib.h>
 #include <glib/gi18n.h>
-#include <stdlib.h>
-#include <getopt.h>
-#include <string.h>
-
-#include "resource_file.h"
-#include "term_config.h"
-#include "serial.h"
-#include "files.h"
-#include "i18n.h"
-
+#include <gtk/gtk.h>
+#include <glib/gprintf.h>
 #include <config.h>
 
-extern struct configuration_port config;
+#include "gtkterm.h"
+#include "resource_file.h"
+#include "cmdline.h"
+#include "term_config.h"
+#include "serial.h"
 
-void display_help(void)
-{
-	i18n_printf(_("\nGTKTerm version %s\n"), PACKAGE_VERSION);
-	i18n_printf(_("\t (c) Julien Schmitt\n"));
-	i18n_printf(_("\nThis program is released under the terms of the GPL V3 or later\n"));
-	i18n_printf(_("\nCommand line options\n"));
-	i18n_printf(_("--help or -h : this help screen\n"));
-	i18n_printf(_("--config <configuration> or -c : load configuration\n"));
-	i18n_printf(_("--show_config <configuration> or -o : show configuration\n"));
-	i18n_printf(_("--remove_config <configuration> or -R : remove configuration\n"));	
-	i18n_printf(_("--port <device> or -p : serial port device (default /dev/ttyS0)\n"));
-	i18n_printf(_("--speed <speed> or -s : serial port speed (default 9600)\n"));
-	i18n_printf(_("--bits <bits> or -b : number of bits (default 8)\n"));
-	i18n_printf(_("--stopbits <stopbits> or -t : number of stopbits (default 1)\n"));
-	i18n_printf(_("--parity <odd | even> or -a : parity (default none)\n"));
-	i18n_printf(_("--flow <Xon | RTS | RS485> or -w : flow control (default none)\n"));
-	i18n_printf(_("--delay <ms> or -d : end of line delay in ms (default none)\n"));
-	i18n_printf(_("--char <char> or -r : wait for a special char at end of line (default none)\n"));
-	i18n_printf(_("--file <filename> or -f : default file to send (default none)\n"));
-	i18n_printf(_("--rts_time_before <ms> or -x : for RS-485, time in ms before transmit with rts on\n"));
-	i18n_printf(_("--rts_time_after <ms> or -y : for RS-485, time in ms after transmit with rts on\n"));
-	i18n_printf(_("--echo or -e : switch on local echo\n"));
-	i18n_printf(_("--disable-port-lock or -L: does not lock serial port. Allows to send to serial port from different terminals\n"));
-	i18n_printf(_("                      Note: incoming data are displayed randomly on only one terminal\n"));
-	i18n_printf("\n");
+#define BUFFER_LENGTH       256
+#define MAX_SECTION_LENGTH  32
+
+static bool on_remove_config (const char *name, const char *value, gpointer data,  GError **error) {
+ 
+    //! Signal to load the configuration and dump it to the cli
+    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_REMOVE_SECTION], 0, value);
+
+    return true;
 }
 
-int read_command_line(int argc, char **argv, char *configuration_to_read)
-{
-	int c;
-	int option_index = 0;
+static bool on_print_section (const char *name, const char *value, gpointer data,  GError **error) {
 
-	static struct option long_options[] =
-	{
-		{"speed", 1, 0, 's'},
-		{"parity", 1, 0, 'a'},
-		{"stopbits", 1, 0, 't'},
-		{"bits", 1, 0, 'b'},
-		{"file", 1, 0, 'f'},
-		{"port", 1, 0, 'p'},
-		{"flow", 1, 0, 'w'},
-		{"delay", 1, 0, 'd'},
-		{"char", 1, 0, 'r'},
-		{"help", 0, 0, 'h'},
-		{"echo", 0, 0, 'e'},
-		{"disable-port-lock", 0, 0, 'L'},
-		{"rts_time_before", 1, 0, 'x'},
-		{"rts_time_after", 1, 0, 'y'},
-		{"config", 1, 0, 'c'},
-		{"show_config", 1, 0, 'o'},
-		{"remove_config", 1, 0, 'R'},		
-		{0, 0, 0, 0}
-	};
+    //! Signal to load the configuration and dump it to the cli
+    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_PRINT_SECTION], 0, value);
 
-	/* need a working configuration file ! */
-	check_configuration_file();
-
-	while(1)
-	{
-		c = getopt_long (argc, argv, "s:a:t:b:f:p:w:d:r:heLc:o:R:x:y:", long_options, &option_index);
-
-		if(c == -1)
-			break;
-
-		switch(c)
-		{
-		case 'c':
-			load_configuration_from_file(optarg);
-			break;
-
-		case 'o':
-			// load configuration and show it
-			// This will also be used for auto pkg testing.
-			load_configuration_from_file(optarg);
-			dump_configuration_to_cli(optarg);
-			return -1;
-
-		case 'R':
-			// load configuration and remove the specified section
-			// This will also be used for auto pkg testing.
-//			load_configuration_from_file(optarg);
-			remove_section(optarg);
-			
-			i18n_printf(_("Section [%s] removed.\n"), optarg);
-
-			return -1;			
-
-		case 's':
-			port_conf.speed = atoi(optarg);
-			break;
-
-		case 'a':
-			if (!strcmp(optarg, "odd"))
-				port_conf.parity = 1;
-			else if (!strcmp(optarg, "even"))
-				port_conf.parity = 2;
-			break;
-
-		case 't':
-			port_conf.stops = atoi(optarg);
-			break;
-
-		case 'b':
-			port_conf.bits = atoi(optarg);
-			break;
-
-		case 'f':
-			default_filename = g_strdup(optarg);
-			break;
-
-		case 'p':
-			strcpy(port_conf.port, optarg);
-			break;
-
-		case 'w':
-			if (!strcmp(optarg, "Xon"))
-				port_conf.flow_control = 1;
-			else if (!strcmp(optarg, "RTS"))
-				port_conf.flow_control = 2;
-			else if (!strcmp(optarg, "RS485"))
-				port_conf.flow_control = 3;
-			break;
-
-		case 'd':
-			term_conf.delay = atoi(optarg);
-			break;
-
-		case 'r':
-			term_conf.char_queue = *optarg;
-			break;
-
-		case 'e':
-			term_conf.echo = TRUE;
-			break;
-
-		case 'L':
-			port_conf.disable_port_lock = TRUE;
-			break;
-
-		case 'x':
-			port_conf.rs485_rts_time_before_transmit = atoi(optarg);
-			break;
-
-		case 'y':
-			port_conf.rs485_rts_time_after_transmit = atoi(optarg);
-			break;
-
-		case 'h':
-			display_help();
-			return -1;
-
-		default:
-			i18n_printf(_("Undefined command line option\n"));
-			return -1;
-		}
-	}
-
-	validate_configuration();
-
-	return 0;
+    //! TODO: Exit without error-message
+    return 0;
 }
+
+static bool on_use_config (const char *name, const char *value, gpointer data,  GError **error) {
+
+    if (strlen (value) < MAX_SECTION_LENGTH) {
+
+        GTKTERM_APP(data)->initial_section = g_strdup (value);
+        return true;
+
+    } else {
+
+        g_printf (_("[CONFIGURATION]-name to long (max %d)\n\n"), MAX_SECTION_LENGTH);
+        return false;
+    }
+
+    return true;
+}
+
+//! We use callback in GOptionEntry. So we can directly put them
+//! in the Terminal configuration instead of handing over a pointer from the config.
+static GOptionEntry gtkterm_config_options[] = {    
+    {"show_config", 's', 0, G_OPTION_ARG_CALLBACK, on_print_section, N_("Show configuration"), "[configuration]"},  
+    {"remove_config", 'r', 0, G_OPTION_ARG_CALLBACK, on_remove_config, N_("Remove configuration"), "[configuration]"},
+    {"use_config", 'u', 0, G_OPTION_ARG_CALLBACK, on_use_config, N_("Use configuration (must be first argument)"), "[configuration]"},    
+    {NULL}
+};
+
+//! For setting options we dont allow shortnames anymore.
+//! This makes it easier to configure and more fault tolerant.
+static GOptionEntry gtkterm_term_options[] = {    
+    {GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("End of line delay in ms (default none)"), "<ms>"},
+    {GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Local echo"),  "<on|off>"},
+    {GtkTermConfigurationItems[CONF_ITEM_TERM_RAW_FILENAME], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_ ("Default file to send (default none)"), "<filename>"},
+  	{GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Wait for a special char at end of line (default none)"), "<character in HEX>"},
+    {NULL}
+};
+
+static GOptionEntry gtkterm_port_options[] = {    
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_PARITY], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Parity(default = none)"), "<odd|even|none>"},    
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_BITS], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Number of bits (default 8)"), "<7|8> "},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_PORT], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Serial port device (default /dev/ttyS0)"), "[device]"},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_BAUDRATE], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Serial port baudrate(default 9600bps)"), "[baudrate]",}, 
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_STOPBITS], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Number of stopbits (default 1)"), "<1|2>"},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_FLOW_CONTROL], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Flow control (default none)"), "<Xon|RTS|RS485|none>"},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_RS485_RTS_TIME_BEFORE_TX], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("For RS485, time in ms before transmit with RTS on"), "[ms]"},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_RS485_RTS_TIME_AFTER_TX], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("For RS485, time in ms after transmit with RTS on"), "[ms]"},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_DISABLE_PORT_LOCK], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Disable lock serial port "), "<on|off>"},   
+    {NULL}
+};
+
+void gtkterm_add_cmdline_options (GtkTerm *app)
+{
+    char sz_context_summary[BUFFER_LENGTH];
+
+    g_snprintf (sz_context_summary, BUFFER_LENGTH, "GTKTerm version %s (c) Julien Schmitt\n"
+	        "This program is released under the terms of the GPL V3 or later.", PACKAGE_VERSION);
+    g_application_set_option_context_summary (G_APPLICATION(app), sz_context_summary);
+
+    app->g_term_group = g_option_group_new ("terminal", N_("Terminal options"), N_("Options for configuring terminal"), GTKTERM_APP(app), NULL);
+    app->g_port_group = g_option_group_new ("port", N_("Port options"), N_("Options for configuring the port"), GTKTERM_APP(app), NULL);
+    app->g_config_group = g_option_group_new ("configuration", N_("Configuration options"), N_("Options for maintaining the configuration (default = default)"), GTKTERM_APP(app), NULL);    
+
+    g_option_group_add_entries (app->g_term_group, gtkterm_term_options);
+    g_option_group_add_entries (app->g_port_group, gtkterm_port_options);
+    g_option_group_add_entries (app->g_config_group, gtkterm_config_options); 
+
+    g_application_add_option_group (G_APPLICATION(app), app->g_term_group);
+    g_application_add_option_group (G_APPLICATION(app), app->g_port_group);
+    g_application_add_option_group (G_APPLICATION(app), app->g_config_group);    
+
+} 

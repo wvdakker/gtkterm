@@ -11,8 +11,14 @@
 /*      - Header file -                                                */
 /*                                                                     */
 /*   ChangeLog                                                         */
+/*      - 2.0 : migrated to GTK4                                       */
 /*      - 0.98 : file creation by Julien                               */
 /*                                                                     */
-/***********************************************************************/
+/***********************************************************************/extern GOptionGroup *g_term_group;
 
-int read_command_line(int, char **);
+#ifndef CMDLINE_H
+#define CMDLINE_H
+
+void gtkterm_add_cmdline_options (GtkTerm *app);
+
+#endif // CMDLINE_H

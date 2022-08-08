@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkTermWindow" parent="GtkApplicationWindow">
+    <property name="title" translatable="yes">GTKTerm</property>
+    <property name="default-width">750</property>
+    <property name="default-height">550</property>
+    <property name="icon-name">document-open</property>
+    <child>
+      <object class="GtkGrid">
+        <property name="orientation">vertical</property>      
+        <child>
+          <object class="GtkBox">
+            <property name="hexpand">1</property>
+            <child>
+              <object class="GtkMenuButton" id="menubutton">
+                <property name="icon-name">document-open</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">application-exit</property>
+                <property name="action-name">app.quit</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">applications-other</property>
+                <property name="action-name">win.logo</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkInfoBar" id="infobar">
+            <property name="visible">0</property>
+            <property name="hexpand">1</property>
+            <child>
+              <object class="GtkLabel" id="message">
+                <property name="hexpand">1</property>
+              </object>
+            </child>
+            <child type="action">
+              <object class="GtkButton">
+                <property name="valign">center</property>
+                <property name="label" translatable="yes">_OK</property>
+                <property name="use-underline">1</property>
+                <signal name="clicked" handler="clicked_cb"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scrolled_window">
+            <property name="vexpand">1</property>
+            <property name="focusable">1</property>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStatusbar" id="status">
+            <property name="hexpand">1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">3</property>
+            </layout>
+            <child>
+              <object class="GtkBox">
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="1">Port</property>
+                    <property name="width-chars">30</property>            
+                </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="1">Section</property>
+                    <property name="width-chars">30</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="1">Status</property>
+                    <property name="width-chars">30</property>
+                  </object>
+                </child>            
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="1">DTR</property>
+                    <property name="width-chars">5</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="1">RTS</property>
+                    <property name="width-chars">5</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="1">CTS</property>
+                    <property name="width-chars">5</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="1">CD</property>
+                    <property name="width-chars">5</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="1">RI</property>
+                    <property name="width-chars">5</property>
+                  </object>
+                </child>                                
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <menu id="toolmenu">
+    <item>
+      <attribute name="label">File1</attribute>
+      <attribute name="action">win.file1</attribute>
+    </item>
+  </menu>
+</interface>

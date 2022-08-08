@@ -106,11 +106,11 @@ int load_old_configuration_from_file(int section_nr)
 	if(port[section_nr] != NULL)
 		strcpy(port_conf.port, port[section_nr]);
 	if(speed[section_nr] != 0)
-		port_conf.speed = speed[section_nr];
+		port_conf.baudrate = speed[section_nr];
 	if(bits[section_nr] != 0)
 		port_conf.bits = bits[section_nr];
 	if(stopbits[section_nr] != 0)
-		port_conf.stops = stopbits[section_nr];
+		port_conf.stopbits = stopbits[section_nr];
 	if(parity[section_nr] != NULL)
 	{
 		if(!g_ascii_strcasecmp(parity[section_nr], "none"))

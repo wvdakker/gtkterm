@@ -3,12 +3,12 @@ gtkterm_sources = [
 	'cmdline.c',
 	'files.c',
 	'gtkterm.c',
-	'i18n.c',
 	'interface.c',
 	'macros.c',
-	'serial.c',
-	'term_config.c',
 	'resource_file.c',
+	'serial.c',	
+	'term_config.c',
+	'terminal.c',
 	gresources
 ]
 

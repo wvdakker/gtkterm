@@ -15,6 +15,8 @@
 #ifndef MACROS_H_
 #define MACROS_H_
 
+//! TODO: Migrate to GObject
+
 //! Define macro structure type
 typedef struct
 {

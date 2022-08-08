@@ -18,28 +18,31 @@
 #define DEFAULT_FONT "Monospace 12"
 #define DEFAULT_SCROLLBACK 10000
 
-#define DEFAULT_DELAY 0
-#define DEFAULT_CHAR -1
+#define DEFAULT_DELAY 		0
+#define DEFAULT_CHAR 		-1
 #define DEFAULT_DELAY_RS485 30
-#define DEFAULT_ECHO FALSE
+#define DEFAULT_ECHO 		"false"
+#define DEFAULT_VISUAL_BELL "false"
 
 typedef struct
 {
-	gboolean block_cursor;
-	gboolean show_cursor;
+	bool block_cursor;
+	bool show_cursor;
 	char char_queue;             // character in queue
-	gboolean echo;               // echo local
-	gboolean crlfauto;           // line feed auto
-	gboolean timestamp;
+	bool echo;               // echo local
+	bool crlfauto;           // line feed auto
+	bool timestamp;
 	int delay;                  // end of char delay: in ms
 	int rows;
 	int columns;
 	int scrollback;
-	gboolean visual_bell;
+	bool visual_bell;
 	GdkRGBA foreground_color;
 	GdkRGBA background_color;
 	PangoFontDescription *font;
 	char *active_section;
+
+	char *default_filename;
 
 } display_config_t;
 

@@ -143,18 +143,22 @@
         <item>
           <attribute name="label" translatable="yes">_Open Port</attribute>
           <attribute name="action">app.dark</attribute>            
+          <attribute name="accel">F5</attribute>               
         </item>
         <item>
           <attribute name="label" translatable="yes">_Close Port</attribute>
           <attribute name="action">app.dark</attribute>              
+          <attribute name="accel">F6</attribute>               
         </item>
         <item>
           <attribute name="label" translatable="yes">_Toggle DTR</attribute>
           <attribute name="action">app.dark</attribute>            
+          <attribute name="accel">F7</attribute>               
         </item>
         <item>
           <attribute name="label" translatable="yes">_Toggle RTS</attribute>
           <attribute name="action">app.dark</attribute>              
+          <attribute name="accel">F8</attribute>               
         </item>             
       </section>      
     </submenu>

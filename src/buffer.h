@@ -23,7 +23,7 @@
 
 void create_buffer(void);
 void delete_buffer(void);
-void put_chars(const char *, unsigned int, gboolean);
+void put_chars(const char *, unsigned int, bool);
 void clear_buffer(void);
 void write_buffer(void);
 void set_display_func(void (*func)(const char *, uint32_t));

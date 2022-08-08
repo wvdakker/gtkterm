@@ -25,14 +25,11 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
-
-#include "serial.h"
-#include "term_config.h"
-#include "i18n.h"
-
 #include <config.h>
 #include <glib/gi18n.h>
 
+#include "serial.h"
+#include "term_config.h"
 #ifdef HAVE_LINUX_SERIAL_H
 #include <linux/serial.h>
 #endif
@@ -68,13 +65,13 @@ char* get_port_string(void)
 				parity = 'N';
 		}
 
-		/* "GtkTerm: device  baud-bits-parity-stops"  */
+		/* "GtkTerm: device  baud-bits-parity-stopbits"  */
 		msg = g_strdup_printf("%.15s  %ld-%d-%c-%d",
 		                      port_conf.port,
-		                      port_conf.speed,
+		                      port_conf.baudrate,
 		                      port_conf.bits,
 		                      parity,
-		                      port_conf.stops
+		                      port_conf.stopbits
 		                     );
 	}
 

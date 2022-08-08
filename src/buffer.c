@@ -20,18 +20,21 @@
 #include <glib.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
-#include "buffer.h"
-#include "i18n.h"
-#include "serial.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
 #include <time.h>
+#include <glib/gprintf.h>
+
+#include "buffer.h"
+#include "serial.h"
+
 
 #define TIMESTAMP_SIZE 50
 
-extern gboolean timestamp_on;
+extern bool timestamp_on;
 static int need_to_write_timestamp = 0;
 static char *buffer = NULL;
 static char *current_buffer;
@@ -39,7 +42,7 @@ static unsigned int pointer;
 static int cr_received = 0;
 char overlapped;
 
-extern guint virt_col_pos;
+extern unsigned int virt_col_pos;
 
 
 void (*write_func)(const char *, unsigned int) = NULL;
@@ -59,6 +62,7 @@ void delete_buffer(void)
 {
 	if(buffer != NULL)
 		free(buffer);
+
 	return;
 }
 
@@ -84,10 +88,11 @@ unsigned int insert_timestamp(char *buffer)
 		strcpy(buffer, buf);
 		size = strlen(buf);
 	}
-  return size;
+
+	return size;
 }
 
-void put_chars(const char *chars, unsigned int size, gboolean crlf_auto)
+void put_chars(const char *chars, unsigned int size, bool crlf_auto)
 {
 	// buffer must still be valid after cr conversion or adding timestamp
 	// only pointer is copied below
@@ -101,7 +106,7 @@ void put_chars(const char *chars, unsigned int size, gboolean crlf_auto)
 
 		for (i=0; i<size; i++)
 		{
-      if(crlf_auto)
+      		if(crlf_auto)
 			{
 				if (chars[i] == '\r')
 				{
@@ -165,7 +170,7 @@ void put_chars(const char *chars, unsigned int size, gboolean crlf_auto)
 
 	if(buffer == NULL)
 	{
-		i18n_printf(_("ERROR : Buffer is not initialized !\n"));
+		g_printf(_("ERROR : Buffer is not initialized !\n"));
 		return;
 	}
 

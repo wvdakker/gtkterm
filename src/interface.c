@@ -74,11 +74,9 @@
 #include "interface.h"
 #include "term_config.h"
 
-gboolean timestamp_on = 0;
+bool timestamp_on = 0;
 extern struct configuration_port config;
 int virt_col_pos = 0;
-
-GtkWidget *display = NULL;
 
 void show_message(char *message, int type_msg)
 {

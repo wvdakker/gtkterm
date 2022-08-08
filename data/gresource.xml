@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
 	<gresource prefix="/com/github/jeija/gtkterm">
-		<file compressed="true">config_terminal_dialog.ui</file>
+		<file compressed="true">gtkterm_main.ui</file>
 		<file compressed="true">menu.ui</file>
 		<file compressed="true">gtkterm_64x64.png</file>
 		<file compressed="true">gtkterm_48x48.png</file>		
