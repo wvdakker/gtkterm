@@ -51,12 +51,12 @@ struct _GtkTermWindow {
   GMenuModel *toolmenu;                 //! Menu
   GtkScrolledWindow *scrolled_window;   //! Make the terminal window scrolled
   GtkTermTerminal *terminal_window;     //! The terminal window
+  GActionGroup *action_group;           //! Menu action group
 
   int width;
   int height;
   bool maximized;
   bool fullscreen;
-  
 } ;
 
 typedef struct _GtkTermWindow GtkTermWindow ;

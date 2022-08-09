@@ -57,30 +57,10 @@ static void create_window (GApplication *app) {
 
   set_window_title (window);
 
-  //! TODO: update
+  //! TODO: update within terminal window
   update_statusbar (window);
 
   gtk_window_present (GTK_WINDOW (window));
-}
-
-static void show_action_dialog (GSimpleAction *action)
-{
-  const char *name;
-  GtkWidget *dialog;
-
-  name = g_action_get_name (G_ACTION (action));
-
-  dialog = gtk_message_dialog_new (NULL,
-                                   GTK_DIALOG_DESTROY_WITH_PARENT,
-                                   GTK_MESSAGE_INFO,
-                                   GTK_BUTTONS_CLOSE,
-                                   "You activated action: \"%s\"",
-                                    name);
-
-  g_signal_connect (dialog, "response",
-                    G_CALLBACK (gtk_window_destroy), NULL);
-
-  gtk_widget_show (dialog);
 }
 
 static void show_action_infobar (GSimpleAction *action,
@@ -102,21 +82,6 @@ static void show_action_infobar (GSimpleAction *action,
   g_free (text);
 }
 
-static void activate_action (GSimpleAction *action,
-                 GVariant      *parameter,
-                 gpointer       user_data)
-{
-  show_action_dialog (action);
-}
-
-static void activate_new (GSimpleAction *action,
-              GVariant      *parameter,
-              gpointer       user_data)
-{
-  GApplication *app = user_data;
-
-  create_window (app);
-}
 
 static void open_response_cb (GtkNativeDialog *dialog,
                   int              response_id,
@@ -146,8 +111,7 @@ static void open_response_cb (GtkNativeDialog *dialog,
                                                    GTK_BUTTONS_CLOSE,
                                                    "Error loading file: \"%s\"",
                                                    error->message);
-          g_signal_connect (message_dialog, "response",
-                            G_CALLBACK (gtk_window_destroy), NULL);
+          g_signal_connect (message_dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
           gtk_widget_show (message_dialog);
           g_error_free (error);
         }
@@ -157,7 +121,7 @@ static void open_response_cb (GtkNativeDialog *dialog,
   g_object_unref (native);
 }
 
-static void activate_open (GSimpleAction *action,
+static void on_gtkterm_send_raw (GSimpleAction *action,
                GVariant      *parameter,
                gpointer       user_data) {
 
@@ -171,27 +135,25 @@ static void activate_open (GSimpleAction *action,
                                         "_Cancel");
 
   g_object_set_data_full (G_OBJECT (native), "gtkterm", g_object_ref (app), g_object_unref);
-  g_signal_connect (native,
-                    "response",
-                    G_CALLBACK (open_response_cb),
-                    native);
+  g_signal_connect (native, "response", G_CALLBACK (open_response_cb), native);
 
   gtk_native_dialog_show (GTK_NATIVE_DIALOG (native));
 }
 
-static void activate_toggle (GSimpleAction *action,
+static void on_gtkterm_toggle_state (GSimpleAction *action,
                  GVariant      *parameter,
                  gpointer       user_data) {
   GVariant *state;
 
-  show_action_dialog (action);
+//  show_action_dialog (action);
 
   state = g_action_get_state (G_ACTION (action));
   g_action_change_state (G_ACTION (action), g_variant_new_boolean (!g_variant_get_boolean (state)));
   g_variant_unref (state);
 }
 
-static void activate_radio (GSimpleAction *action,
+
+static void on_gtkterm_toggle_radio (GSimpleAction *action,
                 GVariant      *parameter,
                 gpointer       user_data) {
 
@@ -200,7 +162,7 @@ static void activate_radio (GSimpleAction *action,
   g_action_change_state (G_ACTION (action), parameter);
 }
 
-static void activate_about (GSimpleAction *action,
+static void on_gtkterm_about (GSimpleAction *action,
                 GVariant      *parameter,
                 gpointer       user_data) {
 
@@ -257,7 +219,7 @@ static void activate_about (GSimpleAction *action,
                          NULL);
 }
 
-static void activate_quit (GSimpleAction *action,
+static void on_gtkterm_quit (GSimpleAction *action,
                GVariant      *parameter,
                gpointer       user_data) {
 
@@ -313,7 +275,7 @@ void set_window_title (GtkTermWindow *window) {
   g_free (msg);
 }
 
-static void change_theme_state (GSimpleAction *action,
+static void on_gtkterm_toggle_dark (GSimpleAction *action,
                     GVariant      *state,
                     gpointer       user_data) {
 
@@ -327,28 +289,50 @@ static void change_theme_state (GSimpleAction *action,
   g_simple_action_set_state (action, state);
 }
 
-static void change_radio_state (GSimpleAction *action,
+static void on_gtkterm_toggle_radio_state (GSimpleAction *action,
                     GVariant      *state,
                     gpointer       user_data) {
 
   g_simple_action_set_state (action, state);
 }
 
-static GActionEntry app_entries[] = {
-  { "new", activate_new, NULL, NULL, NULL },
-  { "open", activate_open, NULL, NULL, NULL },
-  { "save", activate_action, NULL, NULL, NULL },
-  { "save-as", activate_action, NULL, NULL, NULL },
-  { "quit", activate_quit, NULL, NULL, NULL },
-  { "dark", activate_toggle, NULL, "false", change_theme_state }
+static GActionEntry gtkterm_entries[] = {
+  { "quit", on_gtkterm_quit, NULL, NULL, NULL },
+  // { "clear_screen", on_gtkterm_clear_screen, NULL, NULL, NULL },
+  // { "clear_scrollback", on_gtkterm_clear_scrollback, NULL, NULL, NULL },
+  // { "send_raw_file", on_gtkterm_send_raw, NULL, NULL, NULL },  
+  // { "save_raw_file", on_gtkterm_save_raw, NULL, NULL, NULL },
+  // { "copy", on_gtkterm_copy, NULL, NULL, NULL },
+  // { "paste", on_gtkterm_paste, NULL, NULL, NULL },  
+  // { "select_all", on_gtkterm_select_all, NULL, NULL, NULL },
+  // { "log_to_file", on_gtkterm_log_to_file, NULL, NULL, NULL },
+  // { "log_resume", on_gtkterm_log_resume, NULL, NULL, NULL },
+  // { "log_stop", on_gtkterm_log_stop, NULL, NULL, NULL },
+  // { "log_clear", on_gtkterm_log_clear, NULL, NULL, NULL },
+  // { "config_port", on_gtkterm_config_port, NULL, NULL, NULL },
+  // { "conig_main_window", on_gtkterm_config_main_window, NULL, NULL, NULL },
+  // { "local_echo", on_gtkterm_local_echo, NULL, NULL, NULL },
+  // { "crlf_auto", on_gtkterm_crlf_auto, NULL, NULL, NULL },
+  // { "timestamp", on_gtkterm_timestamp, NULL, NULL, NULL },
+  // { "macro", on_gtkterm_macros, NULL, NULL, NULL },
+  // { "load_config", on_gtkterm_load_config, NULL, NULL, NULL },
+  // { "save_config", on_gtkterm_save_config, NULL, NULL, NULL },
+  // { "remove_config", on_gtkterm_remove_config, NULL, NULL, NULL },
+  // { "send_break", on_gtkterm_send_break, NULL, NULL, NULL },
+  // { "open_port", on_gtkterm_open_port, NULL, NULL, NULL },
+  // { "close_port", on_gtkterm_close_port, NULL, NULL, NULL },         
+  // { "toggle_DTR", on_gtkterm_toggle_DTR, NULL, NULL, NULL },
+  // { "toggle_RTS", on_gtkterm_toggle_RTS, NULL, NULL, NULL },
+  // { "show_ascii", on_gtkterm_show_ascii, NULL, NULL, NULL },
+  // { "show_hex", on_gtkterm_show_hex, NULL, NULL, NULL },
+  // { "view_hex", on_gtkterm_view_hex, NULL, NULL, NULL },
+  // { "show_index", on_gtkterm_show_index, NULL, NULL, NULL },
+  // { "send_hex_data,", on_gtkterm_send_hex_data, NULL, NULL, NULL },  
+  { "dark", on_gtkterm_toggle_state, NULL, "false", on_gtkterm_toggle_dark}
 };
 
 static GActionEntry win_entries[] = {
-  { "shape", activate_radio, "s", "'oval'", change_radio_state },
-  { "bold", activate_toggle, NULL, "false", NULL },
-  { "about", activate_about, NULL, NULL, NULL },
-  { "file1", activate_action, NULL, NULL, NULL },
-  { "logo", activate_action, NULL, NULL, NULL }
+  { "about", on_gtkterm_about, NULL, NULL, NULL }
 };
 
 static void clicked_cb (GtkWidget *widget, GtkTermWindow *window) {
@@ -386,13 +370,6 @@ static void gtkterm_init (GtkTerm *app) {
   app->initial_section = g_strdup (DEFAULT_SECTION);
 
   g_signal_emit(app->config, gtkterm_signals[SIGNAL_LOAD_CONFIG], 0);
-
-  //! TODO: Make GObject
-  //! create_buffer();
-
-  g_action_map_add_action_entries (G_ACTION_MAP (app),
-                                   app_entries, G_N_ELEMENTS (app_entries),
-                                   app);
 
   gtkterm_add_cmdline_options (app); 
 
@@ -487,10 +464,20 @@ static void gtkterm_window_init (GtkTermWindow *window) {
   popover = gtk_popover_menu_new_from_model (window->toolmenu);
   gtk_menu_button_set_popover (GTK_MENU_BUTTON (window->menubutton), popover);
 
+  window->action_group = G_ACTION_GROUP (g_simple_action_group_new ());
+ // window->window_group = g_simple_action_group_new ();  
+
+  g_action_map_add_action_entries (G_ACTION_MAP (window->action_group),
+                                   gtkterm_entries, G_N_ELEMENTS (gtkterm_entries),
+                                   window);
+  gtk_widget_insert_action_group (GTK_WIDGET (window), "gtkterm", window->action_group);                                   
+
+  //! TODO: Rename it.
   g_action_map_add_action_entries (G_ACTION_MAP (window),
                                    win_entries, 
                                    G_N_ELEMENTS (win_entries),
                                    window);
+  //gtk_widget_insert_action_group (GTK_WIDGET (window), "win", window->window_group);                                    
 }
 
 static void gtkterm_window_constructed (GObject *object) {
