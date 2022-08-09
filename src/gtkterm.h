@@ -30,6 +30,7 @@ struct _GtkTerm {
   GOptionGroup *g_port_group;
   GOptionGroup *g_config_group;
 
+
   GtkTermConfiguration *config;         //! The Key file with the configurations
   char *initial_section;                //! The initial section provided from the cli. 
                                         //! Terminals have their own section pointer

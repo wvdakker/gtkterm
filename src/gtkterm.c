@@ -235,8 +235,6 @@ static void on_gtkterm_quit (GSimpleAction *action,
 
       gtk_window_destroy (GTK_WINDOW (win));
 
-      g_free(GTKTERM_WINDOW(win)->terminal_window->filename);
-
       list = next;
     }
 
@@ -366,6 +364,13 @@ static void gtkterm_init (GtkTerm *app) {
 
   settings = g_settings_new ("com.github.jeija.gtkterm");
 
+  app->action_group =  G_ACTION_GROUP (g_simple_action_group_new ()); 
+
+  g_action_map_add_action_entries (G_ACTION_MAP (app),
+                                   gtkterm_entries, 
+                                   G_N_ELEMENTS (gtkterm_entries),
+                                   app);  
+
   app->config = GTKTERM_CONFIGURATION (g_object_new (GTKTERM_TYPE_CONFIGURATION, NULL));
   app->initial_section = g_strdup (DEFAULT_SECTION);
 
@@ -464,13 +469,7 @@ static void gtkterm_window_init (GtkTermWindow *window) {
   popover = gtk_popover_menu_new_from_model (window->toolmenu);
   gtk_menu_button_set_popover (GTK_MENU_BUTTON (window->menubutton), popover);
 
-  window->action_group = G_ACTION_GROUP (g_simple_action_group_new ());
- // window->window_group = g_simple_action_group_new ();  
-
-  g_action_map_add_action_entries (G_ACTION_MAP (window->action_group),
-                                   gtkterm_entries, G_N_ELEMENTS (gtkterm_entries),
-                                   window);
-  gtk_widget_insert_action_group (GTK_WIDGET (window), "gtkterm", window->action_group);                                   
+ // window->window_group = g_simple_action_group_new ();                                 
 
   //! TODO: Rename it.
   g_action_map_add_action_entries (G_ACTION_MAP (window),
