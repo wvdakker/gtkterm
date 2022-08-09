@@ -27,7 +27,7 @@
 
 #include "gtkterm.h"
 #include "serial.h"
-#include "term_config.h"
+#include "defaults.h"
 #include "resource_file.h"
 #include "interface.h"
 #include "macros.h"

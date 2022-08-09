@@ -27,7 +27,6 @@
 #include "buffer.h"
 #include "cmdline.h"
 #include "interface.h"
-#include "term_config.h"
 #include "serial.h"
 
 #define NR_OF_SIGNALS 4

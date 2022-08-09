@@ -72,7 +72,6 @@
 #include <glib/gi18n.h>
 
 #include "interface.h"
-#include "term_config.h"
 
 bool timestamp_on = 0;
 extern struct configuration_port config;

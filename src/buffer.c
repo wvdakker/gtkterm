@@ -29,7 +29,7 @@
 #include <glib/gprintf.h>
 
 #include "buffer.h"
-#include "serial.h"
+#include "defaults.h"
 
 
 #define TIMESTAMP_SIZE 50

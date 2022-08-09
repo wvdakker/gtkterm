@@ -29,7 +29,8 @@
 #include <glib/gi18n.h>
 
 #include "serial.h"
-#include "term_config.h"
+#include "defaults.h"
+
 #ifdef HAVE_LINUX_SERIAL_H
 #include <linux/serial.h>
 #endif

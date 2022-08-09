@@ -27,7 +27,6 @@
 #include "gtkterm.h"
 #include "resource_file.h"
 #include "cmdline.h"
-#include "term_config.h"
 #include "serial.h"
 
 #define BUFFER_LENGTH       256

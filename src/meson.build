@@ -7,7 +7,6 @@ gtkterm_sources = [
 	'macros.c',
 	'resource_file.c',
 	'serial.c',	
-	'term_config.c',
 	'terminal.c',
 	gresources
 ]

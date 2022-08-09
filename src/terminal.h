@@ -18,7 +18,6 @@
 #include <gtk/gtk.h>
 #include <vte/vte.h>
 
-#include <term_config.h>
 #include <serial.h>
 
 G_BEGIN_DECLS
