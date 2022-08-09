@@ -5,9 +5,7 @@
 #include <glib/gi18n.h>
 #include <pango/pango-font.h>
 
-#include "serial.h"
-#include "term_config.h"
-//#include "interface.h"
+#include "gtkterm_struct.h"
 #include "resource_file_conv.h"
 #include "i18n.h"
 #include "parsecfg.h"

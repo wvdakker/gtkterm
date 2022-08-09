@@ -6,10 +6,8 @@
 #include <pango/pango-font.h>
 #include "parsecfg.h"
 #include "macros.h"
-#include "interface.h"
-#include "serial.h"
-#include "term_config.h"
-#include "resource_file.h"
+#include "gtkterm_struct.h"
+#include "resource_file_conv.h"
 
 extern int nr_of_macros;
 

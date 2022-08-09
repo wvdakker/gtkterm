@@ -25,8 +25,7 @@
 #include <config.h>
 
 #include "i18n.h"
-#include "serial.h"
-#include "term_config.h"
+#include "gtkterm_struct.h"
 #include "resource_file_conv.h"
 #include "i18n.h"
 #include "interface.h"
