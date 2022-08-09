@@ -96,6 +96,9 @@ static int gtkterm_configuration_remove_section (GtkTermConfiguration *, gpointe
 void gtkterm_configuration_default_configuration (GtkTermConfigurationPrivate *, char *);
 void gtkterm_configuration_validate(GtkTermConfigurationPrivate *, char *);
 
+//! For internal conversion only
+static void set_color(GdkRGBA *, float, float, float, float);
+
 static void gtkterm_configuration_class_constructed (GObject *object) {
 	GtkTermConfiguration *self = GTKTERM_CONFIGURATION(object);
  
@@ -509,6 +512,14 @@ bool on_set_config_options (const char *name, const char *value, gpointer data, 
 		gtkterm_configuration_validate (priv, section);
 
 	return config_option_success;
+}
+
+//! Convert the colors RGB to internal color scheme
+static void set_color(GdkRGBA *color, float R, float G, float B, float A) {
+	color->red = R;
+	color->green = G;
+	color->blue = B;
+ 	color->alpha = A;
 }
 
 // /* Load the configuration from <section> into the port and term config */

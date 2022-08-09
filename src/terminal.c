@@ -39,15 +39,3 @@ static void gtkterm_terminal_init (GtkTermTerminal *self) {
 	//vte_terminal_set_mouse_autohide(VTE_TERMINAL(display), TRUE);
 	//vte_terminal_set_backspace_binding(VTE_TERMINAL(display), VTE_ERASE_ASCII_BACKSPACE);
 }
-
-//set_color (&term_conf.foreground_color, 0.66, 0.66, 0.66, 1.0);
-//set_color (&term_conf.background_color, 0, 0, 0, 1.0);
-
-// //! Convert the colors RGB to internal color scheme
-// void set_color(GdkRGBA *color, float R, float G, float B, float A)
-// {
-// 	color->red = R;
-// 	color->green = G;
-// 	color->blue = B;
-// 	color->alpha = A;
-// }
