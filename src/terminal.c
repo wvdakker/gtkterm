@@ -30,6 +30,9 @@ static void gtkterm_terminal_init (GtkTermTerminal *self) {
 
 	self->filename = NULL;
 
+	  //! TODO: Make GObject
+  //! create_buffer();
+
   /* set terminal properties, these could probably be made user configurable */
 	//vte_terminal_set_scroll_on_output(VTE_TERMINAL(display), FALSE);
 	//vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(display), TRUE);

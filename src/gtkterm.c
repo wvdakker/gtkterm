@@ -42,8 +42,8 @@ G_DEFINE_TYPE (GtkTermWindow, gtkterm_window, GTK_TYPE_APPLICATION_WINDOW)
 static void update_statusbar (GtkTermWindow *);
 void set_window_title (GtkTermWindow *);
 
-static void create_window (GApplication *app)
-{
+static void create_window (GApplication *app) {
+
   GtkTermWindow *window = (GtkTermWindow *)g_object_new (gtkterm_window_get_type (),
                                                           "application", 
                                                           app,
@@ -85,8 +85,8 @@ static void show_action_dialog (GSimpleAction *action)
 
 static void show_action_infobar (GSimpleAction *action,
                      GVariant      *parameter,
-                     gpointer       data)
-{
+                     gpointer       data) {
+
   GtkTermWindow *window = data;
   char *text;
   const char *name;
@@ -120,8 +120,8 @@ static void activate_new (GSimpleAction *action,
 
 static void open_response_cb (GtkNativeDialog *dialog,
                   int              response_id,
-                  gpointer         user_data)
-{
+                  gpointer         user_data) {
+
   GtkFileChooserNative *native = user_data;
   GApplication *app = g_object_get_data (G_OBJECT (native), "gtkterm");
   GtkWidget *message_dialog;
@@ -159,8 +159,8 @@ static void open_response_cb (GtkNativeDialog *dialog,
 
 static void activate_open (GSimpleAction *action,
                GVariant      *parameter,
-               gpointer       user_data)
-{
+               gpointer       user_data) {
+
   GApplication *app = user_data;
   GtkFileChooserNative *native;
 
@@ -181,8 +181,7 @@ static void activate_open (GSimpleAction *action,
 
 static void activate_toggle (GSimpleAction *action,
                  GVariant      *parameter,
-                 gpointer       user_data)
-{
+                 gpointer       user_data) {
   GVariant *state;
 
   show_action_dialog (action);
@@ -194,8 +193,8 @@ static void activate_toggle (GSimpleAction *action,
 
 static void activate_radio (GSimpleAction *action,
                 GVariant      *parameter,
-                gpointer       user_data)
-{
+                gpointer       user_data) {
+
   show_action_infobar (action, parameter, user_data);
 
   g_action_change_state (G_ACTION (action), parameter);
@@ -203,8 +202,8 @@ static void activate_radio (GSimpleAction *action,
 
 static void activate_about (GSimpleAction *action,
                 GVariant      *parameter,
-                gpointer       user_data)
-{
+                gpointer       user_data) {
+
   GtkWidget *window = user_data;
   char *os_name;
   char *os_version;
@@ -260,8 +259,8 @@ static void activate_about (GSimpleAction *action,
 
 static void activate_quit (GSimpleAction *action,
                GVariant      *parameter,
-               gpointer       user_data)
-{
+               gpointer       user_data) {
+
   GtkTerm *app = GTKTERM_APP(user_data);
   GtkWidget *win;
   GList *list, *next;
@@ -291,8 +290,7 @@ static void activate_quit (GSimpleAction *action,
   g_option_group_unref (app->g_config_group); 
 }
 
-static void update_statusbar (GtkTermWindow *window)
-{
+static void update_statusbar (GtkTermWindow *window) {
   //char *msg;
 
   /* clear any previous message, underflow is allowed */
@@ -306,6 +304,7 @@ static void update_statusbar (GtkTermWindow *window)
 }
 
 void set_window_title (GtkTermWindow *window) {
+
   char *msg;
 
   msg = g_strdup_printf ("GTKTerm - %s", get_port_string());
@@ -316,8 +315,8 @@ void set_window_title (GtkTermWindow *window) {
 
 static void change_theme_state (GSimpleAction *action,
                     GVariant      *state,
-                    gpointer       user_data)
-{
+                    gpointer       user_data) {
+
   GtkSettings *settings = gtk_settings_get_default ();
 
   g_object_set (G_OBJECT (settings),
@@ -330,8 +329,8 @@ static void change_theme_state (GSimpleAction *action,
 
 static void change_radio_state (GSimpleAction *action,
                     GVariant      *state,
-                    gpointer       user_data)
-{
+                    gpointer       user_data) {
+
   g_simple_action_set_state (action, state);
 }
 
@@ -352,13 +351,13 @@ static GActionEntry win_entries[] = {
   { "logo", activate_action, NULL, NULL, NULL }
 };
 
-static void clicked_cb (GtkWidget *widget, GtkTermWindow *window)
-{
+static void clicked_cb (GtkWidget *widget, GtkTermWindow *window) {
+
   gtk_widget_hide (window->infobar);
 }
 
-static void startup (GApplication *app)
-{
+static void startup (GApplication *app) {
+
   GtkBuilder *builder;
 
   G_APPLICATION_CLASS (gtkterm_parent_class)->startup (app);
@@ -372,14 +371,13 @@ static void startup (GApplication *app)
   g_object_unref (builder);
 }
 
-static void activate (GApplication *app)
-{
+static void activate (GApplication *app) {
+
   create_window (app);
 }
 
 // Do the basic initialization of the application
-static void gtkterm_init (GtkTerm *app)
-{
+static void gtkterm_init (GtkTerm *app) {
   GSettings *settings;
 
   settings = g_settings_new ("com.github.jeija.gtkterm");
@@ -401,8 +399,8 @@ static void gtkterm_init (GtkTerm *app)
   g_object_unref (settings);
 }
 
-static void gtkterm_class_init (GtkTermClass *class)
-{
+static void gtkterm_class_init (GtkTermClass *class) {
+
   GApplicationClass *app_class = G_APPLICATION_CLASS (class); 
 
   gtkterm_signals[SIGNAL_LOAD_CONFIG] = g_signal_new ("config_load",
@@ -454,8 +452,8 @@ static void gtkterm_class_init (GtkTermClass *class)
   app_class->activate = activate;
 }
 
-static void gtkterm_window_store_state (GtkTermWindow *win)
-{
+static void gtkterm_window_store_state (GtkTermWindow *win) {
+
   GSettings *settings;
 
   settings = g_settings_new ("com.github.jeija.gtkterm");
@@ -465,8 +463,7 @@ static void gtkterm_window_store_state (GtkTermWindow *win)
   g_object_unref (settings);
 }
 
-static void gtkterm_window_load_state (GtkTermWindow *win)
-{
+static void gtkterm_window_load_state (GtkTermWindow *win) {
   GSettings *settings;
 
   settings = g_settings_new ("com.github.jeija.gtkterm");
@@ -476,8 +473,8 @@ static void gtkterm_window_load_state (GtkTermWindow *win)
   g_object_unref (settings);
 }
 
-static void gtkterm_window_init (GtkTermWindow *window)
-{
+static void gtkterm_window_init (GtkTermWindow *window) {
+  
   GtkWidget *popover;
 
   window->width = -1;
@@ -496,8 +493,7 @@ static void gtkterm_window_init (GtkTermWindow *window)
                                    window);
 }
 
-static void gtkterm_window_constructed (GObject *object)
-{
+static void gtkterm_window_constructed (GObject *object) {
   GtkTermWindow *window = (GtkTermWindow *)object;
 
   gtkterm_window_load_state (window);
@@ -516,9 +512,9 @@ static void gtkterm_window_constructed (GObject *object)
 static void gtkterm_window_size_allocate (GtkWidget *widget,
                                        int width,
                                        int height,
-                                       int baseline)
-{
-  GtkTermWindow *window = (GtkTermWindow *)widget;
+                                       int baseline) {
+                                        
+  GtkTermWindow *window = (GtkTermWindow *)widget; 
 
   GTK_WIDGET_CLASS (gtkterm_window_parent_class)->size_allocate (widget,
                                                                           width,
@@ -529,8 +525,7 @@ static void gtkterm_window_size_allocate (GtkWidget *widget,
     gtk_window_get_default_size (GTK_WINDOW (window), &window->width, &window->height);
 }
 
-static void surface_state_changed (GtkWidget *widget)
-{
+static void surface_state_changed (GtkWidget *widget) {
   GtkTermWindow *window = (GtkTermWindow *)widget;
   GdkToplevelState new_state;
 
@@ -539,24 +534,21 @@ static void surface_state_changed (GtkWidget *widget)
   window->fullscreen = (new_state & GDK_TOPLEVEL_STATE_FULLSCREEN) != 0;
 }
 
-static void gtkterm_window_realize (GtkWidget *widget)
-{
+static void gtkterm_window_realize (GtkWidget *widget) {
   GTK_WIDGET_CLASS (gtkterm_window_parent_class)->realize (widget);
 
   g_signal_connect_swapped (gtk_native_get_surface (GTK_NATIVE (widget)), "notify::state",
                             G_CALLBACK (surface_state_changed), widget);
 }
 
-static void gtkterm_window_unrealize (GtkWidget *widget)
-{
+static void gtkterm_window_unrealize (GtkWidget *widget) {
   g_signal_handlers_disconnect_by_func (gtk_native_get_surface (GTK_NATIVE (widget)),
                                         surface_state_changed, widget);
 
   GTK_WIDGET_CLASS (gtkterm_window_parent_class)->unrealize (widget);
 }
 
-static void gtkterm_window_dispose (GObject *object)
-{
+static void gtkterm_window_dispose (GObject *object) {
   GtkTermWindow *window = (GtkTermWindow *)object;
 
   gtkterm_window_store_state (window);
@@ -564,8 +556,7 @@ static void gtkterm_window_dispose (GObject *object)
   G_OBJECT_CLASS (gtkterm_window_parent_class)->dispose (object);
 }
 
-static void gtkterm_window_class_init (GtkTermWindowClass *class)
-{
+static void gtkterm_window_class_init (GtkTermWindowClass *class) {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
 
@@ -587,20 +578,19 @@ static void gtkterm_window_class_init (GtkTermWindowClass *class)
   gtk_widget_class_bind_template_callback (widget_class, update_statusbar);
 }
 
-int main (int argc, char *argv[])
-{
-  GtkApplication *app;
+int main (int argc, char *argv[]) {
+	GtkApplication *app;
 
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset(PACKAGE, "UTF-8");
 	textdomain(PACKAGE);
 
-  app = GTK_APPLICATION (g_object_new (GTKTERM_TYPE,
+	app = GTK_APPLICATION (g_object_new (GTKTERM_TYPE,
                                        "application-id", 
                                        "com.github.jeija.gtkterm",
                                        "flags", 
                                        G_APPLICATION_HANDLES_OPEN,
                                        NULL));                                    
 
-  return g_application_run (G_APPLICATION (app), argc, argv);
+	return g_application_run (G_APPLICATION (app), argc, argv);
 }
