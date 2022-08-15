@@ -60,11 +60,6 @@ extern const char GtkTermConfigurationItems [][CONF_ITEM_LENGTH];
 
 G_BEGIN_DECLS
 
-struct _GtkTermConfiguration {
- 
-    GObject parent_instance;
-};
-
 #define GTKTERM_TYPE_CONFIGURATION gtkterm_configuration_get_type ()
 G_DECLARE_FINAL_TYPE (GtkTermConfiguration, gtkterm_configuration, GTKTERM, CONFIGURATION, GObject)
 typedef struct _GtkTermConfiguration GtkTermConfiguration;

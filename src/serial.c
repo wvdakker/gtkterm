@@ -35,23 +35,55 @@
 #include <linux/serial.h>
 #endif
 
-port_config_t port_conf;
-struct termios termios_save;
-int serial_port_fd = -1;
+typedef struct {
+ //   GOutputStream *output_stream;
+ //   GInputStream *input_stream;
+    port_config_t port_conf;
+    struct termios termios_save;
+    int serial_port_fd;
+ //   char lockfile[256];
 
-char* get_port_string(void)
+ //   GtSerialPortState state;
+ //   GError *last_error;
+ //   int control_flags;
+ //   unsigned int status_timeout;
+//    GtkTermBuffer *buffer;
+//    GCancellable *cancellable;
+} GtkTermSerialPortPrivate;
+
+struct _GtkTermSerialPort {
+    GObject parent_instance;
+};
+
+struct _GtkTermSerialPortClass {
+    GObjectClass parent_class;
+};
+
+G_DEFINE_TYPE_WITH_PRIVATE (GtkTermSerialPort, gtkterm_serial_port, G_TYPE_OBJECT)
+
+static void gtkterm_serial_port_class_init (GtkTermSerialPortClass *classf) {
+
+}
+
+static void gtkterm_serial_port_init (GtkTermSerialPort *self) {
+
+}
+
+
+char* gtkterm_serial_port_get_string (GtkTermSerialPort *self)
 {
 	char* msg;
 	char parity;
+	GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private(self);	
 
-	if(serial_port_fd == -1)
+	if(priv->serial_port_fd == -1)
 	{
 		msg = g_strdup(_("No open port"));
 	}
 	else
 	{
 		// 0: none, 1: odd, 2: even
-		switch(port_conf.parity)
+		switch(priv->port_conf.parity)
 		{
 			case 0:
 				parity = 'N';
@@ -68,11 +100,11 @@ char* get_port_string(void)
 
 		/* "GtkTerm: device  baud-bits-parity-stopbits"  */
 		msg = g_strdup_printf("%.15s  %ld-%d-%c-%d",
-		                      port_conf.port,
-		                      port_conf.baudrate,
-		                      port_conf.bits,
+		                      priv->port_conf.port,
+		                      priv->port_conf.baudrate,
+		                      priv->port_conf.bits,
 		                      parity,
-		                      port_conf.stopbits
+		                      priv->port_conf.stopbits
 		                     );
 	}
 

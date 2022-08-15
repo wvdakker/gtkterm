@@ -35,7 +35,17 @@
 static bool on_remove_config (const char *name, const char *value, gpointer data,  GError **error) {
  
     //! Signal to load the configuration and dump it to the cli
-    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_REMOVE_SECTION], 0, value);
+    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_REMOVE_SECTION], 0, value);
+
+    g_application_quit (G_APPLICATION(data)); 
+
+    return 1;
+}
+
+static bool on_save_section (const char *name, const char *value, gpointer data,  GError **error) {
+
+    //! Signal to load the configuration and dump it to the cli
+    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_SAVE_CONFIG], 0, value);
 
     g_application_quit (G_APPLICATION(data)); 
 
@@ -45,7 +55,7 @@ static bool on_remove_config (const char *name, const char *value, gpointer data
 static bool on_print_section (const char *name, const char *value, gpointer data,  GError **error) {
 
     //! Signal to load the configuration and dump it to the cli
-    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_PRINT_SECTION], 0, value);
+    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_PRINT_SECTION], 0, value);
 
     g_application_quit (G_APPLICATION(data)); 
 
@@ -56,7 +66,7 @@ static bool on_use_config (const char *name, const char *value, gpointer data,  
  
     if (strlen (value) < MAX_SECTION_LENGTH)  {
 
-        GTKTERM_APP(data)->initial_section = g_strdup ( value);
+        GTKTERM_APP(data)->section = g_strdup ( value);
         return true;
 
     } else {
@@ -71,7 +81,8 @@ static bool on_use_config (const char *name, const char *value, gpointer data,  
 //! We use callback in GOptionEntry. So we can directly put them
 //! in the Terminal configuration instead of handing over a pointer from the config.
 static GOptionEntry gtkterm_config_options[] = {    
-    {"show_config", 's', 0, G_OPTION_ARG_CALLBACK, on_print_section, N_("Show configuration"), "[configuration]"},  
+    {"show_config", 'v', 0, G_OPTION_ARG_CALLBACK, on_print_section, N_("Show configuration"), "[configuration]"}, 
+    {"save_config", 's', 0, G_OPTION_ARG_CALLBACK, on_save_section, N_("Save configuration"), "[configuration]"},     
     {"remove_config", 'r', 0, G_OPTION_ARG_CALLBACK, on_remove_config, N_("Remove configuration"), "[configuration]"},
     {"use_config", 'u', 0, G_OPTION_ARG_CALLBACK, on_use_config, N_("Use configuration (must be first argument)"), "[configuration]"},    
     {NULL}

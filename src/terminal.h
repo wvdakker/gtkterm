@@ -18,28 +18,33 @@
 #include <gtk/gtk.h>
 #include <vte/vte.h>
 
-#include <serial.h>
+#include "gtkterm.h"
+
+typedef struct
+{
+	bool block_cursor;
+	bool show_cursor;
+	char char_queue;            // character in queue
+	bool echo;               	// echo local
+	bool crlfauto;           	// line feed auto
+	bool timestamp;
+	int delay;                  // end of char delay: in ms
+	int rows;
+	int columns;
+	int scrollback;
+	bool visual_bell;
+	GdkRGBA foreground_color;
+	GdkRGBA background_color;
+	PangoFontDescription *font;
+
+} term_config_t;
 
 G_BEGIN_DECLS
 
-struct _GtkTermTerminal {
-    uint8_t view_mode;              //! ASCII or HEX view mode
- //   GtkTermBuffer *term_buffer;
-    display_config_t *term_conf;    //! The configuration loaded from the keyfile
-    port_config_t *port_conf;       //! Port configuration used in this terminal
-    char *active_section;           //! Active section in this window from config file
-
-    char *filename;                 //! File to send
-
-    GdkRGBA *term_forground;        //! Foreground (text) color of this terminal
-    GdkRGBA *term_background;       //! Background color
-
-    VteTerminal vte_object;         //! The actual terminal
-};
-
-
-#define GTKTERM_TERMINAL_TYPE gtkterm_terminal_get_type()
+#define GTKTERM_TYPE_TERMINAL gtkterm_terminal_get_type()
 G_DECLARE_FINAL_TYPE (GtkTermTerminal, gtkterm_terminal, GTKTERM, TERMINAL, VteTerminal)
+
+GtkTermTerminal *gtkterm_terminal_new (char *, GtkTerm *, GtkTermWindow *);
 
 G_END_DECLS
 
