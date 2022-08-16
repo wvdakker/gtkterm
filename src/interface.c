@@ -55,14 +55,6 @@
 /***********************************************************************/
 
 #include <gtk/gtk.h>
-#if defined (__linux__)
-#  include <asm/termios.h>       /* For control signals */
-#endif
-#if defined (__FreeBSD__) || defined (__FreeBSD_kernel__) \
-     || defined (__NetBSD__) || defined (__NetBSD_kernel__) \
-     || defined (__OpenBSD__) || defined (__OpenBSD_kernel__)
-#  include <sys/ttycom.h>        /* For control signals */
-#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -70,37 +62,21 @@
 
 #include <config.h>
 #include <glib/gi18n.h>
+#include <glib/gprintf.h>
 
 #include "interface.h"
 
 bool timestamp_on = 0;
-extern struct configuration_port config;
 int virt_col_pos = 0;
 
-void show_message(char *message, int type_msg)
-{
-//	GtkWidget *message_dialog;
+void show_message(char *message, int type_msg) {
 
-//	if(type_msg == MSG_ERR)
-//	{
-//        message_dialog = gtk_message_dialog_new(GTK_WINDOW(message_dialog),
-//		                                     GTK_DIALOG_DESTROY_WITH_PARENT,
-//		                                     GTK_MESSAGE_ERROR,
-//		                                     GTK_BUTTONS_OK,
-//		                                     message, NULL);
-//	}
-//	else if(type_msg == MSG_WRN)
-//	{
-//		message_dialog = gtk_message_dialog_new(GTK_WINDOW(message_dialog),
-//		                                     GTK_DIALOG_DESTROY_WITH_PARENT,
-//		                                     GTK_MESSAGE_WARNING,
-//		                                     GTK_BUTTONS_OK,
-//		                                     message, NULL);
-//	}
-//	else
-//		return;
+     GtkWidget *message_dialog = gtk_message_dialog_new(NULL,
+		                                     GTK_DIALOG_DESTROY_WITH_PARENT,
+		                                     type_msg == MSG_ERR? GTK_MESSAGE_ERROR : GTK_MESSAGE_WARNING,
+		                                     GTK_BUTTONS_OK,
+		                                     message, NULL);
 
-//	gtk_dialog_run(GTK_DIALOG(message_dialog));
-
-//	gtk_widget_destroy(message_dialog);
+     g_signal_connect (message_dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
+     gtk_widget_show (message_dialog);
 }
