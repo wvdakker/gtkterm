@@ -146,7 +146,8 @@ static void gtkterm_configuration_class_constructed (GObject *object) {
 	g_signal_connect (self, "config_load", G_CALLBACK(gtkterm_configuration_load_keyfile), NULL);
 	g_signal_connect (self, "config_save", G_CALLBACK(gtkterm_configuration_save_keyfile), NULL);
 	g_signal_connect (self, "config_terminal", G_CALLBACK(gtkterm_configuration_load_terminal_config), NULL);
-	g_signal_connect (self, "config_serial", G_CALLBACK(gtkterm_configuration_load_serial_config), NULL);		
+	g_signal_connect (self, "config_serial", G_CALLBACK(gtkterm_configuration_load_serial_config), NULL);
+	g_signal_connect (self, "config_copy", G_CALLBACK(gtkterm_configuration_copy_section), NULL);		
 
 	G_OBJECT_CLASS (gtkterm_configuration_parent_class)->constructed (object);
 }
@@ -201,6 +202,7 @@ static int gtkterm_configuration_load_keyfile (GtkTermConfiguration *self, gpoin
 
 	if (priv->config_file == NULL)
 		gtkterm_configuration_load_config(self);
+
 
 	priv->key_file = g_key_file_new ();
 
@@ -348,6 +350,105 @@ static int gtkterm_configuration_remove_section (GtkTermConfiguration *self, gpo
 	string = g_strdup_printf(_("Configuration [%s] removed\n"), section);
 	show_message(string, MSG_WRN);
 	g_free(string);
+
+	return 0;
+}
+
+//! Copy the active configuration into <section> of the Key file
+static int gtkterm_configuration_copy_section (GtkTermConfiguration *self, gpointer sect, gpointer pc, gpointer tc, gpointer user_data)
+{
+	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);	
+	port_config_t *port_conf = (port_config_t *) pc;
+	term_config_t *term_conf = (term_config_t *) tc;
+	char *section = (char *) sect;
+
+	char *string = NULL;
+//	char **string_list = NULL;
+//	gsize nr_of_strings = 0;
+
+	g_key_file_set_string (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_PORT], port_conf->port);
+	g_key_file_set_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_BAUDRATE], port_conf->baudrate);
+	g_key_file_set_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_BITS], port_conf->bits);
+	g_key_file_set_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_STOPBITS], port_conf->stopbits);
+
+	switch(port_conf->parity)
+	{
+		case 0:
+			string = g_strdup_printf("none");
+			break;
+		case 1:
+			string = g_strdup_printf("odd");
+			break;
+		case 2:
+			string = g_strdup_printf("even");
+			break;
+		default:
+		    string = g_strdup_printf("none");
+	}
+
+	g_key_file_set_string (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_PARITY], string);
+	g_free(string);
+
+	switch(port_conf->flow_control)
+	{
+		case 0:
+			string = g_strdup_printf("none");
+			break;
+		case 1:
+			string = g_strdup_printf("xon");
+			break;
+		case 2:
+			string = g_strdup_printf("rts");
+			break;
+		case 3:
+			string = g_strdup_printf("rs485");
+			break;
+		default:
+			string = g_strdup_printf("none");
+	}
+
+	g_key_file_set_string (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_FLOW_CONTROL], string);
+	g_free(string);
+
+	g_key_file_set_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], term_conf->delay);
+	g_key_file_set_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], term_conf->char_queue);
+	g_key_file_set_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_RS485_RTS_TIME_BEFORE_TX],
+    	                        port_conf->rs485_rts_time_before_transmit);
+	g_key_file_set_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_RS485_RTS_TIME_AFTER_TX],
+    	                        port_conf->rs485_rts_time_after_transmit);
+
+	g_key_file_set_boolean (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], term_conf->echo);
+	g_key_file_set_boolean (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_CRLF_AUTO], term_conf->crlfauto);
+	g_key_file_set_boolean (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_DISABLE_PORT_LOCK], port_conf->disable_port_lock);
+
+	string = pango_font_description_to_string (term_conf->font);
+	g_key_file_set_string (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FONT], string);
+	g_free(string);
+
+	//! Macros are an array of strings, so we have to convert it
+	//! All macros ends up in the string_list
+//	string_list = g_malloc ( macro_count () * sizeof (char *) * 2 + 1);
+//	nr_of_strings = convert_macros_to_string (string_list);
+//	g_key_file_set_string_list (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_MACROS], (const char * const*) string_list, nr_of_strings);
+//	g_free(string_list);	
+
+	g_key_file_set_boolean (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SHOW_CURSOR], term_conf->show_cursor);
+	g_key_file_set_boolean (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_TIMESTAMP], term_conf->timestamp);
+	g_key_file_set_boolean (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BLOCK_CURSOR], term_conf->block_cursor);
+	g_key_file_set_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ROWS], term_conf->rows);
+	g_key_file_set_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_COLS], term_conf->columns);
+	g_key_file_set_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SCROLLBACK], term_conf->scrollback);
+	g_key_file_set_boolean (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VISUAL_BELL], term_conf->visual_bell);
+
+	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_RED], term_conf->foreground_color.red);
+	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_GREEN], term_conf->foreground_color.green);
+	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_BLUE], term_conf->foreground_color.blue);
+	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_ALPHA], term_conf->foreground_color.alpha);
+
+	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_RED], term_conf->background_color.red);
+	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_GREEN], term_conf->background_color.green);
+	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_BLUE], term_conf->background_color.blue);
+	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_ALPHA], term_conf->background_color.alpha);
 
 	return 0;
 }
@@ -690,8 +791,6 @@ static void set_color(GdkRGBA *color, float R, float G, float B, float A) {
 // 	//! First initialize with a default structure.
 // 	//! Not really needed but good practice.
 // 	hard_default_configuration();
-
-
 
 // 	/// Convert the stringlist to macros. Existing shortcuts will be delete from convert_string_to_macros
 // 	macrostring = g_key_file_get_string_list (config_object, section, GtkTermConfigurationItems[CONF_ITEM_MACROS], &nr_of_strings, NULL);

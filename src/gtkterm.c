@@ -185,6 +185,20 @@ static void gtkterm_class_init (GtkTermClass *class) {
 																               G_TYPE_POINTER,
                                                NULL);
 
+  gtkterm_signals[SIGNAL_GTKTERM_COPY_SECTION] = g_signal_new ("config_copy",
+                                               GTKTERM_TYPE_CONFIGURATION,
+                                               G_SIGNAL_RUN_FIRST,
+                                               0,
+                                               NULL,
+                                               NULL,
+                                               NULL,
+                                               G_TYPE_NONE,
+                                               3,
+																               G_TYPE_POINTER,
+																               G_TYPE_POINTER,
+																               G_TYPE_POINTER,                                                                                                                                             
+                                               NULL);                                               
+
   app_class->startup = startup;
   app_class->activate = activate;
 }
