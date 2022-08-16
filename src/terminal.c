@@ -70,6 +70,8 @@ GtkTermTerminal *gtkterm_terminal_new (char *section, GtkTerm *gtkterm_app, GtkT
 }
 
 static void gtkterm_terminal_constructed (GObject *object) {
+    char *serial_string;
+
     GtkTermTerminal *self = GTKTERM_TERMINAL(object);
     GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
 
@@ -80,7 +82,16 @@ static void gtkterm_terminal_constructed (GObject *object) {
 
     priv->serial_port = gtkterm_serial_port_new (priv->port_conf);
 
-  	//!* set terminal properties
+	//! Update the statusbar and main window title
+    serial_string = gtkterm_serial_port_get_string (priv->serial_port);
+    g_signal_emit (priv->main_window, gtkterm_signals[SIGNAL_GTKTERM_TERMINAL_CHANGED], 
+                                      0, 
+                                      priv->section, 
+                                      serial_string, 
+                                      gtkterm_serial_port_status (priv->serial_port));    
+    g_free(serial_string);
+
+  	//! Set terminal properties
     //! TODO: make configurable from the config file
 	vte_terminal_set_scroll_on_output(VTE_TERMINAL(self), FALSE);
 	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(self), TRUE);
@@ -93,13 +104,6 @@ static void gtkterm_terminal_constructed (GObject *object) {
     vte_terminal_set_audible_bell (VTE_TERMINAL (self), priv->term_conf->visual_bell);
     vte_terminal_set_color_background (VTE_TERMINAL (self), &priv->term_conf->background_color);
     vte_terminal_set_color_foreground (VTE_TERMINAL (self), &priv->term_conf->foreground_color);	
-
-	//! Update the statusbar and main window title
-    g_signal_emit (priv->main_window, gtkterm_signals[SIGNAL_GTKTERM_TERMINAL_CHANGED], 
-                                      0, 
-                                      priv->section, 
-                                      gtkterm_serial_port_get_string (priv->serial_port), 
-                                      gtkterm_serial_port_status (priv->serial_port));    
 
     G_OBJECT_CLASS (gtkterm_terminal_parent_class)->constructed (object);
 }
