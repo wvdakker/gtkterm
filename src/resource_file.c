@@ -307,7 +307,7 @@ static int gtkterm_configuration_print_section (GtkTermConfiguration *self, gpoi
 			g_printf ("[%2d] %-8s  %s\n", i, macros[i].shortcut, macros[i].action);
 	}
 
-	gtkterm_configuration_validate (priv, section);
+	gtkterm_configuration_validate (self, section);
 
 	return 0;
 }
@@ -328,7 +328,7 @@ static int gtkterm_configuration_remove_section (GtkTermConfiguration *self, gpo
 
 	//! If we remove the DEFAULT_SECTION then create a new one
 	if (!g_strcmp0 ((const char *) section, (const char *)&DEFAULT_SECTION)) {
-		gtkterm_configuration_default_configuration(priv, section);
+		gtkterm_configuration_default_configuration(self, section);
 	}
 	else {
 		//! TODO: signal terminals to reload.
@@ -495,7 +495,8 @@ static port_config_t *gtkterm_configuration_load_serial_config (GtkTermConfigura
 
 //! @brief
 //! Create a new <default> configuration
-void gtkterm_configuration_default_configuration (GtkTermConfigurationPrivate *priv, char *section) {
+void gtkterm_configuration_default_configuration (GtkTermConfiguration *self, char *section) {
+	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);	
 
 	g_key_file_set_string (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_PORT], DEFAULT_PORT);
 	g_key_file_set_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_BAUDRATE], DEFAULT_BAUDRATE);
@@ -534,8 +535,8 @@ void gtkterm_configuration_default_configuration (GtkTermConfigurationPrivate *p
 
 //! @brief
 //! validate the configuration, given by the section
-void gtkterm_configuration_validate(GtkTermConfigurationPrivate *priv, char *section)
-{
+void gtkterm_configuration_validate(GtkTermConfiguration *self, char *section) {
+	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);	
  	char *string = NULL;
 	int value;
 	unsigned long lvalue;
@@ -669,7 +670,7 @@ bool on_set_config_options (const char *name, const char *value, gpointer data, 
 	g_free (section);
 
 	if (config_option_success)
-		gtkterm_configuration_validate (priv, section);
+		gtkterm_configuration_validate (GTKTERM_APP(data)->config, section);
 
 	return config_option_success;
 }
