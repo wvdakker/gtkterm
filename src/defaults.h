@@ -1,3 +1,4 @@
+//! Default for VTE-terminal
 #define DEFAULT_FONT            "Monospace 12"
 #define DEFAULT_SCROLLBACK      10000
 #define DEFAULT_DELAY 		    0
@@ -6,6 +7,7 @@
 #define DEFAULT_ECHO 		    "false"
 #define DEFAULT_VISUAL_BELL     "false"
 
+//! Default for serial ports
 #define DEFAULT_PORT 	        "/dev/ttyS0"
 #define DEFAULT_BAUDRATE        115200
 #define DEFAULT_PARITY 	        "none"
@@ -17,3 +19,7 @@
 #define TRANSMIT_BUFFER         4096
 #define LINE_FEED               0x0A
 #define POLL_DELAY              100               //! in ms (for control signals) 
+
+//! Generic defaults
+#define BUFFER_LENGTH           256
+#define MAX_SECTION_LENGTH      32

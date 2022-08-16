@@ -24,13 +24,11 @@
 #include <glib/gprintf.h>
 #include <config.h>
 
+#include "defaults.h"
 #include "gtkterm.h"
 #include "resource_file.h"
 #include "cmdline.h"
 #include "serial.h"
-
-#define BUFFER_LENGTH       256
-#define MAX_SECTION_LENGTH  32
 
 static bool on_remove_config (const char *name, const char *value, gpointer data,  GError **error) {
  
