@@ -20,6 +20,7 @@
 typedef struct  {
     uint8_t view_mode;              //! ASCII or HEX view mode
  //   GtkTermBuffer *term_buffer;
+    GtkTermSerialPort *serial_port;
     term_config_t *term_conf;       //! The configuration loaded from the keyfile
     port_config_t *port_conf;       //! Port configuration used in this terminal
  
@@ -64,7 +65,9 @@ static void gtkterm_terminal_constructed (GObject *object) {
     //! Take [section] as input, term/port conf are the pointers to the return values;
     g_signal_emit(priv->app->config, gtkterm_signals[SIGNAL_GTKTERM_CONFIG_TERMINAL], 0, priv->section, &priv->term_conf);
     g_signal_emit(priv->app->config, gtkterm_signals[SIGNAL_GTKTERM_CONFIG_SERIAL], 0, priv->section, &priv->port_conf);
-     
+
+    priv->serial_port = gtkterm_serial_port_new (priv->port_conf);
+
   	//!* set terminal properties
     //! TODO: make configurable from the config file
 	vte_terminal_set_scroll_on_output(VTE_TERMINAL(self), FALSE);
@@ -80,7 +83,11 @@ static void gtkterm_terminal_constructed (GObject *object) {
     vte_terminal_set_color_foreground (VTE_TERMINAL (self), &priv->term_conf->foreground_color);	
 
 	//! Update the statusbar and main window title
-    g_signal_emit (priv->main_window, gtkterm_signals[SIGNAL_GTKTERM_TERMINAL_CHANGED], 0);    
+    g_signal_emit (priv->main_window, gtkterm_signals[SIGNAL_GTKTERM_TERMINAL_CHANGED], 
+                                      0, 
+                                      priv->section, 
+                                      gtkterm_serial_port_get_string (priv->serial_port), 
+                                      gtkterm_serial_port_status (priv->serial_port));    
 
     G_OBJECT_CLASS (gtkterm_terminal_parent_class)->constructed (object);
 }

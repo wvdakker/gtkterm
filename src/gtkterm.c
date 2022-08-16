@@ -39,12 +39,17 @@ struct _GtkTermWindow {
 
   GtkWidget *message;                   //! Message for the infobar
   GtkWidget *infobar;                   //! Infobar
-  GtkWidget *statusbar;                 //! Statusbar
+  GtkBox *statusbox;                    //! Box for statusbar messages
+  GtkBox *status_config;                //! Displays the actual used configuration
   GtkWidget *menubutton;                //! Toolbar
   GMenuModel *toolmenu;                 //! Menu
   GtkScrolledWindow *scrolled_window;   //! Make the terminal window scrolled
   GtkTermTerminal *terminal_window;     //! The terminal window
+  GtkWidget *search_bar;                //! Searchbar 
   GActionGroup *action_group;           //! Window action group
+  GtkWidget *status_config_message[3];
+  GtkWidget *status_serial_signal[6];  
+  GtkWidget *status_message;
 
   int width;
   int height;
@@ -56,10 +61,14 @@ G_DEFINE_TYPE (GtkTerm, gtkterm, GTK_TYPE_APPLICATION)
 
 G_DEFINE_TYPE (GtkTermWindow, gtkterm_window, GTK_TYPE_APPLICATION_WINDOW)
 
-static void gtkterm_window_update (GtkTermWindow *, gpointer);
+static void gtkterm_window_update_statusbar (GtkTermWindow *, gpointer, gpointer, int, gpointer);
 
-static void update_statusbar (GtkTermWindow *);
-void set_window_title (GtkTermWindow *);
+static void config_status_bar (GtkTermWindow *);
+static void update_statusbar (GtkTermWindow *, gpointer, gpointer, int);
+void set_window_title (GtkTermWindow *, gpointer);
+
+static char const *serial_signal[] = {"DTR", "RTS", "CTS", "CD", "DSR", "RI", NULL};
+
 
 static void create_window (GApplication *app) {
 
@@ -69,14 +78,13 @@ static void create_window (GApplication *app) {
                                                           "show-menubar", 
                                                           TRUE,
                                                           NULL);
-  
+
   //! Create a new terminal window and send section and keyfile as parameter
   //! GTKTERM_TERMINAL then can load the right section.
   window->terminal_window = gtkterm_terminal_new (GTKTERM_APP(app)->section, GTKTERM_APP(app), window);
 
+  //! Make the VTE window scrollable
   gtk_scrolled_window_set_child(window->scrolled_window, GTK_WIDGET(window->terminal_window));
-
-  set_window_title (window);
   
   gtk_window_present (GTK_WINDOW (window));
 }
@@ -262,36 +270,57 @@ static void on_gtkterm_quit (GSimpleAction *action,
   g_option_group_unref (app->g_config_group); 
 }
 
-static void update_statusbar (GtkTermWindow *window) {
+void config_status_bar (GtkTermWindow *window) {
+    GtkWidget *label;
 
-  char *msg;
+    //! Fields for the configuration and port
+    for (int i = 0; i < 3; i++) {
+        label = gtk_label_new ("");
+        gtk_box_append (GTK_BOX (window->status_config), label);
+        gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_START);
+        gtk_label_set_width_chars (GTK_LABEL(label), 25);
+        window->status_config_message[i] = label;
+    }
 
-  //! Clear any previous message, underflow is allowed
-  gtk_statusbar_pop (GTK_STATUSBAR (window->statusbar), 0);
-
-  msg = g_strdup_printf ("%s", "Test" /*get_port_string()*/);
-
-  gtk_statusbar_push (GTK_STATUSBAR (window->statusbar), 0, msg);
-
-  g_free (msg);
+    //! Fill in the serial signals
+    //! The signals are appended at the statusbox so they can glide along when resizing the window
+    for (int i = 0; i < 6; i++) {
+        label = gtk_label_new (serial_signal[i]);
+        gtk_box_append (GTK_BOX (window->statusbox), label);
+        gtk_widget_set_sensitive (GTK_WIDGET (label), FALSE);
+        gtk_widget_set_halign (GTK_WIDGET (label), GTK_ALIGN_END);
+        window->status_serial_signal[i] = label;
+    }
 }
 
-void set_window_title (GtkTermWindow *window) {
+static void update_statusbar (GtkTermWindow *window, gpointer section, gpointer serial_config_string, int serial_status) {
+  char *msg;
+
+  msg = g_strdup_printf ("[%s]", (char *)section);
+
+  gtk_label_set_text (GTK_LABEL(window->status_config_message[0]), msg);
+  gtk_label_set_label (GTK_LABEL(window->status_config_message[1]), serial_config_string);
+  gtk_label_set_label (GTK_LABEL(window->status_config_message[2]), serial_status ? "connected" : "disconnected"); 
+
+  g_free (msg);  
+}
+
+void set_window_title (GtkTermWindow *window, gpointer serial_config_string) {
 
   char *msg;
 
-  msg = g_strdup_printf ("GTKTerm");
+  msg = g_strdup_printf ("GtkTerm - %s", (char *)serial_config_string);
 
   gtk_window_set_title (GTK_WINDOW(window), msg);
 
-  g_free (msg);
+  g_free (msg);  
 }
 
 //! Update the window title and statusbar with the new configuration
-static void gtkterm_window_update (GtkTermWindow *window, gpointer user_data) {
+static void gtkterm_window_update_statusbar (GtkTermWindow *window, gpointer section, gpointer serial_config_string, int serial_status, gpointer user_data) {
 
-  set_window_title (window);
-  update_statusbar (window);
+  set_window_title (window, serial_config_string);
+  update_statusbar (window, section, serial_config_string, serial_status);
 }
 
 static void on_gtkterm_toggle_dark (GSimpleAction *action,
@@ -429,18 +458,6 @@ static void gtkterm_class_init (GtkTermClass *class) {
                                                 NULL);
 
   gtkterm_signals[SIGNAL_GTKTERM_PRINT_SECTION] = g_signal_new ("config_print",
-                                                 GTKTERM_TYPE_CONFIGURATION,
-                                                 G_SIGNAL_RUN_FIRST,
-                                                 0,
-                                                 NULL,
-                                                 NULL,
-                                                 NULL,
-                                                 G_TYPE_NONE,
-                                                 1,
-                                                 G_TYPE_POINTER,
-                                                 NULL);                                      
-
-  gtkterm_signals[SIGNAL_GTKTERM_REMOVE_SECTION] = g_signal_new ("config_remove",
                                                 GTKTERM_TYPE_CONFIGURATION,
                                                 G_SIGNAL_RUN_FIRST,
                                                 0,
@@ -448,32 +465,44 @@ static void gtkterm_class_init (GtkTermClass *class) {
                                                 NULL,
                                                 NULL,
                                                 G_TYPE_NONE,
-                                                0,
-                                                NULL);
+                                                1,
+                                                G_TYPE_POINTER,
+                                                NULL);                                                                                                                                            
+
+  gtkterm_signals[SIGNAL_GTKTERM_REMOVE_SECTION] = g_signal_new ("config_remove",
+                                               GTKTERM_TYPE_CONFIGURATION,
+                                               G_SIGNAL_RUN_FIRST,
+                                               0,
+                                               NULL,
+                                               NULL,
+                                               NULL,
+                                               G_TYPE_NONE,
+                                               0,
+                                               NULL);
 
     gtkterm_signals[SIGNAL_GTKTERM_CONFIG_TERMINAL] = g_signal_new ("config_terminal",
-                                                				GTKTERM_TYPE_CONFIGURATION,
-                                                				G_SIGNAL_RUN_FIRST,
-                                                				0,
-                                               					NULL,
-                                                				NULL,
-                                                				NULL,
-                                                				G_TYPE_POINTER,
-                                               					1,
-																                        G_TYPE_POINTER,
-                                               					NULL);
+                                               GTKTERM_TYPE_CONFIGURATION,
+                                               G_SIGNAL_RUN_FIRST,
+                                               0,
+                                             	 NULL,
+                                               NULL,
+                                               NULL,
+                                               G_TYPE_POINTER,
+                                               1,
+																               G_TYPE_POINTER,
+                                               NULL);
 
     gtkterm_signals[SIGNAL_GTKTERM_CONFIG_SERIAL] = g_signal_new ("config_serial",
-                                                				GTKTERM_TYPE_CONFIGURATION,
-                                                				G_SIGNAL_RUN_FIRST,
-                                                				0,
-                                               					NULL,
-                                                				NULL,
-                                                				NULL,
-                                                				G_TYPE_POINTER,
-                                               					1,
-																                        G_TYPE_POINTER,
-                                               					NULL);
+                                               GTKTERM_TYPE_CONFIGURATION,
+                                               G_SIGNAL_RUN_FIRST,
+                                               0,
+                                               NULL,
+                                               NULL,
+                                               NULL,
+                                               G_TYPE_POINTER,
+                                               1,
+																               G_TYPE_POINTER,
+                                               NULL);
 
   app_class->startup = startup;
   app_class->activate = activate;
@@ -521,7 +550,11 @@ static void gtkterm_window_init (GtkTermWindow *window) {
                                    win_entries, 
                                    G_N_ELEMENTS (win_entries),
                                    window);
-  gtk_widget_insert_action_group (GTK_WIDGET (window), "gtkterm_window", window->action_group);                                    
+  gtk_widget_insert_action_group (GTK_WIDGET (window), "gtkterm_window", window->action_group);
+
+    //! we cannot configure the statusbar within the UI templates.
+  //! This means we have to do 'it by hand' and store the GtkLabels for later use.
+  config_status_bar (window);                               
 }
 
 static void gtkterm_window_constructed (GObject *object) {
@@ -532,7 +565,7 @@ static void gtkterm_window_constructed (GObject *object) {
   gtk_window_set_default_size (GTK_WINDOW (window), window->width, window->height); 
 
   //! Connect to the terminal_changed so we can update the statusbar and window title
-  g_signal_connect (window, "terminal_changed", G_CALLBACK(gtkterm_window_update), NULL);	 
+  g_signal_connect (window, "terminal_changed", G_CALLBACK(gtkterm_window_update_statusbar), NULL);	 
 
   if (window->maximized)
     gtk_window_maximize (GTK_WINDOW (window));
@@ -609,16 +642,21 @@ static void gtkterm_window_class_init (GtkTermWindowClass *class) {
                                             NULL,
                                             NULL,
                                             G_TYPE_NONE,
-                                            0,
+                                            3,
+                                            G_TYPE_POINTER,
+                                            G_TYPE_POINTER,
+                                            G_TYPE_INT,
                                             NULL);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/com/github/jeija/gtkterm/gtkterm_main.ui");
   gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, message);
-  gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, infobar);
-  gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, statusbar);
-  gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, scrolled_window);   
   gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, menubutton);
-  gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, toolmenu);
+  gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, toolmenu);  
+  gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, infobar);
+  gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, scrolled_window);    
+  gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, statusbox); 
+  gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, status_config);   
+
   gtk_widget_class_bind_template_callback (widget_class, clicked_cb);
 }
 

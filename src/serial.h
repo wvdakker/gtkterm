@@ -15,7 +15,6 @@
 #ifndef SERIAL_H_
 #define SERIAL_H_
 
-
 typedef struct
 {
 	char *port;
@@ -37,10 +36,11 @@ typedef struct _GtkTermSerialPort GtkTermSerialPort;
 #define GTKTERM_TYPE_SERIAL_PORT gtkterm_serial_port_get_type ()
 G_DECLARE_FINAL_TYPE (GtkTermSerialPort, gtkterm_serial_port, GTKTERM, SERIAL_PORT, GObject)
 
-GtkTermSerialPort *gtkterm_serial_port_new (void);
-
-char* gtkterm_serial_port_get_string (GtkTermSerialPort *);
+GtkTermSerialPort *gtkterm_serial_port_new (port_config_t *);
 
 G_END_DECLS
+
+char* gtkterm_serial_port_get_string (GtkTermSerialPort *);
+int gtkterm_serial_port_status (GtkTermSerialPort *);
 
 #endif

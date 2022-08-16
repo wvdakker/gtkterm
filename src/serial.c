@@ -36,19 +36,10 @@
 #endif
 
 typedef struct {
- //   GOutputStream *output_stream;
- //   GInputStream *input_stream;
-    port_config_t port_conf;
+    port_config_t *port_conf;
     struct termios termios_save;
     int serial_port_fd;
- //   char lockfile[256];
 
- //   GtSerialPortState state;
- //   GError *last_error;
- //   int control_flags;
- //   unsigned int status_timeout;
-//    GtkTermBuffer *buffer;
-//    GCancellable *cancellable;
 } GtkTermSerialPortPrivate;
 
 struct _GtkTermSerialPort {
@@ -61,14 +52,19 @@ struct _GtkTermSerialPortClass {
 
 G_DEFINE_TYPE_WITH_PRIVATE (GtkTermSerialPort, gtkterm_serial_port, G_TYPE_OBJECT)
 
-static void gtkterm_serial_port_class_init (GtkTermSerialPortClass *classf) {
+enum { 
+	PROP_0, 
+	PROP_PORT_CONFIG,
+	N_PROPS 
+};
 
+static GParamSpec *gtkterm_serial_port_properties[N_PROPS] = {NULL};
+
+
+GtkTermSerialPort *gtkterm_serial_port_new (port_config_t *port_conf) {
+
+    return g_object_new (GTKTERM_TYPE_SERIAL_PORT, "port_conf", port_conf, NULL);
 }
-
-static void gtkterm_serial_port_init (GtkTermSerialPort *self) {
-
-}
-
 
 char* gtkterm_serial_port_get_string (GtkTermSerialPort *self)
 {
@@ -83,7 +79,7 @@ char* gtkterm_serial_port_get_string (GtkTermSerialPort *self)
 	else
 	{
 		// 0: none, 1: odd, 2: even
-		switch(priv->port_conf.parity)
+		switch(priv->port_conf->parity)
 		{
 			case 0:
 				parity = 'N';
@@ -100,13 +96,62 @@ char* gtkterm_serial_port_get_string (GtkTermSerialPort *self)
 
 		/* "GtkTerm: device  baud-bits-parity-stopbits"  */
 		msg = g_strdup_printf("%.15s  %ld-%d-%c-%d",
-		                      priv->port_conf.port,
-		                      priv->port_conf.baudrate,
-		                      priv->port_conf.bits,
+		                      priv->port_conf->port,
+		                      priv->port_conf->baudrate,
+		                      priv->port_conf->bits,
 		                      parity,
-		                      priv->port_conf.stopbits
+		                      priv->port_conf->stopbits
 		                     );
 	}
 
 	return msg;
 }
+
+int gtkterm_serial_port_status (GtkTermSerialPort *self) {
+	GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private(self);
+
+	return (priv->serial_port_fd != -1);
+}
+
+static void gtkterm_serial_port_set_property (GObject *object,
+                             unsigned int prop_id,
+                             const GValue *value,
+                             GParamSpec *pspec)
+{
+    GtkTermSerialPort *self = GTKTERM_SERIAL_PORT(object);
+    GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
+
+    switch (prop_id) {
+    	case PROP_PORT_CONFIG:
+        	priv->port_conf = g_value_get_pointer(value);
+        	break;		
+
+    	default:
+        	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+
+static void gtkterm_serial_port_class_init (GtkTermSerialPortClass *class) {
+
+  	GObjectClass *object_class = G_OBJECT_CLASS (class);
+    object_class->set_property = gtkterm_serial_port_set_property;
+
+	//! Parameters to hand over at creation of the object
+	//! We need the section to load the config from the keyfile.
+  	gtkterm_serial_port_properties[PROP_PORT_CONFIG] = g_param_spec_pointer (
+        "port_conf",
+        "port_conf",
+        "port_conf",
+        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY);        
+
+    g_object_class_install_properties (object_class, N_PROPS, gtkterm_serial_port_properties);
+}
+
+static void gtkterm_serial_port_init (GtkTermSerialPort *self) {
+    GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
+
+	//! Not yet connected
+	priv->serial_port_fd = -1;
+}
+

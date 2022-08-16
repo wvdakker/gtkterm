@@ -6,7 +6,7 @@
     <property name="default-height">550</property>
     <property name="icon-name">document-open</property>
     <child>
-      <object class="GtkGrid">
+      <object class="GtkBox" id="main_window">
         <property name="orientation">vertical</property>      
         <child>
           <object class="GtkBox">
@@ -62,64 +62,18 @@
           </object>
         </child>
         <child>
-          <object class="GtkStatusbar" id="status">
-            <property name="hexpand">1</property>
-            <layout>
-              <property name="column">0</property>
-              <property name="row">3</property>
-            </layout>
+          <object class="GtkBox" id="statusbox">
+            <property name="valign">center</property> 
+            <property name="spacing">6</property>
+            <property name="margin_top">6</property>
+            <property name="margin_bottom">6</property>            
+            <property name="margin_end">20</property>                               
             <child>
-              <object class="GtkBox">
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label" translatable="1">Port</property>
-                    <property name="width-chars">30</property>            
-                </object>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label" translatable="1">Section</property>
-                    <property name="width-chars">30</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label" translatable="1">Status</property>
-                    <property name="width-chars">30</property>
-                  </object>
-                </child>            
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label" translatable="1">DTR</property>
-                    <property name="width-chars">5</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label" translatable="1">RTS</property>
-                    <property name="width-chars">5</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label" translatable="1">CTS</property>
-                    <property name="width-chars">5</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label" translatable="1">CD</property>
-                    <property name="width-chars">5</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label" translatable="1">RI</property>
-                    <property name="width-chars">5</property>
-                  </object>
-                </child>                                
+              <object class="GtkBox" id="status_config">
+                <property name="valign">center</property>
+                <property name="hexpand">1</property>                
               </object>
-            </child>
+            </child>           
           </object>
         </child>
       </object>
