@@ -26,9 +26,8 @@
 #include <gio/gio.h>
 #include <pango/pango-font.h>
 
-#include <config.h>
-
-#include "gtkterm.h"
+#include "config.h"
+#include "gtkterm_window.h"
 #include "serial.h"
 #include "terminal.h"
 #include "defaults.h"

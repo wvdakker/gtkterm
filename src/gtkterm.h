@@ -46,10 +46,5 @@ struct _GtkTerm {
 typedef struct _GtkTerm GtkTerm;
 G_DECLARE_FINAL_TYPE (GtkTerm, gtkterm, GTKTERM, APP, GtkApplication)
 
-#define GTKTERM_TYPE_GTKTERM_WINDOW gtkterm_window_get_type()
-typedef struct _GtkTermWindow GtkTermWindow;
-G_DECLARE_FINAL_TYPE (GtkTermWindow, gtkterm_window, GTKTERM, WINDOW, GtkApplicationWindow)
-
-G_END_DECLS
 
 #endif // GTKTERM_H

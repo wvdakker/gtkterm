@@ -13,6 +13,18 @@
 
 /***********************************************************************/
 
+#include <stdio.h>
+#include <stdbool.h>
+#include <sys/stat.h>
+#include <glib.h>
+#include <glib/gi18n.h>
+#include <glib/gprintf.h>
+#include <glib-object.h>
+#include <gtk/gtk.h>
+#include <gio/gio.h>
+#include <pango/pango-font.h>
+
+#include "gtkterm_window.h"
 #include "terminal.h"
 #include "serial.h"
 #include "resource_file.h"
