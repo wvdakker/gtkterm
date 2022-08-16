@@ -27,6 +27,7 @@
 #include "gtkterm_window.h"
 #include "terminal.h"
 #include "serial.h"
+#include "macros.h"
 #include "resource_file.h"
 
 typedef struct  {
@@ -35,6 +36,7 @@ typedef struct  {
     GtkTermSerialPort *serial_port;
     term_config_t *term_conf;       //! The configuration loaded from the keyfile
     port_config_t *port_conf;       //! Port configuration used in this terminal
+    macro_t       *macros;          //! TODO: convert macros -> object
  
     char *section;           		//! Section used in this terminal for configuration from config file
 	GtkTerm *app;                   //! Pointer to the app for getting [section] and keyfile
