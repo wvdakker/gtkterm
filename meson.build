@@ -1,5 +1,5 @@
 project(
-	'gtkterm',
+	'GTKTerm',
 	'c',
 	version: '1.99.0',
 	meson_version : '>= 0.49.0'
@@ -7,7 +7,7 @@ project(
 
 # Find dependencies
 gtk_deps = dependency('gtk4', version : '>= 4.6.0')
-vte_deps = dependency('vte-2.91-gtk4', version : '>= 0.69.0')
+vte_deps = dependency('vte-2.91-gtk4', version : '>= 0.69.92')
 gudev_deps = dependency('gudev-1.0', version: '>= 230')
 
 # Find install paths
