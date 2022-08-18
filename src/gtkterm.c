@@ -68,7 +68,7 @@ static GActionEntry gtkterm_entries[] = {
 
 };
 
-static void startup (GApplication *app) {
+static void gtkterm_startup (GApplication *app) {
 
   GtkBuilder *builder;
 
@@ -83,7 +83,7 @@ static void startup (GApplication *app) {
   g_object_unref (builder);
 }
 
-static void activate (GApplication *app) {
+static void gtkterm_activate (GApplication *app) {
 
   //! Create the gtkterm_window
   create_window (app);
@@ -199,8 +199,8 @@ static void gtkterm_class_init (GtkTermClass *class) {
 																               G_TYPE_POINTER,                                                                                                                                             
                                                NULL);                                               
 
-  app_class->startup = startup;
-  app_class->activate = activate;
+  app_class->startup = gtkterm_startup;
+  app_class->activate = gtkterm_activate;
 }
 
 int main (int argc, char *argv[]) {
