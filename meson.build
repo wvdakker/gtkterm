@@ -44,4 +44,6 @@ subdir('convert')
 subdir('po')
 subdir('doc')
 
+install_man('data/gtkterm.1')
+
 meson.add_install_script('meson_post_install.py')
