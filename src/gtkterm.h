@@ -36,11 +36,11 @@ struct _GtkTerm {
   GOptionGroup *g_port_group;
   GOptionGroup *g_config_group;
 
-  GActionGroup *action_group;           //! App action group
+  GActionGroup *action_group;           //!< App action group
 
-  GtkTermConfiguration *config;         //! The Key file with the configurations
-  char *section;                        //! The section provided from the cli. 
-                                        //! Terminals have their own section pointer
+  GtkTermConfiguration *config;         //!< The Key file with the configurations
+  char *section;                        //!< The section provided from the cli. 
+                                        //!< Terminals have their own section pointer
 };
 
 #define GTKTERM_TYPE_APP gtkterm_get_type()

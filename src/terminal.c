@@ -31,22 +31,22 @@
 #include "resource_file.h"
 
 typedef struct  {
-    uint8_t view_mode;              //! ASCII or HEX view mode
- //   GtkTermBuffer *term_buffer;
-    GtkTermSerialPort *serial_port;
-    term_config_t *term_conf;       //! The configuration loaded from the keyfile
-    port_config_t *port_conf;       //! Port configuration used in this terminal
-    macro_t       *macros;          //! TODO: convert macros -> object
+    uint8_t view_mode;              //!< ASCII or HEX view mode
+ //   GtkTermBuffer *term_buffer;   //!< Terminal buffer for serial port
+    GtkTermSerialPort *serial_port; //!< The active serial port for this terminal
+    term_config_t *term_conf;       //!< The configuration loaded from the keyfile
+    port_config_t *port_conf;       //!< Port configuration used in this terminal
+    macro_t       *macros;          //!< \todo convert macros -> object
  
-    char *section;           		//! Section used in this terminal for configuration from config file
-	GtkTerm *app;                   //! Pointer to the app for getting [section] and keyfile
-    GtkTermWindow *main_window;     //! Pointer to the main window for updating the statusbar on changes
+    char *section;           		//!< Section used in this terminal for configuration from config file
+	GtkTerm *app;                   //!< Pointer to the app for getting [section] and keyfile
+    GtkTermWindow *main_window;     //!< Pointer to the main window for updating the statusbar on changes
 
 } GtkTermTerminalPrivate;
 
 struct _GtkTermTerminal {
 
-    VteTerminal vte_object;         //! The actual terminal
+    VteTerminal vte_object;         //!< The actual terminal
 };
 
 struct _GtkTermTerminalClass {
@@ -94,7 +94,7 @@ static void gtkterm_terminal_constructed (GObject *object) {
     g_free(serial_string);
 
   	//! Set terminal properties
-    //! TODO: make configurable from the config file
+    //! \todo: make configurable from the config file
 	vte_terminal_set_scroll_on_output(VTE_TERMINAL(self), FALSE);
 	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(self), TRUE);
 	vte_terminal_set_mouse_autohide(VTE_TERMINAL(self), TRUE);
@@ -181,6 +181,6 @@ static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
 
 static void gtkterm_terminal_init (GtkTermTerminal *self) {
 
-	//! TODO: Make GObject
+	//! \todo: Make GObject
   //! create_buffer();
 }

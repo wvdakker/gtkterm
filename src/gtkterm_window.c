@@ -10,21 +10,21 @@
 #include "terminal.h"
 
 
-//! @brief The main GtkTermWindow class.
+//! \brief The main GtkTermWindow class.
 //! MainWindow specific variables here.
 struct _GtkTermWindow {
   GtkApplicationWindow parent_instance;
 
-  GtkWidget *message;                   //! Message for the infobar
-  GtkWidget *infobar;                   //! Infobar
-  GtkBox *statusbox;                    //! Box for statusbar messages
-  GtkBox *status_config;                //! Displays the actual used configuration
-  GtkWidget *menubutton;                //! Toolbar
-  GMenuModel *toolmenu;                 //! Menu
-  GtkScrolledWindow *scrolled_window;   //! Make the terminal window scrolled
-  GtkTermTerminal *terminal_window;     //! The terminal window
-  GtkWidget *search_bar;                //! Searchbar 
-  GActionGroup *action_group;           //! Window action group
+  GtkWidget *message;                   //!< Message for the infobar
+  GtkWidget *infobar;                   //!< Infobar
+  GtkBox *statusbox;                    //!< Box for statusbar messages
+  GtkBox *status_config;                //!< Displays the actual used configuration
+  GtkWidget *menubutton;                //!< Toolbar
+  GMenuModel *toolmenu;                 //!< Menu
+  GtkScrolledWindow *scrolled_window;   //!< Make the terminal window scrolled
+  GtkTermTerminal *terminal_window;     //!< The terminal window
+  GtkWidget *search_bar;                //!< Searchbar 
+  GActionGroup *action_group;           //!< Window action group
   GtkWidget *status_config_message[3];
   GtkWidget *status_serial_signal[6];  
   GtkWidget *status_message;
@@ -375,7 +375,7 @@ static void gtkterm_window_init (GtkTermWindow *window) {
 
   window->action_group = G_ACTION_GROUP(g_simple_action_group_new ());                                 
 
-  //! TODO: Rename it.
+  //! \todo: Rename it.
   g_action_map_add_action_entries (G_ACTION_MAP (window->action_group),
                                    win_entries, 
                                    G_N_ELEMENTS (win_entries),
@@ -386,7 +386,7 @@ static void gtkterm_window_init (GtkTermWindow *window) {
                                    G_N_ELEMENTS (gtkterm_window_entries),
                                    window);
 
-    //! we cannot configure the statusbar within the UI templates.
+  //! we cannot configure the statusbar within the UI templates.
   //! This means we have to do 'it by hand' and store the GtkLabels for later use.
   config_status_bar (window);                               
 }

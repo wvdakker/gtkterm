@@ -18,7 +18,7 @@
 #define RECEIVE_BUFFER          8192
 #define TRANSMIT_BUFFER         4096
 #define LINE_FEED               0x0A
-#define POLL_DELAY              100               //! in ms (for control signals) 
+#define POLL_DELAY              100               //!< in ms (for control signals) 
 
 //! Generic defaults
 #define BUFFER_LENGTH           256

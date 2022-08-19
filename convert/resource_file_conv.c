@@ -486,8 +486,10 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_ALPHA], term_conf.background_color.alpha);
 }
 
-//! Remove a section from the file
-//! TODO: Perhaps remove because we dont need it.
+/*!
+ * Remove a section from the file
+ * \todo: Perhaps remove because we dont need it.
+ */ 
 int remove_section(char *cfg_file, char *section)
 {
 	FILE *f = NULL;

@@ -75,9 +75,13 @@ static bool on_use_config (const char *name, const char *value, gpointer data,  
 
     return true;
 }
-
-//! We use callback in GOptionEntry. So we can directly put them
-//! in the Terminal configuration instead of handing over a pointer from the config.
+/*!
+ * \brief GOptionEntry mappings
+ * We use callback in GOptionEntry. So we can directly put them
+ * in the Terminal configuration instead of handing over a pointer from the config.
+ * 
+ * \todo Update gtkterm.1
+ */
 static GOptionEntry gtkterm_config_options[] = {    
     {"show_config", 'v', 0, G_OPTION_ARG_CALLBACK, on_print_section, N_("Show configuration"), "[configuration]"}, 
     {"save_config", 's', 0, G_OPTION_ARG_CALLBACK, on_save_section, N_("Save configuration"), "[configuration]"},     
@@ -86,13 +90,16 @@ static GOptionEntry gtkterm_config_options[] = {
     {NULL}
 };
 
-//! For setting options we dont allow shortnames anymore.
-//! This makes it easier to configure and more fault tolerant.
+/*!
+ * \brief Longname CLI options
+ * For setting options we dont allow shortnames anymore.
+ * This makes it easier to configure and more fault tolerant.
+ */
 static GOptionEntry gtkterm_term_options[] = {    
     {GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("End of line delay in ms (default none)"), "<ms>"},
     {GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Local echo"),  "<on|off>"},
     {GtkTermConfigurationItems[CONF_ITEM_TERM_RAW_FILENAME], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_ ("Default file to send (default none)"), "<filename>"},
-  	{GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Wait for a special char at end of line (default none)"), "<character in HEX>"},
+    {GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Wait for a special char at end of line (default none)"), "<character in HEX>"},
     {NULL}
 };
 

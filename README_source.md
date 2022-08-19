@@ -8,7 +8,7 @@ One of the subgoals is not to use any global variables but exchange data
 by the use of signals. For that only the array of signals is a global
 variable.
 
-Use of GTKTerm/GtkTerm/gtkterm:
+Use of GTKTerm/GtkTerm/gtkterm naming schema:
 In this document several ways of Upper/Lowercase combinations of GTKTerm is 
 used:
 - GTKTerm: The name of the application
@@ -49,8 +49,9 @@ of the GTKTerm source code.
 GtkTerm is the main GtkApplication object for GTKTerm. It starts the gtkterm_window
 and handles the cmdline interface (CLI). Options given at the CLI are directly 
 stored into the in memory keyfile. 
-This in memory keyfile is base for the terminal windows. Getting configuration 
-for the terminal windows is done by signals for the [section] needed.
+This in memory keyfile is the base for the configuration of the terminal windows. 
+Getting configuration for the terminal window is done by signals for the [section] 
+needed.
 
 #### Members
 #### Signals
@@ -80,3 +81,13 @@ for the terminal windows is done by signals for the [section] needed.
 #### Signals
 #### Main functions
 
+## Links
+
+For the migration to gtk4 several links were used:
+- https://docs.gtk.org/gobject/tutorial.html
+- https://docs.gtk.org/glib/
+- https://toshiocp.github.io/Gtk4-tutorial/index.html
+- https://c-gtk.org/gapplication-part-i
+
+Also special thanks to Jens Georg. Sellerie (an earlier fork of GTKTerm)
+was used as inspiration to solve some problems.

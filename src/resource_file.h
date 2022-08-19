@@ -16,7 +16,7 @@
 #define RESOURCE_FILE_H_
 
 #define CONF_ITEM_LENGTH		32
-#define DEFAULT_SECTION		   "default"		//! Default section if not specified
+#define DEFAULT_SECTION		   "default"		//!< Default section if not specified
 
 //! Define all configuration items which are used
 //! in the resource file. it is an index to ConfigurationItem.
@@ -52,7 +52,7 @@ enum {
 		CONF_ITEM_TERM_BACKGROUND_GREEN,
 		CONF_ITEM_TERM_BACKGROUND_BLUE,
 		CONF_ITEM_TERM_BACKGROUND_ALPHA,	
-		CONF_ITEM_LAST						//! Checking as last item in the list.
+		CONF_ITEM_LAST						//!< Checking as last item in the list.
 };
 
 //!Configuration item names.

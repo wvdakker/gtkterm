@@ -57,7 +57,7 @@ static void on_gtkterm_quit (GSimpleAction *action,
   //! Clean up memory
   g_free (app->section);
 
-  //! TODO: Should be part of the Gtkterm application struct
+  //! \todo: Should be part of the Gtkterm application struct
   g_option_group_unref (app->g_term_group);
   g_option_group_unref (app->g_port_group);
   g_option_group_unref (app->g_config_group); 

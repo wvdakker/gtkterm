@@ -36,8 +36,8 @@
 #include "macros.h"
 
 //! Default configuration filename
-#define CONFIGURATION_FILENAME ".gtktermrc"		//! Name of the resource file
-#define BUFFER_LENGTH			256				//! Bufferlength for strings.
+#define CONFIGURATION_FILENAME ".gtktermrc"		//!< Name of the resource file
+#define BUFFER_LENGTH			256				//!< Bufferlength for strings.
 
 //! Used configuration options to hold consistency between load/save functions
 const char GtkTermConfigurationItems [][CONF_ITEM_LENGTH] = {
@@ -77,8 +77,8 @@ const char GtkTermConfigurationItems [][CONF_ITEM_LENGTH] = {
 G_BEGIN_DECLS
 
 typedef struct {
-   	GKeyFile *key_file;         //! The memory loaded keyfile
-	GFile *config_file;         //! The config file
+   	GKeyFile *key_file;         //!< The memory loaded keyfile
+	GFile *config_file;         //!< The config file
 
 } GtkTermConfigurationPrivate;
 
@@ -167,10 +167,7 @@ static void gtkterm_configuration_init (GtkTermConfiguration *self) {
 	priv->key_file = NULL;	
 }
 
-static int gtkterm_configuration_load_config (GtkTermConfiguration *self) {
-
-	//! @brief
-	//! Old location of configuration file was $HOME/.gtktermrc
+	//! \brief Old location of configuration file was $HOME/.gtktermrc.
 	//! New location is $XDG_CONFIG_HOME/.gtktermrc
 	//!
 	//! If configuration file exists at new location, use that one.
@@ -179,6 +176,8 @@ static int gtkterm_configuration_load_config (GtkTermConfiguration *self) {
 	//! Version 2.0: Because we have to use gtkterm_conv, the file is always at
 	//! the user directory. So we can skip eventually moving the file.
 	//!
+static int gtkterm_configuration_load_config (GtkTermConfiguration *self) {
+
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private (self);
 
 	GFile *config_file_old = g_file_new_build_filename(getenv("HOME"), CONFIGURATION_FILENAME, NULL);
@@ -192,8 +191,7 @@ static int gtkterm_configuration_load_config (GtkTermConfiguration *self) {
 	return 0;
 }
 
-//! @brief
-//! Load the key file into memory.
+//! \brief Load the key file into memory.
 //! Note: all sections are loaded.
 static int gtkterm_configuration_load_keyfile (GtkTermConfiguration *self, gpointer user_data) {
 	
@@ -217,8 +215,7 @@ static int gtkterm_configuration_load_keyfile (GtkTermConfiguration *self, gpoin
 	return 0;
 }
 
-//! @brief
-//! Save keyfile to file (all sections are saved)
+//! \brief Save keyfile to file (all sections are saved).
 static int gtkterm_configuration_save_keyfile (GtkTermConfiguration *self, gpointer user_data)
 {
 	GError *error = NULL;
@@ -241,7 +238,7 @@ static int gtkterm_configuration_save_keyfile (GtkTermConfiguration *self, gpoin
 	return 0;
  }
 
-//! @brief: Dumps the section to the command line 
+//! \brief: Dumps the section to the command line 
 //! We will use this with auto package testing within Debian
 static int gtkterm_configuration_print_section (GtkTermConfiguration *self, gpointer data, gpointer user_data) {
 	char *section = (char *) data;
@@ -314,8 +311,7 @@ static int gtkterm_configuration_print_section (GtkTermConfiguration *self, gpoi
 	return 0;
 }
 
-//! @brief
-//! Remove a section from the GKeyFile 
+//! \brief Remove a section from the GKeyFile.
 //! If it is the active section then switch back to default.
 //! If it is the default section then create a new 'default' default section
 static int gtkterm_configuration_remove_section (GtkTermConfiguration *self, gpointer data, gpointer user_data)
@@ -333,7 +329,7 @@ static int gtkterm_configuration_remove_section (GtkTermConfiguration *self, gpo
 		gtkterm_configuration_default_configuration(self, section);
 	}
 	else {
-		//! TODO: signal terminals to reload.
+		//! \todo: signal terminals to reload.
 
 		//! Remove the group from GKeyFile
 		if (!g_key_file_remove_group (priv->key_file, section, &error)) {
@@ -594,8 +590,7 @@ static port_config_t *gtkterm_configuration_load_serial_config (GtkTermConfigura
 	return port_conf;
 }
 
-//! @brief
-//! Create a new <default> configuration
+//! \brief Create a new <default> configuration.
 void gtkterm_configuration_default_configuration (GtkTermConfiguration *self, char *section) {
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);	
 
@@ -634,8 +629,7 @@ void gtkterm_configuration_default_configuration (GtkTermConfiguration *self, ch
 	g_key_file_set_string (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_MACROS], "");
 }
 
-//! @brief
-//! validate the configuration, given by the section
+//! \brief validate the configuration, given by the section.
 void gtkterm_configuration_validate(GtkTermConfiguration *self, char *section) {
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);	
  	char *string = NULL;
@@ -703,8 +697,7 @@ void gtkterm_configuration_validate(GtkTermConfiguration *self, char *section) {
 		g_key_file_set_string (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FONT], DEFAULT_FONT);
 }
 
-//! @brief
-//! Set the config option in the keyfile.
+//! \brief Set the config option in the keyfile.
 //! Options are not saved.
 bool on_set_config_options (const char *name, const char *value, gpointer data,  GError **error) {
 

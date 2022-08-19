@@ -29,7 +29,7 @@
 #include <config.h>
 #include <glib/gi18n.h>
 
-//! TODO: Migrate to GObject
+//! \todo: Migrate to GObject
 
 enum
 {
