@@ -2,7 +2,7 @@ project(
 	'GTKTerm',
 	'c',
 	version: '1.99.0',
-	meson_version : '>= 0.49.0'
+	meson_version : '>= 0.60.0'
 )
 
 # Find dependencies
@@ -20,6 +20,7 @@ conf = configuration_data()
 conf.set_quoted('PACKAGE_VERSION', meson.project_version())
 conf.set_quoted('PACKAGE', meson.project_name())
 conf.set_quoted('RELEASE_DATE', 'December 2020')
+conf.set_quoted('BUILD_DIR',  meson.project_build_root())
 conf.set_quoted('LOCALEDIR', localedir)
 
 cc = meson.get_compiler('c')
@@ -36,7 +37,7 @@ else
 endif
 
 configure_file(output : 'config.h', configuration : conf)
-config = declare_dependency(include_directories : include_directories('.', 'src', '../src'))
+config = declare_dependency(include_directories : include_directories('.', 'src'))
 
 subdir('data')
 subdir('src')
