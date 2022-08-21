@@ -1,7 +1,5 @@
 gtkterm_sources = [
-	'buffer.c',
 	'cmdline.c',
-	'files.c',
 	'gtkterm.c',
 	'gtkterm_window.c',
 	'interface.c',

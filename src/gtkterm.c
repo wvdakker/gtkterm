@@ -26,7 +26,6 @@
 #include "gtkterm.h"
 #include "gtkterm_window.h"
 #include "terminal.h"
-#include "buffer.h"
 #include "cmdline.h"
 #include "interface.h"
 #include "serial.h"
