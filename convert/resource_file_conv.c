@@ -28,7 +28,6 @@
 #include "gtkterm_struct.h"
 #include "resource_file_conv.h"
 #include "i18n.h"
-#include "interface.h"
 #include "macros.h"
 
 //! Default configuration filename
@@ -249,7 +248,7 @@ int load_configuration_from_file(const char *section)
 	//! Check if the <section> exists in the key file.
 	if (!g_key_file_has_group (config_object, section)) {
 		string = g_strdup_printf(_("No section \"%s\" in configuration file\n"), section);
-		show_message(string, MSG_ERR);
+		show_message(string, GTK_MESSAGE_ERROR);
 		g_free(string);
 		g_key_file_unref (config_object);
 		return -1;
@@ -376,7 +375,7 @@ int check_configuration_file(void)
 		GKeyFile *config;
 
 		string = g_strdup_printf(_("Configuration file (%s) with [default] configuration has been created.\n"), g_file_get_path(config_file));
-		show_message(string, MSG_WRN);
+		show_message(string, GTK_MESSAGE_WARNING);
 		g_free(string);
 
 		config = g_key_file_new ();
@@ -630,7 +629,7 @@ void validate_configuration(void)
 
 		default:
 			string = g_strdup_printf(_("Baudrate %ld may not be supported by all hardware"), port_conf.baudrate);
-			show_message(string, MSG_ERR);
+			show_message(string, GTK_MESSAGE_ERROR);
 	    
 			g_free(string);
 	}
@@ -638,7 +637,7 @@ void validate_configuration(void)
 	if(port_conf.stopbits != 1 && port_conf.stopbits != 2)
 	{
 		string = g_strdup_printf(_("Invalid number of stop-bits: %d\nFalling back to default number of stop-bits number: %d\n"), port_conf.stopbits, DEFAULT_STOPBITS);
-		show_message(string, MSG_ERR);
+		show_message(string, GTK_MESSAGE_ERROR);
 		port_conf.stopbits = DEFAULT_STOPBITS;
 
 		g_free(string);
@@ -647,7 +646,7 @@ void validate_configuration(void)
 	if(port_conf.bits < 5 || port_conf.bits > 8)
 	{
 		string = g_strdup_printf(_("Invalid number of bits: %d\nFalling back to default number of bits: %d\n"), port_conf.bits, DEFAULT_BITS);
-		show_message(string, MSG_ERR);
+		show_message(string, GTK_MESSAGE_ERROR);
 		port_conf.bits = DEFAULT_BITS;
 
 		g_free(string);
@@ -656,7 +655,7 @@ void validate_configuration(void)
 	if(term_conf.delay < 0 || term_conf.delay > 500)
 	{
 		string = g_strdup_printf(_("Invalid delay: %d ms\nFalling back to default delay: %d ms\n"), term_conf.delay, DEFAULT_DELAY);
-		show_message(string, MSG_ERR);
+		show_message(string, GTK_MESSAGE_ERROR);
 		term_conf.delay = DEFAULT_DELAY;
 
 		g_free(string);

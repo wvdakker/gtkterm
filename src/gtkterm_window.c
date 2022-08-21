@@ -105,23 +105,11 @@ void create_window (GApplication *app) {
   gtk_window_present (GTK_WINDOW (window));
 }
 
-static void show_action_infobar (GSimpleAction *action,
-                     GVariant      *parameter,
-                     gpointer       data) {
+void gtkterm_show_infobar (GtkTermWindow *window, char *message, int message_type) {
 
-  GtkTermWindow *window = data;
-  char *text;
-  const char *name;
-  const char *value;
-
-  name = g_action_get_name (G_ACTION (action));
-  value = g_variant_get_string (parameter, NULL);
-
-  text = g_strdup_printf ("You activated radio action: \"%s\".\n"
-                          "Current value: %s", name, value);
-  gtk_label_set_text (GTK_LABEL (window->message), text);
+  gtk_info_bar_set_message_type (GTK_INFO_BAR(window->infobar), message_type);
+  gtk_label_set_text (GTK_LABEL (window->message), message);
   gtk_widget_show (window->infobar);
-  g_free (text);
 }
 
 static void open_response_cb (GtkNativeDialog *dialog,
@@ -196,7 +184,7 @@ static void on_gtkterm_toggle_radio (GSimpleAction *action,
                 GVariant      *parameter,
                 gpointer       user_data) {
 
-  show_action_infobar (action, parameter, user_data);
+//  show_action_infobar (action, parameter, user_data);
 
   g_action_change_state (G_ACTION (action), parameter);
 }

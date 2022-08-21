@@ -55,6 +55,25 @@ enum {
 		CONF_ITEM_LAST						//!< Checking as last item in the list.
 };
 
+typedef enum {
+	CONF_ERROR_SUCCESS,
+	CONF_ERROR_FILE_CONFIG_LOAD,
+	CONF_ERROR_FILE_NOT_FOUND,
+	CONF_ERROR_FILE_CREATED,
+	CONF_ERROR_FILE_SAVED,
+	CONF_ERROR_FILE_NOT_SAVED,
+	CONF_ERROR_NO_KEYFILE_LOADED,
+	CONF_ERROR_SECTION_REMOVED,
+	CONF_ERROR_SECTION_NOT_REMOVED,
+	CONF_ERROR_SECTION_UNKNOWN,
+	CONF_ERROR_INVALID_BAUDRATE,
+	CONF_ERROR_INVALID_BITS,		
+	CONF_ERROR_INVALID_STOPBITS,
+	CONF_ERROR_INVALID_DELAY,
+	CONF_ERROR_LAST
+
+} GtkTermConfigStatus;
+
 //!Configuration item names.
 extern const char GtkTermConfigurationItems [][CONF_ITEM_LENGTH];
 
@@ -66,7 +85,8 @@ typedef struct _GtkTermConfiguration GtkTermConfiguration;
 
 GtkTermConfiguration *gtkterm_configuration_new (void);
 
-bool on_set_config_options (const char *, const char *, gpointer,  GError **);
+GtkTermConfigStatus on_set_config_options (const char *, const char *, gpointer,  GError **);
+GtkTermConfigStatus gtkterm_configuration_status (GtkTermConfiguration *); //!< \todo: Add GError output somewhere...
 
 G_END_DECLS
 

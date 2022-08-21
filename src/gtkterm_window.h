@@ -16,5 +16,6 @@ G_DECLARE_FINAL_TYPE (GtkTermWindow, gtkterm_window, GTKTERM, WINDOW, GtkApplica
 G_END_DECLS
 
 void create_window (GApplication *);
+void gtkterm_show_infobar (GtkTermWindow *, char *, int);
 
 #endif // GTKTERM_WINDOW_H

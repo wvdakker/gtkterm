@@ -29,6 +29,7 @@
 #include "serial.h"
 #include "macros.h"
 #include "resource_file.h"
+#include "interface.h" //!< \todo: can be removed if we dumped show_messages
 
 typedef struct  {
     uint8_t view_mode;              //!< ASCII or HEX view mode
@@ -73,6 +74,7 @@ GtkTermTerminal *gtkterm_terminal_new (char *section, GtkTerm *gtkterm_app, GtkT
 
 static void gtkterm_terminal_constructed (GObject *object) {
     char *serial_string;
+    char *message_string= NULL;
 
     GtkTermTerminal *self = GTKTERM_TERMINAL(object);
     GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
@@ -81,6 +83,13 @@ static void gtkterm_terminal_constructed (GObject *object) {
     //! Take [section] as input, term/port conf are the pointers to the return values;
     g_signal_emit(priv->app->config, gtkterm_signals[SIGNAL_GTKTERM_CONFIG_TERMINAL], 0, priv->section, &priv->term_conf);
     g_signal_emit(priv->app->config, gtkterm_signals[SIGNAL_GTKTERM_CONFIG_SERIAL], 0, priv->section, &priv->port_conf);
+
+    if (gtkterm_configuration_status(priv->app->config) == CONF_ERROR_FILE_CREATED) {
+
+		message_string = g_strdup_printf(_("Configuration file with [default] configuration has been created and saved.\n"));
+		gtkterm_show_infobar (priv->main_window, message_string, GTK_MESSAGE_INFO); //!< \todo: convert to notify on message
+		g_free(message_string);
+    }
 
     priv->serial_port = gtkterm_serial_port_new (priv->port_conf);
 

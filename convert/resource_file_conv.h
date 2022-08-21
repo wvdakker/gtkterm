@@ -27,4 +27,5 @@ int remove_section(char *cfg_file, char *section);
 void set_color(GdkRGBA *color, float, float, float, float);
 
 extern GFile *config_file;
+extern void show_message (char *, int);
 #endif

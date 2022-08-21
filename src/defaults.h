@@ -23,3 +23,7 @@
 //! Generic defaults
 #define BUFFER_LENGTH           256
 #define MAX_SECTION_LENGTH      32
+
+//! Type of terminal view
+#define ASCII_VIEW              0
+#define HEXADECIMAL_VIEW        1

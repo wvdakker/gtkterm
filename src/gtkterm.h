@@ -40,12 +40,12 @@ struct _GtkTerm {
 
   GtkTermConfiguration *config;         //!< The Key file with the configurations
   char *section;                        //!< The section provided from the cli. 
-                                        //!< Terminals have their own section pointer
 };
 
 #define GTKTERM_TYPE_APP gtkterm_get_type()
 typedef struct _GtkTerm GtkTerm;
 G_DECLARE_FINAL_TYPE (GtkTerm, gtkterm, GTKTERM, APP, GtkApplication)
 
+G_END_DECLS
 
 #endif // GTKTERM_H
