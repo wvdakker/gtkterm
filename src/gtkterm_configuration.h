@@ -1,19 +1,17 @@
 /***********************************************************************
- * resource_file.h                                              
- * ---------------                          
- *           GTKTerm Software                                   
- *                      (c) Julien Schmitt               
- *                                                               
- * ------------------------------------------------------------------- 
- *                                                            
- *   \brief Purpose                                        
- *      Load and save configuration file                              
- *      - Header file -                                       
- *                                                           
+ * gtkterm_configuration.h
+ *
+ * GTKTerm Software (c) Julien Schmitt
+ *
+ * 
+ * @brief Purpose 
+ *      Load and save configuration file
+ *      - Header file
+ *
  ***********************************************************************/
 
-#ifndef RESOURCE_FILE_H_
-#define RESOURCE_FILE_H_
+#ifndef GTKTERM_CONFIGURATION_H
+#define GTKTERM_CONFIGURATION_H
 
 /**
  * @brief  Enum items for configuration
@@ -45,7 +43,7 @@ enum {
 		CONF_ITEM_TERM_ROWS,
 		CONF_ITEM_TERM_COLS,
 		CONF_ITEM_TERM_SCROLLBACK,
-		CONF_ITEM_TERM_VISUAL_BELL,		
+		CONF_ITEM_TERM_VISUAL_BELL,
 		CONF_ITEM_TERM_FOREGROUND_RED,
 		CONF_ITEM_TERM_FOREGROUND_GREEN,
 		CONF_ITEM_TERM_FOREGROUND_BLUE,
@@ -75,7 +73,7 @@ typedef enum {
 	CONF_ERROR_SECTION_NOT_REMOVED,
 	CONF_ERROR_SECTION_UNKNOWN,
 	CONF_ERROR_INVALID_BAUDRATE,
-	CONF_ERROR_INVALID_BITS,		
+	CONF_ERROR_INVALID_BITS,
 	CONF_ERROR_INVALID_STOPBITS,
 	CONF_ERROR_INVALID_DELAY,
 	CONF_ERROR_LAST
@@ -97,4 +95,4 @@ GtkTermConfigStatus gtkterm_configuration_status (GtkTermConfiguration *); /**< 
 
 G_END_DECLS
 
-#endif
+#endif //GTKTERM_CONFIGURATION

@@ -24,12 +24,12 @@
 #include <gio/gio.h>
 #include <pango/pango-font.h>
 
-#include "defaults.h"
+#include "gtkterm_defaults.h"
 #include "gtkterm_window.h"
-#include "terminal.h"
-#include "serial.h"
+#include "gtkterm_terminal.h"
+#include "gtkterm_serial.h"
 #include "macros.h"
-#include "resource_file.h"
+#include "gtkterm_configuration.h"
 #include "gtkterm_messages.h"
 
 typedef struct  {

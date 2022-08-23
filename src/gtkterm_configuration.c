@@ -28,10 +28,10 @@
 
 #include "config.h"
 #include "gtkterm_window.h"
-#include "serial.h"
-#include "defaults.h"
-#include "terminal.h"
-#include "resource_file.h"
+#include "gtkterm_serial.h"
+#include "gtkterm_defaults.h"
+#include "gtkterm_terminal.h"
+#include "gtkterm_configuration.h"
 #include "macros.h"
 
 /**

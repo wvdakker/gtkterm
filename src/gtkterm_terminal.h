@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* terminal.h                                                       */
+/* gtkterm_terminal.h                                                  */
 /* --------                                                            */
 /*           GTKTerm Software                                          */
 /*                      (c) Julien Schmitt                             */
@@ -11,8 +11,8 @@
 /*      - Header file -                                                */
 /*                                                                     */
 /***********************************************************************/
-#ifndef TERMINAL_H
-#define TERMINAL_H
+#ifndef GTKTERM_TERMINAL_H
+#define GTKTERM_TERMINAL_H
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
@@ -52,4 +52,4 @@ GtkTermTerminal *gtkterm_terminal_new (char *, GtkTerm *, GtkTermWindow *);
 
 G_END_DECLS
 
-#endif // TERMINAL_H
+#endif // GTKTERM_TERMINAL_H

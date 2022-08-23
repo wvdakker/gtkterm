@@ -3,4 +3,4 @@
 
  const char *gtkterm_message (GtkTermConfigStatus );
 
- #endif //GTKTERM_MESSAGES_H
+#endif //GTKTERM_MESSAGES_H

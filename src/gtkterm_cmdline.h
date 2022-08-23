@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* cmdline.h                                                           */
+/* gtkterm_cmdline.h                                                   */
 /* ---------                                                           */
 /*           GTKTerm Software                                          */
 /*                      (c) Julien Schmitt                             */
@@ -16,9 +16,9 @@
 /*                                                                     */
 /***********************************************************************/
 
-#ifndef CMDLINE_H
-#define CMDLINE_H
+#ifndef GTKTERM_CMDLINE_H
+#define GTKTERM_CMDLINE_H
 
 void gtkterm_add_cmdline_options (GtkTerm *app);
 
-#endif // CMDLINE_H
+#endif // GTKTERM_CMDLINE_H

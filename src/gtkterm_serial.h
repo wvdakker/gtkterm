@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* serial.h                                                            */
+/* gtkterm_serial.h                                                    */
 /* -------                                                             */
 /*           GTKTerm Software                                          */
 /*                      (c) Julien Schmitt                             */
@@ -12,8 +12,8 @@
 /*                                                                     */
 /***********************************************************************/
 
-#ifndef SERIAL_H_
-#define SERIAL_H_
+#ifndef GTKTERM_SERIAL_H_
+#define GTKTERM_SERIAL_H_
 
 /**
  * @brief The typedef for the serial configuration.
@@ -48,4 +48,4 @@ G_END_DECLS
 char* gtkterm_serial_port_get_string (GtkTermSerialPort *);
 int gtkterm_serial_port_status (GtkTermSerialPort *);
 
-#endif
+#endif // GTKTERM_SERIAL_H

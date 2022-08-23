@@ -5,10 +5,10 @@
 #include <glib/gprintf.h>
 
 #include "config.h"
-#include "defaults.h"
+#include "gtkterm_defaults.h"
 #include "gtkterm.h"
 #include "gtkterm_window.h"
-#include "terminal.h"
+#include "gtkterm_terminal.h"
 
 
 /**

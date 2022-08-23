@@ -8,8 +8,8 @@
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 
-#include "defaults.h"
-#include "resource_file.h"
+#include "gtkterm_defaults.h"
+#include "gtkterm_configuration.h"
 
 /** The signals which are defined */
 enum {

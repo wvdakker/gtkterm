@@ -24,11 +24,11 @@
 #include <glib/gprintf.h>
 #include <config.h>
 
-#include "defaults.h"
+#include "gtkterm_defaults.h"
 #include "gtkterm.h"
-#include "resource_file.h"
-#include "cmdline.h"
-#include "serial.h"
+#include "gtkterm_configuration.h"
+#include "gtkterm_cmdline.h"
+#include "gtkterm_serial.h"
 #include "gtkterm_messages.h"
 
 /**

@@ -28,8 +28,8 @@
 #include <config.h>
 #include <glib/gi18n.h>
 
-#include "serial.h"
-#include "defaults.h"
+#include "gtkterm_serial.h"
+#include "gtkterm_defaults.h"
 
 #ifdef HAVE_LINUX_SERIAL_H
 #include <linux/serial.h>

@@ -1,12 +1,12 @@
 gtkterm_sources = [
-	'cmdline.c',
+	'gtkterm_cmdline.c',
 	'gtkterm.c',
 	'gtkterm_messages.c',
 	'gtkterm_window.c',
 	'macros.c',
-	'resource_file.c',
-	'serial.c',	
-	'terminal.c',
+	'gtkterm_configuration.c',
+	'gtkterm_serial.c',	
+	'gtkterm_terminal.c',
 	gresources
 ]
 

@@ -7,7 +7,7 @@
 #include <gio/gio.h>
 
  #include "gtkterm.h"
- #include "resource_file.h"
+ #include "gtkterm_configuration.h"
  #include "gtkterm_messages.h"
     
  const char GtkTermErrorMessage [][GTKTERM_MESSAGE_LENGTH] = {

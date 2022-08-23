@@ -23,12 +23,12 @@
 #include <glib/gprintf.h>
 
 #include "config.h"
-#include "defaults.h"
+#include "gtkterm_defaults.h"
 #include "gtkterm.h"
 #include "gtkterm_window.h"
-#include "terminal.h"
-#include "cmdline.h"
-#include "serial.h"
+#include "gtkterm_terminal.h"
+#include "gtkterm_cmdline.h"
+#include "gtkterm_serial.h"
 
 /** The gtkterm signals available */
 unsigned int gtkterm_signals[LAST_GTKTERM_SIGNAL];
@@ -117,7 +117,6 @@ static void gtkterm_startup (GApplication *app) {
  */
 static void gtkterm_activate (GApplication *app) {
 
-  g_printf ("%p\n", GTKTERM_APP (app));
   GtkTermWindow *window = (GtkTermWindow *)g_object_new (GTKTERM_TYPE_GTKTERM_WINDOW,
                                                           "application", 
                                                           GTKTERM_APP(app),
