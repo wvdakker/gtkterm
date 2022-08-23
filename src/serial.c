@@ -60,12 +60,30 @@ enum {
 
 static GParamSpec *gtkterm_serial_port_properties[N_PROPS] = {NULL};
 
-
+/**
+ * @brief Create a new serial port object
+ * 
+ * This also binds the parameter to the properties of the serial port
+ * 
+ * @param port_conf The section for the configuration in this terminal
+ * 
+ * @return The serial_port object.
+ * 
+ */
 GtkTermSerialPort *gtkterm_serial_port_new (port_config_t *port_conf) {
 
     return g_object_new (GTKTERM_TYPE_SERIAL_PORT, "port_conf", port_conf, NULL);
 }
 
+/**
+ * @brief Convert port config to a string.
+ * 
+ * This is used for setting the configuration in the statusbar and window title.
+ * 
+ * @param self The SerialPort structure
+ * 
+ * @return The port configuration as string.
+ */
 char* gtkterm_serial_port_get_string (GtkTermSerialPort *self)
 {
 	char* msg;
@@ -107,12 +125,33 @@ char* gtkterm_serial_port_get_string (GtkTermSerialPort *self)
 	return msg;
 }
 
+/**
+ * @brief Gets the status of the serial port.
+ * 
+ * @param self The SerialPort structure
+ * 
+ * @return State of the serial Port.
+ */
 int gtkterm_serial_port_status (GtkTermSerialPort *self) {
 	GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private(self);
 
 	return (priv->serial_port_fd != -1);
 }
 
+/**
+ * @brief Set the property of the GtkTermSerialPort structure
+ * 
+ * This is used to initialize the variables when creating a new serial_port
+ * 
+ * @param object The object.
+ * 
+ * @param prop_id The id of the property to set.
+ * 
+ * @param value The value for the property
+ * 
+ * @param pspec Metadata for property setting.
+ * 
+ */
 static void gtkterm_serial_port_set_property (GObject *object,
                              unsigned int prop_id,
                              const GValue *value,
@@ -131,7 +170,14 @@ static void gtkterm_serial_port_set_property (GObject *object,
     }
 }
 
-
+/**
+ * @brief Initializing the serial_port class
+ * 
+ * Setting the properties and callback functions
+ * 
+ * @param class The serial_portclass
+ * 
+ */
 static void gtkterm_serial_port_class_init (GtkTermSerialPortClass *class) {
 
   	GObjectClass *object_class = G_OBJECT_CLASS (class);
@@ -148,6 +194,12 @@ static void gtkterm_serial_port_class_init (GtkTermSerialPortClass *class) {
     g_object_class_install_properties (object_class, N_PROPS, gtkterm_serial_port_properties);
 }
 
+/**
+ * @brief Initialize the serial with the config parameters
+ * 
+ * @param self The port we are initializing.
+ * 
+ */
 static void gtkterm_serial_port_init (GtkTermSerialPort *self) {
     GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
 

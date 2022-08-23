@@ -23,17 +23,31 @@
 #include <glib/gprintf.h>
 
 #include "config.h"
+#include "defaults.h"
 #include "gtkterm.h"
 #include "gtkterm_window.h"
 #include "terminal.h"
 #include "cmdline.h"
-#include "interface.h"
 #include "serial.h"
 
+/** The gtkterm signals available */
 unsigned int gtkterm_signals[LAST_GTKTERM_SIGNAL];
 
 G_DEFINE_TYPE (GtkTerm, gtkterm, GTK_TYPE_APPLICATION)
 
+/**
+ * @brief Quitthe application
+ * 
+ * Is a callback function from the menubar and cleans up all
+ * memory, windows etc.
+ * 
+ * @param action Not used.
+ * 
+ * @param parameter Not used.
+ * 
+ * @param user_data The application we want to quit
+ * 
+ */
 static void on_gtkterm_quit (GSimpleAction *action,
                GVariant      *parameter,
                gpointer       user_data) {
@@ -53,10 +67,10 @@ static void on_gtkterm_quit (GSimpleAction *action,
       list = next;
     }
 
-  //! Clean up memory
+  /** Clean up memory */
   g_free (app->section);
 
-  //! \todo: Should be part of the Gtkterm application struct
+  /** \todo: Should be part of the Gtkterm application struct */
   g_option_group_unref (app->g_term_group);
   g_option_group_unref (app->g_port_group);
   g_option_group_unref (app->g_config_group); 
@@ -67,6 +81,14 @@ static GActionEntry gtkterm_entries[] = {
 
 };
 
+/**
+ * @brief Startup the application
+ * 
+ * Initiaze the builder and add menu resources to the application
+ * 
+ * @param app The application
+ * 
+ */
 static void gtkterm_startup (GApplication *app) {
 
   GtkBuilder *builder;
@@ -82,19 +104,46 @@ static void gtkterm_startup (GApplication *app) {
   g_object_unref (builder);
 }
 
+/**
+ * @brief Activates the application
+ * 
+ * Create the main window. The actual creation of the terminal will be done
+ * in the GtkTermWindow file.
+ * 
+ * @param app The application
+ * 
+ *  \todo embed create_window in the gtkapplication window 
+ * 
+ */
 static void gtkterm_activate (GApplication *app) {
 
-  //! Create the gtkterm_window
-  create_window (app);
+  g_printf ("%p\n", GTKTERM_APP (app));
+  GtkTermWindow *window = (GtkTermWindow *)g_object_new (GTKTERM_TYPE_GTKTERM_WINDOW,
+                                                          "application", 
+                                                          GTKTERM_APP(app),
+                                                          "show-menubar", 
+                                                          TRUE,
+                                                          NULL);
+
+  create_window (app, window);
+
+  gtk_window_present (GTK_WINDOW (window));  
 }
 
-// Do the basic initialization of the application
+/**
+ * @brief The initialization of the application
+ * 
+ * Setting the cli options and initialize the application variables
+ * 
+ * @param app The application
+ * 
+ */
 static void gtkterm_init (GtkTerm *app) {
   GSettings *settings;
 
   settings = g_settings_new ("com.github.jeija.gtkterm");
 
-  //! Set an action group for the app entries.
+  /** Set an action group for the app entries. */
   app->action_group =  G_ACTION_GROUP (g_simple_action_group_new ()); 
 
   g_action_map_add_action_entries (G_ACTION_MAP (app),
@@ -102,7 +151,7 @@ static void gtkterm_init (GtkTerm *app) {
                                    G_N_ELEMENTS (gtkterm_entries),
                                    app);  
 
-  //! load the config file and set the section to [default]
+  /** Initialize the config file and set the section to [default] */
   app->config = GTKTERM_CONFIGURATION (g_object_new (GTKTERM_TYPE_CONFIGURATION, NULL));
   app->section = g_strdup (DEFAULT_SECTION);
 
@@ -111,6 +160,14 @@ static void gtkterm_init (GtkTerm *app) {
   g_object_unref (settings);
 }
 
+/**
+ * @brief Initializing the application class
+ * 
+ * Setting the signals and callback functions
+ * 
+ * @param class The application class
+ * 
+ */
 static void gtkterm_class_init (GtkTermClass *class) {
 
   GApplicationClass *app_class = G_APPLICATION_CLASS (class); 
@@ -122,7 +179,7 @@ static void gtkterm_class_init (GtkTermClass *class) {
                                                 NULL,
                                                 NULL,
                                                 NULL,
-                                                G_TYPE_NONE,
+                                                G_TYPE_POINTER,
                                                 0,
                                                 NULL);
 
@@ -133,7 +190,7 @@ static void gtkterm_class_init (GtkTermClass *class) {
                                                 NULL,
                                                 NULL,
                                                 NULL,
-                                                G_TYPE_NONE,
+                                                G_TYPE_POINTER,
                                                 0,
                                                 NULL);
 
@@ -156,7 +213,7 @@ static void gtkterm_class_init (GtkTermClass *class) {
                                                NULL,
                                                NULL,
                                                NULL,
-                                               G_TYPE_NONE,
+                                               G_TYPE_POINTER,
                                                0,
                                                NULL);
 
@@ -191,7 +248,7 @@ static void gtkterm_class_init (GtkTermClass *class) {
                                                NULL,
                                                NULL,
                                                NULL,
-                                               G_TYPE_NONE,
+                                               G_TYPE_POINTER,
                                                3,
 																               G_TYPE_POINTER,
 																               G_TYPE_POINTER,
@@ -202,6 +259,14 @@ static void gtkterm_class_init (GtkTermClass *class) {
   app_class->activate = gtkterm_activate;
 }
 
+/**
+ * @brief The main function
+ * 
+ * @param argc Number of cli arguments
+ * 
+ * @param argv The cli arguments
+ * 
+ */
 int main (int argc, char *argv[]) {
 	GtkApplication *app;
 

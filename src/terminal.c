@@ -24,35 +24,36 @@
 #include <gio/gio.h>
 #include <pango/pango-font.h>
 
+#include "defaults.h"
 #include "gtkterm_window.h"
 #include "terminal.h"
 #include "serial.h"
 #include "macros.h"
 #include "resource_file.h"
-#include "interface.h" //!< \todo: can be removed if we dumped show_messages
+#include "gtkterm_messages.h"
 
 typedef struct  {
-    uint8_t view_mode;              //!< ASCII or HEX view mode
- //   GtkTermBuffer *term_buffer;   //!< Terminal buffer for serial port
-    GtkTermSerialPort *serial_port; //!< The active serial port for this terminal
-    term_config_t *term_conf;       //!< The configuration loaded from the keyfile
-    port_config_t *port_conf;       //!< Port configuration used in this terminal
-    macro_t       *macros;          //!< \todo convert macros -> object
+    uint8_t view_mode;              /**< ASCII or HEX view mode                                             */
+ //   GtkTermBuffer *term_buffer;   /**< Terminal buffer for serial port                                    */
+    GtkTermSerialPort *serial_port; /**< The active serial port for this terminal                           */
+    term_config_t *term_conf;       /**< The configuration loaded from the keyfile                          */
+    port_config_t *port_conf;       /**< Port configuration used in this terminal                           */
+    macro_t       *macros;          /**< \todo convert macros -> object                                     */
  
-    char *section;           		//!< Section used in this terminal for configuration from config file
-	GtkTerm *app;                   //!< Pointer to the app for getting [section] and keyfile
-    GtkTermWindow *main_window;     //!< Pointer to the main window for updating the statusbar on changes
+    char *section;           		/**< Section used in this terminal for configuration from config file   */
+	GtkTerm *app;                   /**< Pointer to the app for getting [section] and keyfile               */
+    GtkTermWindow *main_window;     /**< Pointer to the main window for updating the statusbar on changes   */
 
 } GtkTermTerminalPrivate;
 
 struct _GtkTermTerminal {
 
-    VteTerminal vte_object;         //!< The actual terminal
+    VteTerminal vte_object;         /**< The actual terminal object                                         */
 };
 
 struct _GtkTermTerminalClass {
 
-    VteTerminalClass vte_class; /// The vte class
+    VteTerminalClass vte_class; 
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE  (GtkTermTerminal, gtkterm_terminal, VTE_TYPE_TERMINAL)
@@ -67,33 +68,57 @@ enum {
 
 static GParamSpec *gtkterm_terminal_properties[N_PROPS] = {NULL};
 
+/**
+ * @brief Create a new terminal object.
+ * 
+ * This also binds the parameter to the properties of the terminal.
+ * 
+ * @param section The section for the configuration in this terminal
+ * 
+ * @param gtkterm_app The GTKTerm application
+ * 
+ * @param main_window The main_window this terminal is attached to.
+ * 
+ * @return The terminal object.
+ * 
+ */
 GtkTermTerminal *gtkterm_terminal_new (char *section, GtkTerm *gtkterm_app, GtkTermWindow *main_window) {
 
     return g_object_new (GTKTERM_TYPE_TERMINAL, "section", section, "app", gtkterm_app, "main_window", main_window, NULL);
 }
 
+/**
+ * @brief Constructs the terminal.
+ * 
+ * Setup signals, initialize terminal etc.
+ * 
+ * @param object The terminal object we are constructing.
+ * 
+ */
 static void gtkterm_terminal_constructed (GObject *object) {
     char *serial_string;
     char *message_string= NULL;
+    int rc;
 
     GtkTermTerminal *self = GTKTERM_TERMINAL(object);
     GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
 
-	//! Load the configuration from [Section] into the port and terminal config
-    //! Take [section] as input, term/port conf are the pointers to the return values;
+	/** 
+     * Load the configuration from [Section] into the port and terminal config.
+     * Take [section] as input, term/port conf are the pointers to the return values.
+     */
     g_signal_emit(priv->app->config, gtkterm_signals[SIGNAL_GTKTERM_CONFIG_TERMINAL], 0, priv->section, &priv->term_conf);
     g_signal_emit(priv->app->config, gtkterm_signals[SIGNAL_GTKTERM_CONFIG_SERIAL], 0, priv->section, &priv->port_conf);
 
-    if (gtkterm_configuration_status(priv->app->config) == CONF_ERROR_FILE_CREATED) {
-
-		message_string = g_strdup_printf(_("Configuration file with [default] configuration has been created and saved.\n"));
-		gtkterm_show_infobar (priv->main_window, message_string, GTK_MESSAGE_INFO); //!< \todo: convert to notify on message
-		g_free(message_string);
+    if ((rc = gtkterm_configuration_status(priv->app->config)) != CONF_ERROR_SUCCESS) {
+	    message_string = (char *)gtkterm_message (rc) ;
+        /** \todo: convert to notify on message */        
+	    gtkterm_show_infobar (priv->main_window, message_string, GTK_MESSAGE_INFO); 
     }
 
     priv->serial_port = gtkterm_serial_port_new (priv->port_conf);
 
-	//! Update the statusbar and main window title
+	/** Update the statusbar and main window title */
     serial_string = gtkterm_serial_port_get_string (priv->serial_port);
     g_signal_emit (priv->main_window, gtkterm_signals[SIGNAL_GTKTERM_TERMINAL_CHANGED], 
                                       0, 
@@ -102,8 +127,10 @@ static void gtkterm_terminal_constructed (GObject *object) {
                                       gtkterm_serial_port_status (priv->serial_port));    
     g_free(serial_string);
 
-  	//! Set terminal properties
-    //! \todo: make configurable from the config file
+  	/** Set terminal properties 
+     * 
+     * \todo: make configurable from the config file
+     */
 	vte_terminal_set_scroll_on_output(VTE_TERMINAL(self), FALSE);
 	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(self), TRUE);
 	vte_terminal_set_mouse_autohide(VTE_TERMINAL(self), TRUE);
@@ -119,6 +146,14 @@ static void gtkterm_terminal_constructed (GObject *object) {
     G_OBJECT_CLASS (gtkterm_terminal_parent_class)->constructed (object);
 }
 
+/**
+ * @brief Called when distroying the terminal
+ * 
+ * This is used to clean up an freeing the variables in the terminal structure.
+ * 
+ * @param object The object.
+ * 
+ */
 static void gtkterm_terminal_dispose (GObject *object) {
     GtkTermTerminal *self = GTKTERM_TERMINAL(object);
     GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);	
@@ -128,6 +163,20 @@ static void gtkterm_terminal_dispose (GObject *object) {
     g_free(priv->port_conf);
 }
 
+/**
+ * @brief Set the property of the GtkTermTerminal structure
+ * 
+ * This is used to initialize the variables when creating a new terminal
+ * 
+ * @param object The object.
+ * 
+ * @param prop_id The id of the property to set.
+ * 
+ * @param value The value for the property
+ * 
+ * @param pspec Metadata for property setting.
+ * 
+ */
 static void gtkterm_terminal_set_property (GObject *object,
                              unsigned int prop_id,
                              const GValue *value,
@@ -155,6 +204,14 @@ static void gtkterm_terminal_set_property (GObject *object,
     }
 }
 
+/**
+ * @brief Initializing the terminal class
+ * 
+ * Setting the properties and callback functions
+ * 
+ * @param class The terminal class
+ * 
+ */
 static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
 
   	GObjectClass *object_class = G_OBJECT_CLASS (class);
@@ -162,8 +219,10 @@ static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
     object_class->constructed = gtkterm_terminal_constructed;
   	object_class->dispose = gtkterm_terminal_dispose;	
 
-	//! Parameters to hand over at creation of the object
-	//! We need the section to load the config from the keyfile.
+	/** 
+     * Parameters to hand over at creation of the object
+	 * We need the section to load the config from the keyfile.
+     */
   	gtkterm_terminal_properties[PROP_SECTION] = g_param_spec_string (
         "section",
         "section",
@@ -188,8 +247,14 @@ static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
     g_object_class_install_properties (object_class, N_PROPS, gtkterm_terminal_properties);
 }
 
+/**
+ * @brief Initialize the terminal with the actions, etc.
+ * 
+ * @param self The terminal we are initializing.
+ * 
+ */
 static void gtkterm_terminal_init (GtkTermTerminal *self) {
 
-	//! \todo: Make GObject
+	/** \todo: Make GObject */
   //! create_buffer();
 }

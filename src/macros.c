@@ -23,13 +23,12 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "interface.h"
 #include "macros.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
 
-//! \todo: Migrate to GObject
+/**\todo: Migrate to GObject */
 
 enum
 {

@@ -5,49 +5,56 @@
 #include <glib/gprintf.h>
 
 #include "config.h"
+#include "defaults.h"
 #include "gtkterm.h"
 #include "gtkterm_window.h"
 #include "terminal.h"
 
 
-//! \brief The main GtkTermWindow class.
-//! MainWindow specific variables here.
+/**
+ * @brief MainWindow specific variables here.
+ * 
+ */
 struct _GtkTermWindow {
   GtkApplicationWindow parent_instance;
 
-  GtkWidget *message;                   //!< Message for the infobar
-  GtkWidget *infobar;                   //!< Infobar
-  GtkBox *statusbox;                    //!< Box for statusbar messages
-  GtkBox *status_config;                //!< Displays the actual used configuration
-  GtkWidget *menubutton;                //!< Toolbar
-  GMenuModel *toolmenu;                 //!< Menu
-  GtkScrolledWindow *scrolled_window;   //!< Make the terminal window scrolled
-  GtkTermTerminal *terminal_window;     //!< The terminal window
-  GtkWidget *search_bar;                //!< Searchbar 
-  GActionGroup *action_group;           //!< Window action group
+  GtkWidget *message;                   /**< Message for the infobar                */
+  GtkWidget *infobar;                   /**< Infobar                                */
+  GtkBox *statusbox;                    /**< Box for statusbar messages             */
+  GtkBox *status_config;                /**< Displays the actual used configuration */
+  GtkWidget *menubutton;                /**< Toolbar                                */
+  GMenuModel *toolmenu;                 /**< Menu                                   */
+  GtkScrolledWindow *scrolled_window;   /**< Make the terminal window scrolled      */
+  GtkTermTerminal *terminal_window;     /**< The terminal window                    */
+  GtkWidget *search_bar;                /**< Searchbar                              */
+  GActionGroup *action_group;           /**< Window action group                    */
   GtkWidget *status_config_message[3];
   GtkWidget *status_serial_signal[6];  
   GtkWidget *status_message;
 
-  int width;
-  int height;
-  bool maximized;
-  bool fullscreen;
+  int width;                            /**< Window width                           */
+  int height;                           /**< Window height                          */
+  bool maximized;                       /**< Window minimized?                      */
+  bool fullscreen;                      /**< Window maximized?                      */
 } ;
 
 G_DEFINE_TYPE (GtkTermWindow, gtkterm_window, GTK_TYPE_APPLICATION_WINDOW)
 
+/** Internal functions            */
 static void gtkterm_window_update_statusbar (GtkTermWindow *, gpointer, gpointer, int, gpointer);
 static void config_status_bar (GtkTermWindow *);
 static void update_statusbar (GtkTermWindow *, gpointer, gpointer, int);
 void set_window_title (GtkTermWindow *, gpointer);
 
+/** Menu callbacks                */
 static void on_gtkterm_about (GSimpleAction *, GVariant *, gpointer);
 static void on_gtkterm_toggle_state (GSimpleAction *, GVariant *, gpointer);
 static void on_gtkterm_toggle_dark (GSimpleAction *, GVariant *, gpointer);
 
+/** Serial signals                */
 static char const *serial_signal[] = {"DTR", "RTS", "CTS", "CD", "DSR", "RI"};
 
+/** Menu definitions and callbacks */
 static GActionEntry gtkterm_window_entries[] = {
   // { "clear_screen", on_gtkterm_clear_screen, NULL, NULL, NULL },
   // { "clear_scrollback", on_gtkterm_clear_scrollback, NULL, NULL, NULL },
@@ -61,7 +68,7 @@ static GActionEntry gtkterm_window_entries[] = {
   // { "log_stop", on_gtkterm_log_stop, NULL, NULL, NULL },
   // { "log_clear", on_gtkterm_log_clear, NULL, NULL, NULL },
   // { "config_port", on_gtkterm_config_port, NULL, NULL, NULL },
-  // { "conig_main_window", on_gtkterm_config_main_window, NULL, NULL, NULL },
+  // { "config_main_window", on_gtkterm_config_main_window, NULL, NULL, NULL },
   // { "local_echo", on_gtkterm_local_echo, NULL, NULL, NULL },
   // { "crlf_auto", on_gtkterm_crlf_auto, NULL, NULL, NULL },
   // { "timestamp", on_gtkterm_timestamp, NULL, NULL, NULL },
@@ -82,29 +89,34 @@ static GActionEntry gtkterm_window_entries[] = {
   { "dark", on_gtkterm_toggle_state, NULL, "false", on_gtkterm_toggle_dark}
 };
 
+/** GtkTermWindow definitions and callbacks */
 static GActionEntry win_entries[] = {
   { "about", on_gtkterm_about, NULL, NULL, NULL }
 };
 
-void create_window (GApplication *app) {
-
-  GtkTermWindow *window = (GtkTermWindow *)g_object_new (gtkterm_window_get_type (),
-                                                          "application", 
-                                                          GTKTERM_APP(app),
-                                                          "show-menubar", 
-                                                          TRUE,
-                                                          NULL);
-
-  //! Create a new terminal window and send section and keyfile as parameter
-  //! GTKTERM_TERMINAL then can load the right section.
+/** \todo remove and set it with properties. */
+void create_window (GApplication *app, GtkTermWindow *window) {
+  /**
+   * Create a new terminal window and send section and keyfile as parameter
+   * GTKTERM_TERMINAL then can load the right section.
+   */
   window->terminal_window = gtkterm_terminal_new (GTKTERM_APP(app)->section, GTKTERM_APP(app), window);
 
-  //! Make the VTE window scrollable
+  /** Make the VTE window scrollable */
   gtk_scrolled_window_set_child(window->scrolled_window, GTK_WIDGET(window->terminal_window));
-  
-  gtk_window_present (GTK_WINDOW (window));
 }
 
+
+/**
+ * @brief  Shows a message into the Infobar.
+ * 
+ * @param window The window with the infobar property.
+ * 
+ * @param message The message we want to show
+ * 
+ * @param message_type The type of message GTK_MESSAGE_*
+ * 
+ */
 void gtkterm_show_infobar (GtkTermWindow *window, char *message, int message_type) {
 
   gtk_info_bar_set_message_type (GTK_INFO_BAR(window->infobar), message_type);
@@ -112,6 +124,7 @@ void gtkterm_show_infobar (GtkTermWindow *window, char *message, int message_typ
   gtk_widget_show (window->infobar);
 }
 
+/** \todo rewrite for gtkterm */
 static void open_response_cb (GtkNativeDialog *dialog,
                   int              response_id,
                   gpointer         user_data) {
@@ -149,6 +162,7 @@ static void open_response_cb (GtkNativeDialog *dialog,
   g_object_unref (native);
 }
 
+/** \todo rewrite for GTKTerm */
 static void on_gtkterm_send_raw (GSimpleAction *action,
                GVariant      *parameter,
                gpointer       user_data) {
@@ -168,6 +182,7 @@ static void on_gtkterm_send_raw (GSimpleAction *action,
   gtk_native_dialog_show (GTK_NATIVE_DIALOG (native));
 }
 
+/** \todo rewrite for GTKTerm */
 static void on_gtkterm_toggle_state (GSimpleAction *action,
                  GVariant      *parameter,
                  gpointer       user_data) {
@@ -180,6 +195,7 @@ static void on_gtkterm_toggle_state (GSimpleAction *action,
   g_variant_unref (state);
 }
 
+/** \todo rewrite for GTKTerm */
 static void on_gtkterm_toggle_radio (GSimpleAction *action,
                 GVariant      *parameter,
                 gpointer       user_data) {
@@ -189,6 +205,16 @@ static void on_gtkterm_toggle_radio (GSimpleAction *action,
   g_action_change_state (G_ACTION (action), parameter);
 }
 
+/**
+ * @brief  Show the About dialog
+ * 
+ * @param action Not used.
+ * 
+ * @param parameter Not used.
+ * 
+ * @param user_data Pointer to the GtkTermWindow.
+ * 
+ */
 static void on_gtkterm_about (GSimpleAction *action,
                 GVariant      *parameter,
                 gpointer       user_data) {
@@ -246,11 +272,16 @@ static void on_gtkterm_about (GSimpleAction *action,
                          NULL);
 }
 
-
+/**
+ * @brief Set the statusbar with all relevant fields.
+ * 
+ * @param window The GtkTermWindow with the statusbar.
+ * 
+ */
 void config_status_bar (GtkTermWindow *window) {
     GtkWidget *label;
 
-    //! Fields for the configuration and port
+    /** Fields for the configuration and port */
     for (int i = 0; i < 3; i++) {
         label = gtk_label_new ("");
         gtk_box_append (GTK_BOX (window->status_config), label);
@@ -259,8 +290,10 @@ void config_status_bar (GtkTermWindow *window) {
         window->status_config_message[i] = label;
     }
 
-    //! Fill in the serial signals
-    //! The signals are appended at the statusbox so they can glide along when resizing the window
+    /** 
+     * Fill in the serial signals
+     * The signals are appended at the statusbox so they can glide along when resizing the window
+     */
     for (int i = 0; i < 6; i++) {
         label = gtk_label_new (serial_signal[i]);
         gtk_box_append (GTK_BOX (window->statusbox), label);
@@ -270,6 +303,18 @@ void config_status_bar (GtkTermWindow *window) {
     }
 }
 
+/**
+ * @brief Updates the statusbar with the active terminal configuration.
+ * 
+ * @param window The GtkTermWindow with the statusbar.
+ * 
+ * @param section The active section of the terminal
+ * 
+ * @param serial_config_string The connectionstring of the serial port
+ * 
+ * @param serial_status The status of the serial port.
+ * 
+ */
 static void update_statusbar (GtkTermWindow *window, gpointer section, gpointer serial_config_string, int serial_status) {
   char *msg;
 
@@ -282,6 +327,17 @@ static void update_statusbar (GtkTermWindow *window, gpointer section, gpointer 
   g_free (msg);  
 }
 
+/**
+ * @brief Sets title of the window.
+ * 
+ * The title of the window is concatenated with the serial options
+ * of the active terminal window.
+ * 
+ * @param window The GtkTermWindow for which we set the title
+ * 
+ * @param serial_config_string The connectionstring of the serial port.
+ * 
+ */
 void set_window_title (GtkTermWindow *window, gpointer serial_config_string) {
 
   char *msg;
@@ -293,13 +349,36 @@ void set_window_title (GtkTermWindow *window, gpointer serial_config_string) {
   g_free (msg);  
 }
 
-//! Update the window title and statusbar with the new configuration
+/**
+ * @brief Callbackfunction for updating window title and statusbus
+ * 
+ * @param window The GtkTermWindow which we update
+ * 
+ * @param section The active section of the terminal
+ * 
+ * @param serial_config_string The connectionstring of the serial port
+ * 
+ * @param serial_status The status of the serial port.
+ * 
+ * @param user_data Not used.
+ * 
+ */
 static void gtkterm_window_update_statusbar (GtkTermWindow *window, gpointer section, gpointer serial_config_string, int serial_status, gpointer user_data) {
 
   set_window_title (window, serial_config_string);
   update_statusbar (window, section, serial_config_string, serial_status);
 }
 
+/**
+ * @brief Toggles the dark mode setting.
+ * 
+ * @param action The action interface.
+ * 
+ * @param state The new dark-mode setting
+ * 
+ * @param user_data Not used.
+ * 
+ */
 static void on_gtkterm_toggle_dark (GSimpleAction *action,
                     GVariant      *state,
                     gpointer       user_data) {
@@ -314,6 +393,16 @@ static void on_gtkterm_toggle_dark (GSimpleAction *action,
   g_simple_action_set_state (action, state);
 }
 
+/**
+ * @brief Toggles the radio option in the menubar
+ * 
+ * @param action The action interface.
+ * 
+ * @param state The new radio setting
+ * 
+ * @param user_data Not used.
+ * 
+ */
 static void on_gtkterm_toggle_radio_state (GSimpleAction *action,
                     GVariant      *state,
                     gpointer       user_data) {
@@ -321,32 +410,51 @@ static void on_gtkterm_toggle_radio_state (GSimpleAction *action,
   g_simple_action_set_state (action, state);
 }
 
+/** To be implemented */
 static void clicked_cb (GtkWidget *widget, GtkTermWindow *window) {
 
   gtk_widget_hide (window->infobar);
 }
 
-static void gtkterm_window_store_state (GtkTermWindow *win) {
+/**
+ * @brief Stores the setting of the window in the Gnome Settings.
+ * 
+ * @param window The window we store the settings for.
+ * 
+ */
+static void gtkterm_window_store_state (GtkTermWindow *window) {
 
   GSettings *settings;
 
   settings = g_settings_new ("com.github.jeija.gtkterm");
-  g_settings_set (settings, "window-size", "(ii)", win->width, win->height);
-  g_settings_set_boolean (settings, "maximized", win->maximized);
-  g_settings_set_boolean (settings, "fullscreen", win->fullscreen);
+  g_settings_set (settings, "window-size", "(ii)", window->width, window->height);
+  g_settings_set_boolean (settings, "maximized", window->maximized);
+  g_settings_set_boolean (settings, "fullscreen", window->fullscreen);
   g_object_unref (settings);
 }
 
-static void gtkterm_window_load_state (GtkTermWindow *win) {
+/**
+ * @brief Loads the setting of the window from the Gnome Settings.
+ * 
+ * @param window The window we load the settings for.
+ * 
+ */
+static void gtkterm_window_load_state (GtkTermWindow *window) {
   GSettings *settings;
 
   settings = g_settings_new ("com.github.jeija.gtkterm");
-  g_settings_get (settings, "window-size", "(ii)", &win->width, &win->height);
-  win->maximized = g_settings_get_boolean (settings, "maximized");
-  win->fullscreen = g_settings_get_boolean (settings, "fullscreen");
+  g_settings_get (settings, "window-size", "(ii)", &window->width, &window->height);
+  window->maximized = g_settings_get_boolean (settings, "maximized");
+  window->fullscreen = g_settings_get_boolean (settings, "fullscreen");
   g_object_unref (settings);
 }
 
+/**
+ * @brief Initialize the window with the actions, tools etc.
+ * 
+ * @param window The window we are initializing.
+ * 
+ */
 static void gtkterm_window_init (GtkTermWindow *window) {
   
   GtkWidget *popover;
@@ -363,7 +471,7 @@ static void gtkterm_window_init (GtkTermWindow *window) {
 
   window->action_group = G_ACTION_GROUP(g_simple_action_group_new ());                                 
 
-  //! \todo: Rename it.
+  /** \todo: Rename it */
   g_action_map_add_action_entries (G_ACTION_MAP (window->action_group),
                                    win_entries, 
                                    G_N_ELEMENTS (win_entries),
@@ -374,11 +482,18 @@ static void gtkterm_window_init (GtkTermWindow *window) {
                                    G_N_ELEMENTS (gtkterm_window_entries),
                                    window);
 
-  //! we cannot configure the statusbar within the UI templates.
-  //! This means we have to do 'it by hand' and store the GtkLabels for later use.
+  /* 
+   *  This means we have to do 'it by hand not from the UI' and store the GtkLabels for later use.
+   */
   config_status_bar (window);                               
 }
 
+/**
+ * @brief Constructs the window.
+ * 
+ * @param object The window object we are constructing.
+ * 
+ */
 static void gtkterm_window_constructed (GObject *object) {
   GtkTermWindow *window = (GtkTermWindow *)object;
 
@@ -386,7 +501,16 @@ static void gtkterm_window_constructed (GObject *object) {
 
   gtk_window_set_default_size (GTK_WINDOW (window), window->width, window->height); 
 
-  //! Connect to the terminal_changed so we can update the statusbar and window title
+  /** 
+   * Create a new terminal window and send section and keyfile as parameter
+   * GTKTERM_TERMINAL then can load the right section.
+   */
+  //window->terminal_window = gtkterm_terminal_new (GTKTERM_APP(app)->section, GTKTERM_APP(app), window);
+
+  /** Make the VTE window scrollable */
+  //gtk_scrolled_window_set_child(window->scrolled_window, GTK_WIDGET(window->terminal_window));  
+
+  /** Connect to the terminal_changed so we can update the statusbar and window title */
   g_signal_connect (window, "terminal_changed", G_CALLBACK(gtkterm_window_update_statusbar), NULL);	 
 
   if (window->maximized)
@@ -398,6 +522,18 @@ static void gtkterm_window_constructed (GObject *object) {
   G_OBJECT_CLASS (gtkterm_window_parent_class)->constructed (object);
 }
 
+/**
+ * @brief Assigns size an position to the widget.
+ * 
+ * @param widget The widget.
+ * 
+ * @param width The width of the widget.
+ *  
+ * @param height The height of the widget.
+ * 
+ * @param baseline  The baseline for this widget.
+ * 
+ */
 static void gtkterm_window_size_allocate (GtkWidget *widget,
                                        int width,
                                        int height,
@@ -406,14 +542,20 @@ static void gtkterm_window_size_allocate (GtkWidget *widget,
   GtkTermWindow *window = (GtkTermWindow *)widget; 
 
   GTK_WIDGET_CLASS (gtkterm_window_parent_class)->size_allocate (widget,
-                                                                          width,
-                                                                          height,
-                                                                          baseline);
+                                                                  width,
+                                                                  height,
+                                                                  baseline);
 
   if (!window->maximized && !window->fullscreen)
     gtk_window_get_default_size (GTK_WINDOW (window), &window->width, &window->height);
 }
 
+/**
+ * @brief Called when the surface state is changed (min/max).
+ * 
+ * @param widget The widget.
+ * 
+ */
 static void surface_state_changed (GtkWidget *widget) {
   GtkTermWindow *window = (GtkTermWindow *)widget;
   GdkToplevelState new_state;
@@ -423,6 +565,14 @@ static void surface_state_changed (GtkWidget *widget) {
   window->fullscreen = (new_state & GDK_TOPLEVEL_STATE_FULLSCREEN) != 0;
 }
 
+/**
+ * @brief Windows realize.
+ * 
+ * Operations to finish realizing the widget.
+ * 
+ * @param widget The widget.
+ * 
+ */
 static void gtkterm_window_realize (GtkWidget *widget) {
   GTK_WIDGET_CLASS (gtkterm_window_parent_class)->realize (widget);
 
@@ -430,6 +580,14 @@ static void gtkterm_window_realize (GtkWidget *widget) {
                             G_CALLBACK (surface_state_changed), widget);
 }
 
+/**
+ * @brief Windows unrealize.
+ * 
+ * Operations when removing the widget.
+ * 
+ * @param widget The widget.
+ * 
+ */
 static void gtkterm_window_unrealize (GtkWidget *widget) {
   g_signal_handlers_disconnect_by_func (gtk_native_get_surface (GTK_NATIVE (widget)),
                                         surface_state_changed, widget);
@@ -437,6 +595,14 @@ static void gtkterm_window_unrealize (GtkWidget *widget) {
   GTK_WIDGET_CLASS (gtkterm_window_parent_class)->unrealize (widget);
 }
 
+/**
+ * @brief Called when distroying the window
+ * 
+ * This is used to clean up an freeing the variables in the window structure.
+ * 
+ * @param object The object.
+ * 
+ */
 static void gtkterm_window_dispose (GObject *object) {
   GtkTermWindow *window = (GtkTermWindow *)object;
 
@@ -445,6 +611,14 @@ static void gtkterm_window_dispose (GObject *object) {
   G_OBJECT_CLASS (gtkterm_window_parent_class)->dispose (object);
 }
 
+/**
+ * @brief Initializing the window class
+ * 
+ * Setting the signals, the UI and callback functions
+ * 
+ * @param class The window class
+ * 
+ */
 static void gtkterm_window_class_init (GtkTermWindowClass *class) {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);

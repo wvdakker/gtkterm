@@ -8,8 +8,10 @@
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
 
+#include "defaults.h"
 #include "resource_file.h"
 
+/** The signals which are defined */
 enum {
     SIGNAL_GTKTERM_LOAD_CONFIG,
     SIGNAL_GTKTERM_SAVE_CONFIG,  
@@ -26,8 +28,11 @@ extern unsigned int gtkterm_signals[];
 
 G_BEGIN_DECLS
 
-//! @brief The main GtkTerm application class.
-//! All application specific variables are defined here.
+/**
+ * @brief The main GtkTerm application class.
+ * 
+ * All application specific variables are defined here.
+ */
 struct _GtkTerm {
 
   GtkApplication parent_instance;

@@ -15,7 +15,7 @@
 #ifndef MACROS_H_
 #define MACROS_H_
 
-//! todo: Migrate to GObject
+/** todo: Migrate to GObject */
 
 //! Define macro structure type
 typedef struct

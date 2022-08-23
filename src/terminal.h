@@ -20,22 +20,26 @@
 
 #include "gtkterm.h"
 
-typedef struct
-{
-	bool block_cursor;
-	bool show_cursor;
-	char char_queue;            // character in queue
-	bool echo;               	// echo local
-	bool crlfauto;           	// line feed auto
-	bool timestamp;
-	int delay;                  // end of char delay: in ms
-	int rows;
-	int columns;
-	int scrollback;
-	bool visual_bell;
-	GdkRGBA foreground_color;
-	GdkRGBA background_color;
-	PangoFontDescription *font;
+/**
+ * @brief The typedef for the terminal configuration.
+ *
+ */
+typedef struct {
+	
+	bool block_cursor;			/** Show a block shape cursor	*/
+	bool show_cursor;			/** Show cursor in window. \todo This is not possible, so remove? */
+	char char_queue;            /** character in queue			*/
+	bool echo;               	/** local echo 					*/
+	bool crlfauto;           	/** auto line feed				*/
+	bool timestamp;				/** Show timestamp in output	*/
+	int delay;                  /** end of char delay: in ms	*/
+	int rows;					/** Number of rows in terminal  */
+	int columns;				/** Number of cols in terminal  */
+	int scrollback;				/** Number of scrollback lines  */
+	bool visual_bell;			/**	Visual bell					*/
+	GdkRGBA foreground_color;	/** Terminal Background color	*/
+	GdkRGBA background_color;	/** Terminal Foreground color   */
+	PangoFontDescription *font;	/** Terminal Font				*/
 
 } term_config_t;
 

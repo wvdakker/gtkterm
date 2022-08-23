@@ -14,7 +14,7 @@
 /*      - 2.0 : migrated to GTK4                                       */
 /*      - 0.98 : file creation by Julien                               */
 /*                                                                     */
-/***********************************************************************/extern GOptionGroup *g_term_group;
+/***********************************************************************/
 
 #ifndef CMDLINE_H
 #define CMDLINE_H

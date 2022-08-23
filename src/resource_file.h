@@ -15,11 +15,13 @@
 #ifndef RESOURCE_FILE_H_
 #define RESOURCE_FILE_H_
 
-#define CONF_ITEM_LENGTH		32
-#define DEFAULT_SECTION		   "default"		//!< Default section if not specified
-
-//! Define all configuration items which are used
-//! in the resource file. it is an index to ConfigurationItem.
+/**
+ * @brief  Enum items for configuration
+ * 
+ * Define all configuration items which are used
+ * in the resource file. it is an index to ConfigurationItem.
+ * Configuration item names. 
+ */
 enum {
 		CONF_ITEM_SERIAL_PORT,
 		CONF_ITEM_SERIAL_BAUDRATE,
@@ -52,9 +54,15 @@ enum {
 		CONF_ITEM_TERM_BACKGROUND_GREEN,
 		CONF_ITEM_TERM_BACKGROUND_BLUE,
 		CONF_ITEM_TERM_BACKGROUND_ALPHA,	
-		CONF_ITEM_LAST						//!< Checking as last item in the list.
+		CONF_ITEM_LAST						/**< Checking as last item in the list.		*/
 };
 
+/**
+ * @brief  Enum config_error id.
+ * 
+ * Many of the gtk_configuration functions return
+ * an error id.
+ */
 typedef enum {
 	CONF_ERROR_SUCCESS,
 	CONF_ERROR_FILE_CONFIG_LOAD,
@@ -74,7 +82,6 @@ typedef enum {
 
 } GtkTermConfigStatus;
 
-//!Configuration item names.
 extern const char GtkTermConfigurationItems [][CONF_ITEM_LENGTH];
 
 G_BEGIN_DECLS
@@ -86,7 +93,7 @@ typedef struct _GtkTermConfiguration GtkTermConfiguration;
 GtkTermConfiguration *gtkterm_configuration_new (void);
 
 GtkTermConfigStatus on_set_config_options (const char *, const char *, gpointer,  GError **);
-GtkTermConfigStatus gtkterm_configuration_status (GtkTermConfiguration *); //!< \todo: Add GError output somewhere...
+GtkTermConfigStatus gtkterm_configuration_status (GtkTermConfiguration *); /**< \todo: Add GError output somewhere... */
 
 G_END_DECLS
 

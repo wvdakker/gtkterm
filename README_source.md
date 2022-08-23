@@ -59,11 +59,17 @@ needed.
 
 ### GtkTermWindow
 
+GtkTermWindow is the main application window for GtkTerm. It creates all widgets
+and does the handling for the statusbar.
+
 #### Members
 #### Signals
 #### Main functions
 
 ### GtkTermTerminal
+
+The terminal window in which all serial communication is shown. It is an VTE object
+and hold the configuration for the terminal and serial port.
 
 #### Members
 #### Signals
@@ -71,23 +77,33 @@ needed.
 
 ### GtkTermConfiguration
 
+GtkTerm does all operation on the keyfile. It loads, saves the file and removes, checks
+sections.
+It also copies the section configuration info the configuration for the terminal. 
+
 #### Members
 #### Signals
 #### Main functions
 
 ### GtkTermSerialPort
 
+The Serial port object which does all communication to the serial port.
+It configures the port based on the port_conf from terminal.
+
 #### Members
 #### Signals
 #### Main functions
 
-## Links
+## Resources
 
 For the migration to gtk4 several links were used:
 - https://docs.gtk.org/gobject/tutorial.html
+- https://docs.gtk.org/gobject/concepts.html
 - https://docs.gtk.org/glib/
 - https://toshiocp.github.io/Gtk4-tutorial/index.html
 - https://c-gtk.org/gapplication-part-i
+
+IRC #gtk was a big support when asking questions.
 
 Also special thanks to Jens Georg. Sellerie (an earlier fork of GTKTerm)
 was used as inspiration to solve some problems.

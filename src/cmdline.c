@@ -31,6 +31,24 @@
 #include "serial.h"
 #include "gtkterm_messages.h"
 
+/**
+ * @brief  Removes a configuration sectons
+ * 
+ * The functions emits a signal which is connected to the config remove function.
+ * After removing, the g_application_quit is called for exiting the application (we only want
+ * to remove the section, not to start up GTKTerm).
+ * 
+ * @param name Not used.
+ * 
+ * @param value The section we want to remove.
+ * 
+ * @param data The application app. 
+ * 
+ * @param error Error (not used). 
+ * 
+ * @return  true on succes (we will not get there).
+ * 
+ */
 static bool on_remove_config (const char *name, const char *value, gpointer data,  GError **error) {
     int rc = CONF_ERROR_SUCCESS;
 
@@ -44,6 +62,25 @@ static bool on_remove_config (const char *name, const char *value, gpointer data
     return true;
 }
 
+/**
+ * @brief  Saves a configuration sectons
+ * 
+ * The functions emits a signal which is connected to the config save function.
+ * After saving, the g_application_quit is called for exiting the application (we only want
+ * to save the section, not to start up GTKTerm).
+ * If we want to save cli options we have to put the save option as last parameter.
+ * 
+ * @param name Not used.
+ * 
+ * @param value The section we want to save.
+ * 
+ * @param data The application app. 
+ * 
+ * @param error Error (not used). 
+ * 
+ * @return  true on succes (we will not get there).
+ * 
+ */
 static bool on_save_section (const char *name, const char *value, gpointer data,  GError **error) {
     int rc = CONF_ERROR_SUCCESS;
 
@@ -57,6 +94,24 @@ static bool on_save_section (const char *name, const char *value, gpointer data,
     return true;
 }
 
+/**
+ * @brief  Prints a configuration sectons
+ * 
+ * The functions emits a signal which is connected to the config print function.
+ * After printing, the g_application_quit is called for exiting the application (we only want
+ * to print the section, not to start up GTKTerm)
+ * 
+ * @param name Not used.
+ * 
+ * @param value The section we want to print.
+ * 
+ * @param data The application app. 
+ * 
+ * @param error Error (not used). 
+ * 
+ * @return  true on succes (we will not get there).
+ * 
+ */
 static bool on_print_section (const char *name, const char *value, gpointer data,  GError **error) {
     int rc = CONF_ERROR_SUCCESS;
 
@@ -72,8 +127,25 @@ static bool on_print_section (const char *name, const char *value, gpointer data
     return true;
 }
 
+/**
+ * @brief  Sets the use of a configuration section.
+ * 
+ * This is used as input for config options or starting GTKTerm with the
+ * section active.
+ * 
+ * @param name Not used.
+ * 
+ * @param value The section we want to use.
+ * 
+ * @param data The application app. 
+ * 
+ * @param error Error (not used). 
+ * 
+ * @return  true on succes (continues startup). False if the configurationname is too long.
+ * 
+ */
 static bool on_use_config (const char *name, const char *value, gpointer data,  GError **error) {
- 
+
     if (strlen (value) < MAX_SECTION_LENGTH)  {
 
         GTKTERM_APP(data)->section = g_strdup ( value);
@@ -87,25 +159,25 @@ static bool on_use_config (const char *name, const char *value, gpointer data,  
 
     return true;
 }
-/*!
- * \brief GOptionEntry mappings
+/**
+ * @brief GOptionEntry mappings
  * We use callback in GOptionEntry. So we can directly put them
  * in the Terminal configuration instead of handing over a pointer from the config.
  * 
- * \todo Update gtkterm.1
+ * \todo Update gtkterm.1.
+ * 
  */
 static GOptionEntry gtkterm_config_options[] = {    
-    {"show_config", 'v', 0, G_OPTION_ARG_CALLBACK, on_print_section, N_("Show configuration"), "[configuration]"}, 
-    {"save_config", 's', 0, G_OPTION_ARG_CALLBACK, on_save_section, N_("Save configuration"), "[configuration]"},     
-    {"remove_config", 'r', 0, G_OPTION_ARG_CALLBACK, on_remove_config, N_("Remove configuration"), "[configuration]"},
-    {"use_config", 'u', 0, G_OPTION_ARG_CALLBACK, on_use_config, N_("Use configuration (must be first argument)"), "[configuration]"},    
+    {"show_config", 'V', 0, G_OPTION_ARG_CALLBACK, on_print_section, N_("Show configuration"), "[configuration]"}, 
+    {"save_config", 'S', 0, G_OPTION_ARG_CALLBACK, on_save_section, N_("Save configuration"), "[configuration]"},     
+    {"remove_config", 'R', 0, G_OPTION_ARG_CALLBACK, on_remove_config, N_("Remove configuration"), "[configuration]"},
+    {"use_config", 'U', 0, G_OPTION_ARG_CALLBACK, on_use_config, N_("Use configuration (must be first argument)"), "[configuration]"},    
     {NULL}
 };
 
-/*!
- * \brief Longname CLI options
- * For setting options we dont allow shortnames anymore.
- * This makes it easier to configure and more fault tolerant.
+/**
+ * @brief Longname CLI options
+ *
  */
 static GOptionEntry gtkterm_term_options[] = {    
     {GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], 'd', 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("End of line delay in ms (default none)"), "<ms>"},
@@ -128,6 +200,15 @@ static GOptionEntry gtkterm_port_options[] = {
     {NULL}
 };
 
+/**
+ * @brief Add the commandline options.
+ * 
+ * Commandline options are grouped. So each group is created.
+ * Each group has app as parameter passed through the callback.
+ * 
+ * @param app The application
+ * 
+ */
 void gtkterm_add_cmdline_options (GtkTerm *app)
 {
     char sz_context_summary[BUFFER_LENGTH];
@@ -136,6 +217,7 @@ void gtkterm_add_cmdline_options (GtkTerm *app)
 	        "This program is released under the terms of the GPL V3 or later.", PACKAGE_VERSION);
     g_application_set_option_context_summary (G_APPLICATION(app), sz_context_summary);
 
+    /** Pass app as data to the new created group */
     app->g_term_group = g_option_group_new ("terminal", N_("Terminal options"), N_("Options for configuring terminal"), GTKTERM_APP(app), NULL);
     app->g_port_group = g_option_group_new ("port", N_("Port options"), N_("Options for configuring the port"), GTKTERM_APP(app), NULL);
     app->g_config_group = g_option_group_new ("configuration", N_("Configuration options"), N_("Options for maintaining the configuration (default = default)"), GTKTERM_APP(app), NULL);    
