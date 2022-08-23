@@ -108,23 +108,23 @@ static GOptionEntry gtkterm_config_options[] = {
  * This makes it easier to configure and more fault tolerant.
  */
 static GOptionEntry gtkterm_term_options[] = {    
-    {GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("End of line delay in ms (default none)"), "<ms>"},
-    {GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Local echo"),  "<on|off>"},
-    {GtkTermConfigurationItems[CONF_ITEM_TERM_RAW_FILENAME], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_ ("Default file to send (default none)"), "<filename>"},
-    {GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Wait for a special char at end of line (default none)"), "<character in HEX>"},
+    {GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], 'd', 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("End of line delay in ms (default none)"), "<ms>"},
+    {GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], 'e', 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Local echo"),  "<on|off>"},
+    {GtkTermConfigurationItems[CONF_ITEM_TERM_RAW_FILENAME], 'f', 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_ ("Default file to send (default none)"), "<filename>"},
+    {GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], 'r', 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Wait for a special char at end of line (default none)"), "<character in HEX>"},
     {NULL}
 };
 
 static GOptionEntry gtkterm_port_options[] = {    
-    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_PARITY], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Parity(default = none)"), "<odd|even|none>"},    
-    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_BITS], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Number of bits (default 8)"), "<7|8> "},
-    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_PORT], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Serial port device (default /dev/ttyS0)"), "[device]"},
-    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_BAUDRATE], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Serial port baudrate(default 9600bps)"), "[baudrate]",}, 
-    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_STOPBITS], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Number of stopbits (default 1)"), "<1|2>"},
-    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_FLOW_CONTROL], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Flow control (default none)"), "<Xon|RTS|RS485|none>"},
-    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_RS485_RTS_TIME_BEFORE_TX], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("For RS485, time in ms before transmit with RTS on"), "[ms]"},
-    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_RS485_RTS_TIME_AFTER_TX], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("For RS485, time in ms after transmit with RTS on"), "[ms]"},
-    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_DISABLE_PORT_LOCK], 0, 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Disable lock serial port "), "<on|off>"},   
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_PARITY], 'a', 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Parity(default = none)"), "<odd|even|none>"},    
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_BITS], 'b', 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Number of bits (default 8)"), "<7|8> "},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_PORT], 'p', 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Serial port device (default /dev/ttyS0)"), "[device]"},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_BAUDRATE], 's', 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Serial port baudrate(default 9600bps)"), "[baudrate]",}, 
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_STOPBITS], 't', 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Number of stopbits (default 1)"), "<1|2>"},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_FLOW_CONTROL], 'w', 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Flow control (default none)"), "<Xon|RTS|RS485|none>"},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_RS485_RTS_TIME_BEFORE_TX], 'x', 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("For RS485, time in ms before transmit with RTS on"), "[ms]"},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_RS485_RTS_TIME_AFTER_TX], 'y', 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("For RS485, time in ms after transmit with RTS on"), "[ms]"},
+    {GtkTermConfigurationItems[CONF_ITEM_SERIAL_DISABLE_PORT_LOCK], 'l', 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Disable lock serial port "), "<on|off>"},   
     {NULL}
 };
 
