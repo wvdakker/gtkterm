@@ -5,8 +5,9 @@ gtkterm_sources = [
 	'gtkterm_window.c',
 	'macros.c',
 	'gtkterm_configuration.c',
-	'gtkterm_serial.c',	
+	'gtkterm_serial.c',
 	'gtkterm_terminal.c',
+	'gtkterm_buffer.c',
 	gresources
 ]
 

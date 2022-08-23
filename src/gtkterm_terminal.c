@@ -28,13 +28,14 @@
 #include "gtkterm_window.h"
 #include "gtkterm_terminal.h"
 #include "gtkterm_serial.h"
+#include "gtkterm_buffer.h"
 #include "macros.h"
 #include "gtkterm_configuration.h"
 #include "gtkterm_messages.h"
 
 typedef struct  {
     uint8_t view_mode;              /**< ASCII or HEX view mode                                             */
- //   GtkTermBuffer *term_buffer;   /**< Terminal buffer for serial port                                    */
+    GtkTermBuffer *term_buffer;     /**< Terminal buffer for serial port                                    */
     GtkTermSerialPort *serial_port; /**< The active serial port for this terminal                           */
     term_config_t *term_conf;       /**< The configuration loaded from the keyfile                          */
     port_config_t *port_conf;       /**< Port configuration used in this terminal                           */
@@ -126,6 +127,8 @@ static void gtkterm_terminal_constructed (GObject *object) {
                                       serial_string, 
                                       gtkterm_serial_port_status (priv->serial_port));    
     g_free(serial_string);
+
+    priv->term_buffer = gtkterm_buffer_new ();
 
   	/** Set terminal properties 
      * 
