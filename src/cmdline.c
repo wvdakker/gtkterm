@@ -29,35 +29,47 @@
 #include "resource_file.h"
 #include "cmdline.h"
 #include "serial.h"
+#include "gtkterm_messages.h"
 
 static bool on_remove_config (const char *name, const char *value, gpointer data,  GError **error) {
- 
-    //! Signal to load the configuration and dump it to the cli
-    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_REMOVE_SECTION], 0, value);
+    int rc = CONF_ERROR_SUCCESS;
+
+    /** Signal to load the configuration and dump it to the cli */
+    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_REMOVE_SECTION], 0, value, &rc);
+
+    g_printf ("%s\n", gtkterm_message(rc));
 
     g_application_quit (G_APPLICATION(data)); 
 
-    return 1;
+    return true;
 }
 
 static bool on_save_section (const char *name, const char *value, gpointer data,  GError **error) {
+    int rc = CONF_ERROR_SUCCESS;
 
-    //! Signal to load the configuration and dump it to the cli
-    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_SAVE_CONFIG], 0, value);
+    /** Signal to load the configuration and dump it to the cli */
+    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_SAVE_CONFIG], 0, value, &rc);
+
+    g_printf ("%s\n", gtkterm_message(rc));
 
     g_application_quit (G_APPLICATION(data)); 
 
-    return 1;
+    return true;
 }
 
 static bool on_print_section (const char *name, const char *value, gpointer data,  GError **error) {
+    int rc = CONF_ERROR_SUCCESS;
 
-    //! Signal to load the configuration and dump it to the cli
-    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_PRINT_SECTION], 0, value);
+    /** Signal to load the configuration and dump it to the cli */
+    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_PRINT_SECTION], 0, value, &rc);
+
+    if (rc != CONF_ERROR_SUCCESS) {
+        g_printf ("%s\n", gtkterm_message(rc));
+    }
 
     g_application_quit (G_APPLICATION(data)); 
 
-    return 1;
+    return true;
 }
 
 static bool on_use_config (const char *name, const char *value, gpointer data,  GError **error) {

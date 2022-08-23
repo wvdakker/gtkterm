@@ -77,10 +77,10 @@ const char GtkTermConfigurationItems [][CONF_ITEM_LENGTH] = {
 G_BEGIN_DECLS
 
 typedef struct {
-   	GKeyFile *key_file;         //!< The memory loaded keyfile
-	GFile *config_file;         //!< The config file
+   	GKeyFile *key_file;         /**< The memory loaded keyfile							*/
+	GFile *config_file;         /**< The config file									*/
 
-	int	last_status;			//!< Last status condition when operating configfiles
+	int	last_status;			/**< Last status condition when operating configfiles	*/
 
 } GtkTermConfigurationPrivate;
 
@@ -120,6 +120,30 @@ GtkTermConfigStatus gtkterm_configuration_status (GtkTermConfiguration *self) {
 	return priv->last_status;
 }
 
+/**
+ * @brief  Sets the status of the last operation.
+ * 
+ * The status value of the last operation will be set.
+ * If the previous status is not CONF_ERROR_SUCCESS, the new status will not be set.
+ * This prevents the override of the previous status which can be the cause of the 'error'.
+ * 
+ * @param self The configuration for which the get the status for.
+ * 
+ * @param status The status to be set.
+ * 
+ * @return  The latest status.
+ * 
+ */
+GtkTermConfigStatus gtkterm_configuration_status_set (GtkTermConfiguration *self, GtkTermConfigStatus status) {
+	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private (self);
+
+	if (priv->last_status == CONF_ERROR_SUCCESS) {
+		priv->last_status = status;
+	}
+	
+	return status;
+}
+
 GtkTermConfigStatus check_keyfile (GtkTermConfiguration *self, char *section) {
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private (self);
 
@@ -127,7 +151,7 @@ GtkTermConfigStatus check_keyfile (GtkTermConfiguration *self, char *section) {
 	if (priv->key_file == NULL) {
 		if ( gtkterm_configuration_load_keyfile (self, NULL) < 0) {
 
-			return CONF_ERROR_FILE_CONFIG_LOAD;
+			return gtkterm_configuration_status_set (self, CONF_ERROR_FILE_CONFIG_LOAD);
 		}
 	}
 
@@ -190,7 +214,7 @@ static GtkTermConfigStatus gtkterm_configuration_load_config (GtkTermConfigurati
 
 	gtkterm_configuration_check_configuration_file (self, NULL);
 	
-	return CONF_ERROR_SUCCESS;
+	return gtkterm_configuration_status_set (self, CONF_ERROR_SUCCESS);
 }
 
 //! \brief Load the key file into memory.
@@ -207,10 +231,10 @@ static int gtkterm_configuration_load_keyfile (GtkTermConfiguration *self, gpoin
 
 	if (!g_key_file_load_from_file (priv->key_file, g_file_get_path (priv->config_file), G_KEY_FILE_NONE, &error)) {
 
-	 	return CONF_ERROR_FILE_CONFIG_LOAD;
+	 	return gtkterm_configuration_status_set (self, CONF_ERROR_FILE_CONFIG_LOAD);
 	 }
 
-	return CONF_ERROR_SUCCESS;
+	return gtkterm_configuration_status_set (self, CONF_ERROR_SUCCESS);
 }
 
 //! \brief Save keyfile to file (all sections are saved).
@@ -222,13 +246,13 @@ static int gtkterm_configuration_save_keyfile (GtkTermConfiguration *self, gpoin
 	if (priv->config_file == NULL) {
 	 	g_debug ("No keyfile loaded. Nothing to save file.");
 
-		return CONF_ERROR_NO_KEYFILE_LOADED;
+		return gtkterm_configuration_status_set (self, CONF_ERROR_NO_KEYFILE_LOADED);
 	}
 
  	if (!g_key_file_save_to_file (priv->key_file, g_file_get_path(priv->config_file), &error)) {
 		g_error_free (error);
 
-		return CONF_ERROR_FILE_NOT_SAVED;
+		return gtkterm_configuration_status_set (self, CONF_ERROR_FILE_NOT_SAVED);
  	}
 
 	return CONF_ERROR_SUCCESS;
@@ -244,7 +268,7 @@ static int gtkterm_configuration_print_section (GtkTermConfiguration *self, gpoi
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
 	if ((rc = check_keyfile (self, section) != CONF_ERROR_SUCCESS))
-		return rc;
+		return gtkterm_configuration_status_set (self, rc);
 
 	g_printf (_("Configuration [%s] loaded from file\n"), section);
 
@@ -303,7 +327,7 @@ static int gtkterm_configuration_print_section (GtkTermConfiguration *self, gpoi
 			g_printf ("[%2d] %-8s  %s\n", i, macros[i].shortcut, macros[i].action);
 	}
 
-	return gtkterm_configuration_validate (self, section);
+	return gtkterm_configuration_status_set (self, gtkterm_configuration_validate (self, section));
 }
 
 //! \brief Remove a section from the GKeyFile.
@@ -317,7 +341,7 @@ static int gtkterm_configuration_remove_section (GtkTermConfiguration *self, gpo
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
 	if ((rc = check_keyfile (self, section)) != CONF_ERROR_SUCCESS)
-		return rc;
+		return gtkterm_configuration_status_set (self, rc);
 
 	//! If we remove the DEFAULT_SECTION then create a new one
 	if (!g_strcmp0 ((const char *) section, (const char *)&DEFAULT_SECTION)) {
@@ -330,13 +354,13 @@ static int gtkterm_configuration_remove_section (GtkTermConfiguration *self, gpo
 		if (!g_key_file_remove_group (priv->key_file, section, &error)) {
 			g_error_free (error);
 
-			return CONF_ERROR_SECTION_NOT_REMOVED;
+			return gtkterm_configuration_status_set (self, CONF_ERROR_SECTION_NOT_REMOVED);
 		}
 	}
 
 	gtkterm_configuration_save_keyfile(self, user_data);	
 
-	return CONF_ERROR_SUCCESS;
+	return gtkterm_configuration_status_set (self, CONF_ERROR_SUCCESS);
 }
 
 //! Copy the active configuration into <section> of the Key file
@@ -435,7 +459,7 @@ static int gtkterm_configuration_copy_section (GtkTermConfiguration *self, gpoin
 	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_BLUE], term_conf->background_color.blue);
 	g_key_file_set_double (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_ALPHA], term_conf->background_color.alpha);
 
-	return CONF_ERROR_SUCCESS;
+	return gtkterm_configuration_status_set (self, CONF_ERROR_SUCCESS);
 }
 
 //! Load the configuration from <section> into the term config
@@ -650,24 +674,24 @@ GtkTermConfigStatus gtkterm_configuration_validate(GtkTermConfiguration *self, c
 
 	value = g_key_file_get_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_STOPBITS], NULL);
 	if(value  != 1 && value  != 2) 	{
-		return CONF_ERROR_INVALID_STOPBITS;
+		return gtkterm_configuration_status_set (self, CONF_ERROR_INVALID_STOPBITS);
 	}
 
 	value = g_key_file_get_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_BITS], NULL);
 	if(value < 5 || value> 8) {
-		return CONF_ERROR_INVALID_BITS;
+		return gtkterm_configuration_status_set (self, CONF_ERROR_INVALID_BITS);
 	}
 
 	value = g_key_file_get_integer (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], NULL);
 	if(value < 0 || value> 500) {
 
-		return CONF_ERROR_INVALID_DELAY;
+		return gtkterm_configuration_status_set (self, CONF_ERROR_INVALID_DELAY);
 	}
 
 	if(g_key_file_get_string (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FONT], NULL) == NULL)
 		g_key_file_set_string (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FONT], DEFAULT_FONT);
 
-	return CONF_ERROR_SUCCESS;
+	return gtkterm_configuration_status_set (self, CONF_ERROR_SUCCESS);
 }
 
 //! \brief Set the config option in the keyfile.
@@ -722,15 +746,15 @@ GtkTermConfigStatus on_set_config_options (const char *name, const char *value, 
     		} else {
         		g_printf (_("Filename to long\n\n"));
 
-        		config_option_success = false;
+        		config_option_success = CONF_ERROR_SECTION_UNKNOWN;
 			}
 	
 			break;
 
 		default:
-				//! We should not get here.
+				/** We should not get here. */
 				g_printf ("Invalid option. Internal lookup failure");
-				config_option_success = false;
+				config_option_success = CONF_ERROR_SECTION_UNKNOWN;
 				break;
 	}
 
@@ -739,7 +763,7 @@ GtkTermConfigStatus on_set_config_options (const char *name, const char *value, 
 	if (config_option_success)
 		gtkterm_configuration_validate (GTKTERM_APP(data)->config, section);
 
-	return config_option_success;
+	return gtkterm_configuration_status_set(self, config_option_success) == CONF_ERROR_SUCCESS ? true : false;
 }
 
 //! Convert the colors RGB to internal color scheme
@@ -787,5 +811,5 @@ static GtkTermConfigStatus gtkterm_configuration_check_configuration_file (GtkTe
 		priv->last_status = CONF_ERROR_FILE_CREATED;
 	}
 
-	return 0;
+	return gtkterm_configuration_status_set(self, CONF_ERROR_SUCCESS);
 }
