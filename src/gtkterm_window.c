@@ -41,9 +41,9 @@ struct _GtkTermWindow {
 G_DEFINE_TYPE (GtkTermWindow, gtkterm_window, GTK_TYPE_APPLICATION_WINDOW)
 
 /** Internal functions            */
-static void gtkterm_window_update_statusbar (GtkTermWindow *, gpointer, gpointer, int, gpointer);
+static void gtkterm_window_update_statusbar (GtkTermWindow *, gpointer, gpointer, gpointer, gpointer);
 static void config_status_bar (GtkTermWindow *);
-static void update_statusbar (GtkTermWindow *, gpointer, gpointer, int);
+static void update_statusbar (GtkTermWindow *, gpointer, gpointer, gpointer);
 void set_window_title (GtkTermWindow *, gpointer);
 
 /** Menu callbacks                */
@@ -315,14 +315,14 @@ void config_status_bar (GtkTermWindow *window) {
  * @param serial_status The status of the serial port.
  * 
  */
-static void update_statusbar (GtkTermWindow *window, gpointer section, gpointer serial_config_string, int serial_status) {
+static void update_statusbar (GtkTermWindow *window, gpointer section, gpointer serial_config_string, gpointer serial_status) {
   char *msg;
 
   msg = g_strdup_printf ("[%s]", (char *)section);
 
   gtk_label_set_text (GTK_LABEL(window->status_config_message[0]), msg);
   gtk_label_set_label (GTK_LABEL(window->status_config_message[1]), serial_config_string);
-  gtk_label_set_label (GTK_LABEL(window->status_config_message[2]), serial_status ? "connected" : "disconnected"); 
+  gtk_label_set_label (GTK_LABEL(window->status_config_message[2]), serial_status); 
 
   g_free (msg);  
 }
@@ -363,7 +363,7 @@ void set_window_title (GtkTermWindow *window, gpointer serial_config_string) {
  * @param user_data Not used.
  * 
  */
-static void gtkterm_window_update_statusbar (GtkTermWindow *window, gpointer section, gpointer serial_config_string, int serial_status, gpointer user_data) {
+static void gtkterm_window_update_statusbar (GtkTermWindow *window, gpointer section, gpointer serial_config_string, gpointer serial_status, gpointer user_data) {
 
   set_window_title (window, serial_config_string);
   update_statusbar (window, section, serial_config_string, serial_status);
@@ -641,7 +641,7 @@ static void gtkterm_window_class_init (GtkTermWindowClass *class) {
                                             3,
                                             G_TYPE_POINTER,
                                             G_TYPE_POINTER,
-                                            G_TYPE_INT,
+                                            G_TYPE_POINTER,
                                             NULL);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/com/github/jeija/gtkterm/gtkterm_main.ui");

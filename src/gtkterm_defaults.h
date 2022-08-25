@@ -21,18 +21,21 @@
 #define RECEIVE_BUFFER          8192
 #define TRANSMIT_BUFFER         4096
 #define LINE_FEED               0x0A
-#define POLL_DELAY              100             /**< in ms (for control signals)            */
+#define POLL_DELAY              100             /**< in ms (for control signals)                */
 
 /** Generic defaults            */
 #define BUFFER_LENGTH           256
 #define MAX_SECTION_LENGTH      32
 #define GTKTERM_MESSAGE_LENGTH  128
-#define DEFAULT_SECTION		   "default"		/**< Default section if not specified	    */
-#define CONFIGURATION_FILENAME ".gtktermrc"		/**< Name of the resource file              */
+#define DEFAULT_SECTION		   "default"		/**< Default section if not specified	        */
+#define CONFIGURATION_FILENAME ".gtktermrc"		/**< Name of the resource file                  */
 #define CONF_ITEM_LENGTH		32
+#define DEFAULT_STRING_LEN      32
 
 /** Type of terminal view       */
 #define ASCII_VIEW              0
 #define HEXADECIMAL_VIEW        1
+
+#define BUFFER_SIZE             (128 * 1024)    /**< Size of the buffer for the terminal and port */
 
 #endif // GTKTERM_DEFAULTS_H

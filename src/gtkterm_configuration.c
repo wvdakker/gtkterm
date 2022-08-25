@@ -27,9 +27,9 @@
 #include <pango/pango-font.h>
 
 #include "config.h"
+#include "gtkterm_defaults.h"
 #include "gtkterm_window.h"
 #include "gtkterm_serial.h"
-#include "gtkterm_defaults.h"
 #include "gtkterm_terminal.h"
 #include "gtkterm_configuration.h"
 #include "macros.h"
@@ -521,13 +521,13 @@ static int gtkterm_configuration_copy_section(GtkTermConfiguration *self, gpoint
 
 	switch (port_conf->parity)
 	{
-	case 0:
+	case GTKTERM_SERIAL_PORT_PARITY_NONE:
 		string = g_strdup_printf("none");
 		break;
-	case 1:
+	case GTKTERM_SERIAL_PORT_PARITY_ODD:
 		string = g_strdup_printf("odd");
 		break;
-	case 2:
+	case GTKTERM_SERIAL_PORT_PARITY_EVEN:
 		string = g_strdup_printf("even");
 		break;
 	default:
@@ -539,16 +539,16 @@ static int gtkterm_configuration_copy_section(GtkTermConfiguration *self, gpoint
 
 	switch (port_conf->flow_control)
 	{
-	case 0:
+	case GTKTERM_SERIAL_PORT_FLOWCONTROL_NONE:
 		string = g_strdup_printf("none");
 		break;
-	case 1:
+	case GTKTERM_SERIAL_PORT_FLOWCONTROL_XON_XOFF:
 		string = g_strdup_printf("xon");
 		break;
-	case 2:
+	case GTKTERM_SERIAL_PORT_FLOWCONTROL_RTS_CTS:
 		string = g_strdup_printf("rts");
 		break;
-	case 3:
+	case GTKTERM_SERIAL_PORT_FLOWCONTROL_RS485_HD:
 		string = g_strdup_printf("rs485");
 		break;
 	default:
@@ -745,11 +745,11 @@ static port_config_t *gtkterm_configuration_load_serial_config(GtkTermConfigurat
 	if (key_str != NULL)
 	{
 		if (!g_ascii_strcasecmp(key_str, "none"))
-			port_conf->parity = 0;
+			port_conf->parity = GTKTERM_SERIAL_PORT_PARITY_NONE;
 		else if (!g_ascii_strcasecmp(key_str, "odd"))
-			port_conf->parity = 1;
+			port_conf->parity = GTKTERM_SERIAL_PORT_PARITY_ODD;
 		else if (!g_ascii_strcasecmp(key_str, "even"))
-			port_conf->parity = 2;
+			port_conf->parity = GTKTERM_SERIAL_PORT_PARITY_EVEN;
 		g_free(key_str);
 	}
 
@@ -757,13 +757,13 @@ static port_config_t *gtkterm_configuration_load_serial_config(GtkTermConfigurat
 	if (key_str != NULL)
 	{
 		if (!g_ascii_strcasecmp(key_str, "none"))
-			port_conf->flow_control = 0;
+			port_conf->flow_control = GTKTERM_SERIAL_PORT_FLOWCONTROL_NONE;
 		else if (!g_ascii_strcasecmp(key_str, "xon"))
-			port_conf->flow_control = 1;
+			port_conf->flow_control = GTKTERM_SERIAL_PORT_FLOWCONTROL_XON_XOFF;
 		else if (!g_ascii_strcasecmp(key_str, "rts"))
-			port_conf->flow_control = 2;
+			port_conf->flow_control = GTKTERM_SERIAL_PORT_FLOWCONTROL_RTS_CTS;
 		else if (!g_ascii_strcasecmp(key_str, "rs485"))
-			port_conf->flow_control = 3;
+			port_conf->flow_control = GTKTERM_SERIAL_PORT_FLOWCONTROL_RS485_HD;
 
 		g_free(key_str);
 	}

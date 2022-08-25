@@ -34,7 +34,6 @@
 #include "gtkterm_messages.h"
 
 typedef struct  {
-    uint8_t view_mode;              /**< ASCII or HEX view mode                                             */
     GtkTermBuffer *term_buffer;     /**< Terminal buffer for serial port                                    */
     GtkTermSerialPort *serial_port; /**< The active serial port for this terminal                           */
     term_config_t *term_conf;       /**< The configuration loaded from the keyfile                          */
@@ -88,6 +87,38 @@ GtkTermTerminal *gtkterm_terminal_new (char *section, GtkTerm *gtkterm_app, GtkT
     return g_object_new (GTKTERM_TYPE_TERMINAL, "section", section, "app", gtkterm_app, "main_window", main_window, NULL);
 }
 
+static void gtkterm_terminal_port_status_changed (GObject *object, GParamSpec *pspec, gpointer user_data) {
+    char *serial_string;
+    GError *error;
+    GtkTermTerminal *self = GTKTERM_TERMINAL(user_data);
+    GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
+    GtkTermSerialPortState status = gtkterm_serial_port_get_status (GTKTERM_SERIAL_PORT (object));
+
+    if (status == GTKTERM_SERIAL_PORT_ERROR) {
+        char *error_string;
+        error = gtkterm_serial_port_get_error (GTKTERM_SERIAL_PORT (object));
+
+        if (error != NULL) 
+            error_string = g_strdup_printf (_("Serial port error : %s"), error->message);
+        else
+            error_string = g_strdup (_("Serial port error : Unknown error"));
+
+        /** \todo convert to notify signal on message... */
+        gtkterm_show_infobar (priv->main_window, error_string, GTK_MESSAGE_ERROR); 
+
+        g_free(error_string);
+    }
+
+	/** Update the statusbar and main window title */
+    serial_string = gtkterm_serial_port_get_string (priv->serial_port);
+    g_signal_emit (priv->main_window, gtkterm_signals[SIGNAL_GTKTERM_TERMINAL_CHANGED], 
+                                      0, 
+                                      priv->section, 
+                                      serial_string, 
+                                      GtkTermSerialPortStateString[status]);    
+    g_free(serial_string);
+}
+
 /**
  * @brief Constructs the terminal.
  * 
@@ -97,7 +128,6 @@ GtkTermTerminal *gtkterm_terminal_new (char *section, GtkTerm *gtkterm_app, GtkT
  * 
  */
 static void gtkterm_terminal_constructed (GObject *object) {
-    char *serial_string;
     char *message_string= NULL;
     int rc;
 
@@ -118,16 +148,12 @@ static void gtkterm_terminal_constructed (GObject *object) {
     }
 
     priv->serial_port = gtkterm_serial_port_new (priv->port_conf);
+    g_signal_connect (G_OBJECT(priv->serial_port), "notify::port-status", G_CALLBACK(gtkterm_terminal_port_status_changed), self);
 
-	/** Update the statusbar and main window title */
-    serial_string = gtkterm_serial_port_get_string (priv->serial_port);
-    g_signal_emit (priv->main_window, gtkterm_signals[SIGNAL_GTKTERM_TERMINAL_CHANGED], 
-                                      0, 
-                                      priv->section, 
-                                      serial_string, 
-                                      gtkterm_serial_port_status (priv->serial_port));    
-    g_free(serial_string);
+    /** Send initial notify to update the status bar */
+	g_object_notify(G_OBJECT(priv->serial_port), "port-status");		
 
+    /** Create a buffer for the terminal */
     priv->term_buffer = gtkterm_buffer_new ();
 
   	/** Set terminal properties 
@@ -222,6 +248,17 @@ static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
     object_class->constructed = gtkterm_terminal_constructed;
   	object_class->dispose = gtkterm_terminal_dispose;	
 
+  	gtkterm_signals[SIGNAL_GTKTERM_SERIAL_CONNECT] = g_signal_new ("serial_connect",
+                                                GTKTERM_TYPE_SERIAL_PORT,
+                                                G_SIGNAL_RUN_FIRST,
+                                                0,
+                                                NULL,
+                                                NULL,
+                                                NULL,
+                                                G_TYPE_NONE,
+                                                0,
+                                                NULL); 
+
 	/** 
      * Parameters to hand over at creation of the object
 	 * We need the section to load the config from the keyfile.
@@ -257,7 +294,6 @@ static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
  * 
  */
 static void gtkterm_terminal_init (GtkTermTerminal *self) {
+//    GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
 
-	/** \todo: Make GObject */
-  //! create_buffer();
 }

@@ -7,10 +7,11 @@
 #include <config.h>
 #include <glib/gi18n.h>
 
+#include "gtkterm_defaults.h"
 #include "gtkterm_buffer.h"
 
 typedef struct {
-
+    char *buffer;
 
 } GtkTermBufferPrivate;
 
@@ -36,6 +37,24 @@ GtkTermBuffer *gtkterm_buffer_new (void) {
 }
 
 /**
+ * @brief Finalizing the buffer class
+ * 
+ * Clears the pointer of the buffer.
+ * 
+ * @param object The object which is finialized
+ * 
+ */
+static void gtkterm_buffer_finalize (GObject *object) {
+    GtkTermBuffer *self = GTKTERM_BUFFER (object);
+    GtkTermBufferPrivate *priv = gtkterm_buffer_get_instance_private (self);
+    GObjectClass *object_class = G_OBJECT_CLASS (gtkterm_buffer_parent_class);
+
+    g_clear_pointer (&priv->buffer, g_free);
+
+    object_class->finalize (object);    
+}
+
+/**
  * @brief Initializing the buffer class
  * 
  * Setting the properties and callback functions
@@ -44,20 +63,21 @@ GtkTermBuffer *gtkterm_buffer_new (void) {
  * 
  */
 static void gtkterm_buffer_class_init (GtkTermBufferClass *class) {
-
-  	// GObjectClass *object_class = G_OBJECT_CLASS (class);
-    //object_class->set_property = gtkterm_buffer_set_property;     
+    GObjectClass *object_class = G_OBJECT_CLASS (class);
+    //object_class->set_property = gtkterm_buffer_set_property;
+    object_class->finalize = gtkterm_buffer_finalize;
 
     //g_object_class_install_properties (object_class, N_PROPS, gtkterm_buffer_properties);
 }
 
 /**
- * @brief Initialize the buffe
+ * @brief Initialize the buffer with size BUFFER_SIZE.
  * 
- * @param self The bufferwe are initializing.
+ * @param self The buffer we are initializing.
  * 
  */
 static void gtkterm_buffer_init (GtkTermBuffer *self) {
     GtkTermBufferPrivate *priv = gtkterm_buffer_get_instance_private (self);
 
+    priv->buffer = g_malloc0 (BUFFER_SIZE);
 }
