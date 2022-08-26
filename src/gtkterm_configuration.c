@@ -81,11 +81,13 @@ G_BEGIN_DECLS
 
 typedef struct
 {
-	GKeyFile *key_file;	 						/**< The memory loaded keyfile			*/
-	GFile *config_file; 						/**< The config file					*/
+	GKeyFile *key_file;	 						/**< The memory loaded keyfile				*/
+	GFile *config_file; 						/**< The config file						*/
 
-	GError *config_error;						/**< Error of the last file operation	*/
-	GtkTermConfigurationState config_status; 	/**< Status when operating configfiles	*/
+	GError *config_error;						/**< Error of the last file operation		*/
+	GtkTermConfigurationState config_status; 	/**< Status when operating configfiles		*/
+
+	bool config_is_dirty;						/**< If changes are made but not yet saved	*/
 
 } GtkTermConfigurationPrivate;
 
@@ -193,6 +195,7 @@ static void gtkterm_configuration_init(GtkTermConfiguration *self) {
 	priv->config_file = NULL;
 	priv->key_file = NULL;
 	priv->config_error = NULL;
+	priv->config_is_dirty = false;
 }
 
 /**
@@ -295,7 +298,7 @@ GtkTermConfigurationState check_keyfile(GtkTermConfiguration *self, char *sectio
         
 		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
                              GTKTERM_CONFIGURATION_SECTION_UNKNOWN,
-                             _ ("No [%s] section in configuration file"),
+                             _("No [%s] section in configuration file"),
                              section);
 
 		rc = GTKTERM_CONFIGURATION_SECTION_UNKNOWN;
@@ -322,9 +325,7 @@ static int gtkterm_configuration_load_keyfile (GtkTermConfiguration *self, gpoin
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
 	if (priv->config_file == NULL) {
-			rc = gtkterm_configuration_set_config_file (self, NULL);
-
-		g_printf ("1a\n");
+		rc = gtkterm_configuration_set_config_file (self, NULL);
 
 		if (!(rc == GTKTERM_CONFIGURATION_SUCCESS || rc == GTKTERM_CONFIGURATION_FILE_CREATED))
 			return rc;			
@@ -389,6 +390,9 @@ static int gtkterm_configuration_save_keyfile(GtkTermConfiguration *self, gpoint
                              GTKTERM_CONFIGURATION_FILE_SAVED,
                              _("Configuration saved")
                              );
+
+		/** Reset the dirty flag now we saved the keyfile */
+		priv->config_is_dirty = false;							 
 	}
 
 	return gtkterm_configuration_set_status(self, rc, error);
@@ -883,7 +887,7 @@ void gtkterm_configuration_default_configuration(GtkTermConfiguration *self, cha
 GtkTermConfigurationState gtkterm_configuration_validate(GtkTermConfiguration *self, char *section) {
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 	GtkTermConfigurationState rc = GTKTERM_CONFIGURATION_SUCCESS;
-	GError *error;
+	GError *error = NULL;
 	int value;
 	unsigned long lvalue;
 
@@ -915,7 +919,7 @@ GtkTermConfigurationState gtkterm_configuration_validate(GtkTermConfiguration *s
                              );
 
 				rc =  GTKTERM_CONFIGURATION_INVALID_BAUDRATE;
-				break;
+				goto validate_exit;
 	}
 
 	value = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_STOPBITS], NULL);
@@ -996,6 +1000,10 @@ GtkTermConfigurationState on_set_config_options(const char *name, const char *va
 	GtkTermConfiguration *self = GTKTERM_APP(data)->config;
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
+	/** First check and load the keyfile */
+	if ((rc =check_keyfile(self, section)) != GTKTERM_CONFIGURATION_SUCCESS)
+		return rc;
+
 	/** Point to the third charater ('--' in front of the cli option) */
 	name += 2;
 
@@ -1034,7 +1042,7 @@ GtkTermConfigurationState on_set_config_options(const char *name, const char *va
 			 * Note: Serial port is also a path to a device.
 			 */
 			if ((int)strlen(value) < PATH_MAX) {
-				g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[item_counter], value);
+				g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[item_counter], value);			
 			} else {
 				g_printf(_("Filename to long\n\n"));
 				*error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
@@ -1061,6 +1069,9 @@ GtkTermConfigurationState on_set_config_options(const char *name, const char *va
 
 	if (rc == GTKTERM_CONFIGURATION_SUCCESS)
 		gtkterm_configuration_validate(GTKTERM_APP(data)->config, section);
+
+	/** Set the dirty flag */
+	priv->config_is_dirty = true;
 
 	return (gtkterm_configuration_set_status(self, rc, *error) == GTKTERM_CONFIGURATION_SUCCESS);
 }
