@@ -28,7 +28,7 @@
 #include "gtkterm_window.h"
 #include "gtkterm_terminal.h"
 #include "gtkterm_cmdline.h"
-#include "gtkterm_serial.h"
+#include "gtkterm_serial_port.h"
 
 /** The gtkterm signals available */
 unsigned int gtkterm_signals[LAST_GTKTERM_SIGNAL];

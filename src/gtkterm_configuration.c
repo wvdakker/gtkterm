@@ -29,7 +29,7 @@
 #include "config.h"
 #include "gtkterm_defaults.h"
 #include "gtkterm_window.h"
-#include "gtkterm_serial.h"
+#include "gtkterm_serial_port.h"
 #include "gtkterm_terminal.h"
 #include "gtkterm_configuration.h"
 #include "macros.h"

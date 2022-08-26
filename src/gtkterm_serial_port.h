@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* gtkterm_serial.h                                                    */
+/* gtkterm_serial_port.h                                                    */
 /* -------                                                             */
 /*           GTKTerm Software                                          */
 /*                      (c) Julien Schmitt                             */

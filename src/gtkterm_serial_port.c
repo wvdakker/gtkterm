@@ -39,7 +39,7 @@
 #include <gudev/gudev.h>
 
 #include "gtkterm_defaults.h"
-#include "gtkterm_serial.h"
+#include "gtkterm_serial_port.h"
 
 #ifdef HAVE_LINUX_SERIAL_H
 #include <linux/serial.h>

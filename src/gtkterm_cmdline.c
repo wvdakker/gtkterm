@@ -28,7 +28,7 @@
 #include "gtkterm.h"
 #include "gtkterm_configuration.h"
 #include "gtkterm_cmdline.h"
-#include "gtkterm_serial.h"
+#include "gtkterm_serial_port.h"
 
 /**
  * @brief  Removes a configuration sectons
