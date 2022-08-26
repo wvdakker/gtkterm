@@ -144,6 +144,7 @@ G_DEFINE_TYPE_WITH_PRIVATE(GtkTermConfiguration, gtkterm_configuration, G_TYPE_O
  */
 static int gtkterm_configuration_load_keyfile(GtkTermConfiguration *, gpointer);
 static int gtkterm_configuration_save_keyfile(GtkTermConfiguration *, gpointer);
+static int gtkterm_configuration_list_config(GtkTermConfiguration *, gpointer);
 static int gtkterm_configuration_print_section(GtkTermConfiguration *, gpointer, gpointer);
 static int gtkterm_configuration_remove_section(GtkTermConfiguration *, gpointer, gpointer);
 static int gtkterm_configuration_set_config_file(GtkTermConfiguration *, gpointer);
@@ -192,6 +193,7 @@ static void gtkterm_configuration_class_constructed(GObject *object) {
 	g_signal_connect(self, "config_remove", G_CALLBACK(gtkterm_configuration_remove_section), NULL);
 	g_signal_connect(self, "config_load", G_CALLBACK(gtkterm_configuration_load_keyfile), NULL);
 	g_signal_connect(self, "config_save", G_CALLBACK(gtkterm_configuration_save_keyfile), NULL);
+	g_signal_connect(self, "config_list", G_CALLBACK(gtkterm_configuration_list_config), NULL);	
 	g_signal_connect(self, "config_terminal", G_CALLBACK(gtkterm_configuration_load_terminal_config), NULL);
 	g_signal_connect(self, "config_serial", G_CALLBACK(gtkterm_configuration_load_serial_config), NULL);
 	g_signal_connect(self, "config_copy", G_CALLBACK(gtkterm_configuration_copy_section), NULL);
@@ -332,13 +334,50 @@ GtkTermConfigurationState check_keyfile(GtkTermConfiguration *self, char *sectio
         
 		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
                              GTKTERM_CONFIGURATION_SECTION_UNKNOWN,
-                             _("No [%s] section in configuration file"),
+                             _("No [%s] section in configuration file. Section is created."),
                              section);
 
-		rc = GTKTERM_CONFIGURATION_SECTION_UNKNOWN;
+		/** we did not find the section so we create it */
+		gtkterm_configuration_default_configuration(self, section);	
+
+		/** Set the dirty flag */
+		priv->config_is_dirty = true;						 
+
+		rc = GTKTERM_CONFIGURATION_SUCCESS;
 	}
 
 	return gtkterm_configuration_set_status (self, rc, error);
+}
+
+/**
+ * @brief Lists all sections in the keyfile.
+ *
+ * @param self The configuration class.
+ *
+ * @param user_data Not used.
+ *
+ * @return The result of the operation.
+ */
+static int gtkterm_configuration_list_config (GtkTermConfiguration *self, gpointer user_data) {
+	size_t nr_of_groups;
+	char **sections;
+	GtkTermConfigurationState rc = GTKTERM_CONFIGURATION_SUCCESS;
+	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
+
+	if ((rc = gtkterm_configuration_load_keyfile(self, user_data)) != GTKTERM_CONFIGURATION_SUCCESS)
+		return rc;
+
+	sections = g_key_file_get_groups (priv->key_file, &nr_of_groups);
+
+	if (sections == NULL)
+		return GTKTERM_CONFIGURATION_SUCCESS;
+
+	g_printf ("Configurations found in keyfile:\n\n");
+	for (int i = 0; i < nr_of_groups; i++)
+		g_printf ("[%s]\n", sections[i]);
+	g_printf ("\n");
+	
+	return gtkterm_configuration_set_status(self, rc, NULL);
 }
 
 /**
@@ -856,14 +895,11 @@ static port_config_t *gtkterm_configuration_load_serial_config(GtkTermConfigurat
 }
 
 /**
- * @brief Create a new [default] configuration.
- *
- * Load the port configuration from [section] into the term config.
- * If it does not exists it creates one from the defaults
+ * @brief Create a new configuration with defaults.
  *
  * @param self The configuration class.
  *
- * @param section The section we want to get the config from.
+ * @param section The section we want to get the config for.
  *
  */
 void gtkterm_configuration_default_configuration(GtkTermConfiguration *self, char *section) {

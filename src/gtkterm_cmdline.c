@@ -127,6 +127,39 @@ static bool on_print_section (const char *name, const char *value, gpointer data
 }
 
 /**
+ * @brief  List all configurations
+ * 
+ * The functions emits a signal which is connected to list all configurations.
+ * After printing, the g_application_quit is called for exiting the application (we only want
+ * to list the configs, not to start up GTKTerm)
+ * 
+ * @param name Not used.
+ * 
+ * @param value Not used.
+ * 
+ * @param data The application app. 
+ * 
+ * @param error Error (not used). 
+ * 
+ * @return  true on succes (we will not get there).
+ * 
+ */
+static bool on_list_config (const char *name, const char *value, gpointer data,  GError **error) {
+    int rc = GTKTERM_CONFIGURATION_SUCCESS;
+
+    /** Signal to list the comfigurations and dump it to the cli */
+    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_LIST_CONFIG], 0, &rc);
+
+    if (rc != GTKTERM_CONFIGURATION_SUCCESS) {
+        g_printf ("%s\n", gtkterm_configuration_get_error (GTKTERM_APP(data)->config)->message);
+    }
+
+    g_application_quit (G_APPLICATION(data)); 
+
+    return true;
+}
+
+/**
  * @brief  Sets the use of a configuration section.
  * 
  * This is used as input for config options or starting GTKTerm with the
@@ -158,6 +191,7 @@ static bool on_use_config (const char *name, const char *value, gpointer data,  
 
     return true;
 }
+
 /**
  * @brief GOptionEntry mappings
  * We use callback in GOptionEntry. So we can directly put them
@@ -170,7 +204,8 @@ static GOptionEntry gtkterm_config_options[] = {
     {"show_config", 'V', 0, G_OPTION_ARG_CALLBACK, on_print_section, N_("Show configuration"), "[configuration]"}, 
     {"save_config", 'S', 0, G_OPTION_ARG_CALLBACK, on_save_section, N_("Save configuration"), "[configuration]"},     
     {"remove_config", 'R', 0, G_OPTION_ARG_CALLBACK, on_remove_config, N_("Remove configuration"), "[configuration]"},
-    {"use_config", 'U', 0, G_OPTION_ARG_CALLBACK, on_use_config, N_("Use configuration (must be first argument)"), "[configuration]"},    
+    {"use_config", 'U', 0, G_OPTION_ARG_CALLBACK, on_use_config, N_("Use configuration (must be first argument)"), "[configuration]"},
+    {"list_config", 'L', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, on_list_config, N_("List all configurations"), NULL},   
     {NULL}
 };
 

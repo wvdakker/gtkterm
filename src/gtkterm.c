@@ -193,6 +193,18 @@ static void gtkterm_class_init (GtkTermClass *class) {
                                                 0,
                                                 NULL);
 
+  gtkterm_signals[SIGNAL_GTKTERM_LIST_CONFIG] = g_signal_new ("config_list",
+                                                GTKTERM_TYPE_CONFIGURATION,
+                                                G_SIGNAL_RUN_FIRST,
+                                                0,
+                                                NULL,
+                                                NULL,
+                                                NULL,
+                                                G_TYPE_POINTER,
+                                                0,
+                                                NULL);
+
+
   gtkterm_signals[SIGNAL_GTKTERM_PRINT_SECTION] = g_signal_new ("config_print",
                                                 GTKTERM_TYPE_CONFIGURATION,
                                                 G_SIGNAL_RUN_FIRST,
