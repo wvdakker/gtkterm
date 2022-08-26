@@ -77,6 +77,40 @@ const char GtkTermConfigurationItems[][CONF_ITEM_LENGTH] = {
 	"term_background_alpha",
 };
 
+const char GtkTermCLIShortOption[][CONF_ITEM_LENGTH] = {
+	"p",
+	"s",
+	"b",
+	"t",
+	"a",
+	"w",
+	"d",
+	"r",
+	"x",
+	"y",
+	"",
+	"f",
+	"e",
+	"",
+	"l",
+	"",
+	"",
+	"",
+	"",
+	"o",
+	"c",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+};
+
 G_BEGIN_DECLS
 
 typedef struct
@@ -1004,12 +1038,17 @@ GtkTermConfigurationState on_set_config_options(const char *name, const char *va
 	if ((rc =check_keyfile(self, section)) != GTKTERM_CONFIGURATION_SUCCESS)
 		return rc;
 
-	/** Point to the third charater ('--' in front of the cli option) */
-	name += 2;
+	/**
+	 * Check if we use the long or short option.
+	 * For the long option, the option start at position 3 (--option). So add 2.
+	 * For the short option the option start at positon 2 (-o) so add 1.
+	 */
+	name += strlen(name) > 2 ? 2 : 1;
 
 	/** Search index for the option we want to set */
 	while (item_counter < CONF_ITEM_LAST) {
-		if (!g_strcmp0(name, GtkTermConfigurationItems[item_counter]))
+		if (!g_strcmp0(name, GtkTermConfigurationItems[item_counter]) ||
+			!g_strcmp0(name, GtkTermCLIShortOption[item_counter]))
 			break;
 
 		item_counter++;
