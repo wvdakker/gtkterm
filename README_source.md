@@ -101,9 +101,9 @@ For the migration to gtk4 several links were used:
 - https://docs.gtk.org/gobject/concepts.html
 - https://docs.gtk.org/glib/
 - https://toshiocp.github.io/Gtk4-tutorial/index.html
-- https://c-gtk.org/gapplication-part-i
+- https://blogs.gnome.org/mcatanzaro/2022/07/27/common-glib-programming-errors/
 
-IRC #gtk was a big support when asking questions.
+The gtk room on IRC was a big support when asking questions.
 
 Also special thanks to Jens Georg. Sellerie (an earlier fork of GTKTerm)
 was used as inspiration to solve some problems.
