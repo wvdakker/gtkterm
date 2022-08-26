@@ -29,7 +29,6 @@
 #include "gtkterm_configuration.h"
 #include "gtkterm_cmdline.h"
 #include "gtkterm_serial.h"
-#include "gtkterm_messages.h"
 
 /**
  * @brief  Removes a configuration sectons
@@ -50,12 +49,12 @@
  * 
  */
 static bool on_remove_config (const char *name, const char *value, gpointer data,  GError **error) {
-    int rc = CONF_ERROR_SUCCESS;
+    int rc = GTKTERM_CONFIGURATION_SUCCESS;
 
     /** Signal to load the configuration and dump it to the cli */
     g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_REMOVE_SECTION], 0, value, &rc);
 
-    g_printf ("%s\n", gtkterm_message(rc));
+    g_printf ("%s\n", gtkterm_configuration_get_error (GTKTERM_APP(data)->config)->message);
 
     g_application_quit (G_APPLICATION(data)); 
 
@@ -82,12 +81,12 @@ static bool on_remove_config (const char *name, const char *value, gpointer data
  * 
  */
 static bool on_save_section (const char *name, const char *value, gpointer data,  GError **error) {
-    int rc = CONF_ERROR_SUCCESS;
+    int rc = GTKTERM_CONFIGURATION_SUCCESS;
 
     /** Signal to load the configuration and dump it to the cli */
     g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_SAVE_CONFIG], 0, value, &rc);
 
-    g_printf ("%s\n", gtkterm_message(rc));
+    g_printf ("%s\n", gtkterm_configuration_get_error (GTKTERM_APP(data)->config)->message);
 
     g_application_quit (G_APPLICATION(data)); 
 
@@ -113,13 +112,13 @@ static bool on_save_section (const char *name, const char *value, gpointer data,
  * 
  */
 static bool on_print_section (const char *name, const char *value, gpointer data,  GError **error) {
-    int rc = CONF_ERROR_SUCCESS;
+    int rc = GTKTERM_CONFIGURATION_SUCCESS;
 
     /** Signal to load the configuration and dump it to the cli */
     g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_PRINT_SECTION], 0, value, &rc);
 
-    if (rc != CONF_ERROR_SUCCESS) {
-        g_printf ("%s\n", gtkterm_message(rc));
+    if (rc != GTKTERM_CONFIGURATION_SUCCESS) {
+        g_printf ("%s\n", gtkterm_configuration_get_error (GTKTERM_APP(data)->config)->message);
     }
 
     g_application_quit (G_APPLICATION(data)); 
@@ -229,5 +228,4 @@ void gtkterm_add_cmdline_options (GtkTerm *app)
     g_application_add_option_group (G_APPLICATION(app), app->g_term_group);
     g_application_add_option_group (G_APPLICATION(app), app->g_port_group);
     g_application_add_option_group (G_APPLICATION(app), app->g_config_group);    
-
 } 

@@ -1,7 +1,6 @@
 gtkterm_sources = [
 	'gtkterm_cmdline.c',
 	'gtkterm.c',
-	'gtkterm_messages.c',
 	'gtkterm_window.c',
 	'macros.c',
 	'gtkterm_configuration.c',

@@ -31,7 +31,6 @@
 #include "gtkterm_buffer.h"
 #include "macros.h"
 #include "gtkterm_configuration.h"
-#include "gtkterm_messages.h"
 
 typedef struct  {
     GtkTermBuffer *term_buffer;     /**< Terminal buffer for serial port                                    */
@@ -128,11 +127,18 @@ static void gtkterm_terminal_port_status_changed (GObject *object, GParamSpec *p
  * 
  */
 static void gtkterm_terminal_constructed (GObject *object) {
-    char *message_string= NULL;
-    int rc;
-
+    GError *error;
     GtkTermTerminal *self = GTKTERM_TERMINAL(object);
     GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
+
+    /** Check if the config file exists, if not it will be created */
+    g_signal_emit(priv->app->config, gtkterm_signals[SIGNAL_GTKTERM_CONFIG_CHECK_FILE], 0);
+
+    if ((gtkterm_configuration_get_status(priv->app->config)) != GTKTERM_CONFIGURATION_SUCCESS) {
+        error = gtkterm_configuration_get_error (priv->app->config);
+        /** \todo: convert to notify on message */        
+	    gtkterm_show_infobar (priv->main_window, error->message, GTK_MESSAGE_INFO); 
+    }
 
 	/** 
      * Load the configuration from [Section] into the port and terminal config.
@@ -140,12 +146,6 @@ static void gtkterm_terminal_constructed (GObject *object) {
      */
     g_signal_emit(priv->app->config, gtkterm_signals[SIGNAL_GTKTERM_CONFIG_TERMINAL], 0, priv->section, &priv->term_conf);
     g_signal_emit(priv->app->config, gtkterm_signals[SIGNAL_GTKTERM_CONFIG_SERIAL], 0, priv->section, &priv->port_conf);
-
-    if ((rc = gtkterm_configuration_status(priv->app->config)) != CONF_ERROR_SUCCESS) {
-	    message_string = (char *)gtkterm_message (rc) ;
-        /** \todo: convert to notify on message */        
-	    gtkterm_show_infobar (priv->main_window, message_string, GTK_MESSAGE_INFO); 
-    }
 
     priv->serial_port = gtkterm_serial_port_new (priv->port_conf);
     g_signal_connect (G_OBJECT(priv->serial_port), "notify::port-status", G_CALLBACK(gtkterm_terminal_port_status_changed), self);

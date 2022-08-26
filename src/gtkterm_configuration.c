@@ -81,10 +81,11 @@ G_BEGIN_DECLS
 
 typedef struct
 {
-	GKeyFile *key_file; /**< The memory loaded keyfile							*/
-	GFile *config_file; /**< The config file									*/
+	GKeyFile *key_file;	 						/**< The memory loaded keyfile			*/
+	GFile *config_file; 						/**< The config file					*/
 
-	int last_status; /**< Last status condition when operating configfiles	*/
+	GError *config_error;						/**< Error of the last file operation	*/
+	GtkTermConfigurationState config_status; 	/**< Status when operating configfiles	*/
 
 } GtkTermConfigurationPrivate;
 
@@ -102,8 +103,6 @@ struct _GtkTermConfigurationClass
 
 G_DEFINE_TYPE_WITH_PRIVATE(GtkTermConfiguration, gtkterm_configuration, G_TYPE_OBJECT)
 
-GtkTermConfigStatus gtkterm_configuration_status(GtkTermConfiguration *);
-
 /**
  * @brief Callback functions for signals
  */
@@ -111,6 +110,7 @@ static int gtkterm_configuration_load_keyfile(GtkTermConfiguration *, gpointer);
 static int gtkterm_configuration_save_keyfile(GtkTermConfiguration *, gpointer);
 static int gtkterm_configuration_print_section(GtkTermConfiguration *, gpointer, gpointer);
 static int gtkterm_configuration_remove_section(GtkTermConfiguration *, gpointer, gpointer);
+static int gtkterm_configuration_set_config_file(GtkTermConfiguration *, gpointer);
 static term_config_t *gtkterm_configuration_load_terminal_config(GtkTermConfiguration *, gpointer, gpointer);
 static port_config_t *gtkterm_configuration_load_serial_config(GtkTermConfiguration *, gpointer, gpointer);
 static int gtkterm_configuration_copy_section(GtkTermConfiguration *, gpointer, gpointer, gpointer, gpointer);
@@ -120,93 +120,25 @@ static int gtkterm_configuration_copy_section(GtkTermConfiguration *, gpointer, 
  *
  */
 static void set_color(GdkRGBA *, float, float, float, float);
-static GtkTermConfigStatus gtkterm_configuration_load_config();
-static GtkTermConfigStatus gtkterm_configuration_check_configuration_file(GtkTermConfiguration *, gpointer);
+
+static GtkTermConfigurationState gtkterm_configuration_check_configuration_file(GtkTermConfiguration *);
 void gtkterm_configuration_default_configuration(GtkTermConfiguration *, char *);
-GtkTermConfigStatus gtkterm_configuration_validate(GtkTermConfiguration *, char *);
-GtkTermConfigStatus gtkterm_configuration_status_set(GtkTermConfiguration *self, GtkTermConfigStatus);
+GtkTermConfigurationState gtkterm_configuration_validate(GtkTermConfiguration *, char *);
+GtkTermConfigurationState gtkterm_configuration_set_status(GtkTermConfiguration *self, GtkTermConfigurationState, GError *);
 
 /**
- * @brief  Return the latest status condiation for the file operation.
- *
- * Clear the last status when the status is retrieved.
- * Once we retrieve the status it is lost.
- *
- * @param self The configuration for which the get the status for.
- *
- * @return  The latest status.
- *
+ * @brief Remote all pointers when removing the object.
+ * 
+ * @param object The pointer to the configuration object.
  */
-GtkTermConfigStatus gtkterm_configuration_status(GtkTermConfiguration *self)
-{
-	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
+static void gtkterm_configuration_finalize (GObject *object) {
+   	GtkTermConfiguration *self = GTKTERM_CONFIGURATION(object);
+    GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private (self);
 
-	GtkTermConfigStatus prev_status = priv->last_status;
-	priv->last_status = CONF_ERROR_SUCCESS;
+    g_clear_error (&priv->config_error);
 
-	return prev_status;
-}
-
-/**
- * @brief  Sets the status of the last operation.
- *
- * The status value of the last operation will be set.
- * If the previous status is not CONF_ERROR_SUCCESS, the new status will not be set.
- * This prevents the override of the previous status which can be the cause of the 'error'.
- *
- * @param self The configuration for which the get the status for.
- *
- * @param status The status to be set.
- *
- * @return  The latest status.
- *
- */
-GtkTermConfigStatus gtkterm_configuration_status_set(GtkTermConfiguration *self, GtkTermConfigStatus status)
-{
-	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
-
-	if (priv->last_status == CONF_ERROR_SUCCESS)
-	{
-		priv->last_status = status;
-	}
-
-	return status;
-}
-
-/**
- * @brief  Check if the keyfile is loaded into memory.
- *
- * Loads the keyfile and checks if the section we want to acces, exists.
- *
- * @param self The configuration for which the get the status for.
- *
- * @param section The section we want the configuration to read from
- *
- * @return: The status of this operation
- *
- */
-GtkTermConfigStatus check_keyfile(GtkTermConfiguration *self, char *section)
-{
-	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
-
-	/**  Load keyfile if it is nog loaded yet */
-	if (priv->key_file == NULL)
-	{
-		if (gtkterm_configuration_load_keyfile(self, NULL) < 0)
-		{
-
-			return gtkterm_configuration_status_set(self, CONF_ERROR_FILE_CONFIG_LOAD);
-		}
-	}
-
-	/** Check if the [section] exists in the key file. */
-	if (!g_key_file_has_group(priv->key_file, section))
-	{
-
-		return gtkterm_configuration_status_set(self, CONF_ERROR_SECTION_UNKNOWN);
-	}
-
-	return CONF_ERROR_SUCCESS;
+    GObjectClass *object_class = G_OBJECT_CLASS (gtkterm_configuration_parent_class);
+    object_class->finalize (object);	
 }
 
 /**
@@ -217,8 +149,7 @@ GtkTermConfigStatus check_keyfile(GtkTermConfiguration *self, char *section)
  * @param object The configuration class object.
  *
  */
-static void gtkterm_configuration_class_constructed(GObject *object)
-{
+static void gtkterm_configuration_class_constructed(GObject *object) {
 	GtkTermConfiguration *self = GTKTERM_CONFIGURATION(object);
 
 	g_signal_connect(self, "config_print", G_CALLBACK(gtkterm_configuration_print_section), NULL);
@@ -228,6 +159,7 @@ static void gtkterm_configuration_class_constructed(GObject *object)
 	g_signal_connect(self, "config_terminal", G_CALLBACK(gtkterm_configuration_load_terminal_config), NULL);
 	g_signal_connect(self, "config_serial", G_CALLBACK(gtkterm_configuration_load_serial_config), NULL);
 	g_signal_connect(self, "config_copy", G_CALLBACK(gtkterm_configuration_copy_section), NULL);
+	g_signal_connect(self, "config_check", G_CALLBACK(gtkterm_configuration_set_config_file), NULL);	
 
 	G_OBJECT_CLASS(gtkterm_configuration_parent_class)->constructed(object);
 }
@@ -240,11 +172,11 @@ static void gtkterm_configuration_class_constructed(GObject *object)
  * @param class The configuration.
  *
  */
-static void gtkterm_configuration_class_init(GtkTermConfigurationClass *class)
-{
+static void gtkterm_configuration_class_init(GtkTermConfigurationClass *class) {
 	GObjectClass *object_class = G_OBJECT_CLASS(class);
 
 	object_class->constructed = gtkterm_configuration_class_constructed;
+	object_class->finalize = gtkterm_configuration_finalize;	
 }
 
 /**
@@ -253,14 +185,53 @@ static void gtkterm_configuration_class_init(GtkTermConfigurationClass *class)
  * @param self  the configuration.
  *
  */
-static void gtkterm_configuration_init(GtkTermConfiguration *self)
-{
+static void gtkterm_configuration_init(GtkTermConfiguration *self) {
 
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
 	//! Initialize to NULL so we can detect if it is loaded.
 	priv->config_file = NULL;
 	priv->key_file = NULL;
+	priv->config_error = NULL;
+}
+
+/**
+ * @brief Check if the configuration file exists on disk.
+ *
+ * If not it creates and new default one and save it to disk.
+ *
+ * @param self The configuration class.
+ *
+ * @return The result of the operation
+ *
+ */
+static GtkTermConfigurationState gtkterm_configuration_check_configuration_file(GtkTermConfiguration *self)
+{
+	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
+	GtkTermConfigurationState rc = GTKTERM_CONFIGURATION_SUCCESS;
+	GError *error = NULL;
+	struct stat my_stat;
+
+	/** is configuration file present
+	 * if not, create it, with the [default] section
+	 */
+	if (stat(g_file_get_path(priv->config_file), &my_stat) != 0) 	{
+
+		priv->key_file = g_key_file_new();
+		gtkterm_configuration_default_configuration(self, DEFAULT_SECTION);
+
+		/** And save the keyfile */
+		gtkterm_configuration_save_keyfile(self, NULL);
+
+		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                             GTKTERM_CONFIGURATION_FILE_CREATED,
+                             _("Configuration file with [default] configuration has been created and saved")
+                             );
+
+		rc = GTKTERM_CONFIGURATION_FILE_CREATED;
+	}
+
+	return gtkterm_configuration_set_status(self, rc, error);
 }
 
 /**
@@ -275,12 +246,12 @@ static void gtkterm_configuration_init(GtkTermConfiguration *self)
  * the user directory. So we can skip eventually moving the file.
  *
  * @param self The configuration class.
+ * 
+ * @param user_data Not used.
  *
  * @return The result of the operation.
  */
-static GtkTermConfigStatus gtkterm_configuration_load_config(GtkTermConfiguration *self)
-{
-
+static int gtkterm_configuration_set_config_file (GtkTermConfiguration *self, gpointer user_data) {
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
 	GFile *config_file_old = g_file_new_build_filename(getenv("HOME"), CONFIGURATION_FILENAME, NULL);
@@ -289,9 +260,48 @@ static GtkTermConfigStatus gtkterm_configuration_load_config(GtkTermConfiguratio
 	if (!g_file_query_exists(priv->config_file, NULL) && g_file_query_exists(config_file_old, NULL))
 		g_file_move(config_file_old, priv->config_file, G_FILE_COPY_NONE, NULL, NULL, NULL, NULL);
 
-	gtkterm_configuration_check_configuration_file(self, NULL);
+	// Check it the config file exists and if not, create one.
+	return gtkterm_configuration_check_configuration_file(self);
+}
 
-	return gtkterm_configuration_status_set(self, CONF_ERROR_SUCCESS);
+/**
+ * @brief  Check if the keyfile is loaded into memory.
+ *
+ * Loads the keyfile and checks if the section we want to access, exists.
+ *
+ * @param self The configuration for which the get the status for.
+ *
+ * @param section The section we want the configuration to read from
+ *
+ * @return: The status of this operation
+ *
+ */
+GtkTermConfigurationState check_keyfile(GtkTermConfiguration *self, char *section) {
+	GError *error = NULL;
+	GtkTermConfigurationState rc = GTKTERM_CONFIGURATION_SUCCESS;
+	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
+
+	/** Load keyfile if it is nog loaded yet */
+	if (priv->key_file == NULL)	{
+
+		rc = gtkterm_configuration_load_keyfile(self, NULL);
+
+		if (!(rc == GTKTERM_CONFIGURATION_SUCCESS || rc == GTKTERM_CONFIGURATION_FILE_CREATED))
+			return rc;	
+	}
+
+	/** Check if the [section] exists in the key file. */
+	if (!g_key_file_has_group(priv->key_file, section))	 {
+        
+		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                             GTKTERM_CONFIGURATION_SECTION_UNKNOWN,
+                             _ ("No [%s] section in configuration file"),
+                             section);
+
+		rc = GTKTERM_CONFIGURATION_SECTION_UNKNOWN;
+	}
+
+	return gtkterm_configuration_set_status (self, rc, error);
 }
 
 /**
@@ -306,24 +316,35 @@ static GtkTermConfigStatus gtkterm_configuration_load_config(GtkTermConfiguratio
  *
  * @return The result of the operation.
  */
-static int gtkterm_configuration_load_keyfile(GtkTermConfiguration *self, gpointer user_data)
-{
-
+static int gtkterm_configuration_load_keyfile (GtkTermConfiguration *self, gpointer user_data) {
 	GError *error = NULL;
+	GtkTermConfigurationState rc = GTKTERM_CONFIGURATION_SUCCESS;
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
-	if (priv->config_file == NULL)
-		gtkterm_configuration_load_config(self);
+	if (priv->config_file == NULL) {
+			rc = gtkterm_configuration_set_config_file (self, NULL);
+
+		g_printf ("1a\n");
+
+		if (!(rc == GTKTERM_CONFIGURATION_SUCCESS || rc == GTKTERM_CONFIGURATION_FILE_CREATED))
+			return rc;			
+	}
 
 	priv->key_file = g_key_file_new();
 
-	if (!g_key_file_load_from_file(priv->key_file, g_file_get_path(priv->config_file), G_KEY_FILE_NONE, &error))
-	{
+	if (!g_key_file_load_from_file(priv->key_file, g_file_get_path(priv->config_file), G_KEY_FILE_NONE, &error)) {
 
-		return gtkterm_configuration_status_set(self, CONF_ERROR_FILE_CONFIG_LOAD);
+		g_propagate_error (&error, 
+							g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+							GTKTERM_CONFIGURATION_FILE_CONFIG_LOAD,
+							_("Failed to load configuration file: %s\n%s"),
+							g_file_get_path(priv->config_file),
+							error->message));
+
+		rc = GTKTERM_CONFIGURATION_FILE_CONFIG_LOAD;
 	}
 
-	return gtkterm_configuration_status_set(self, CONF_ERROR_SUCCESS);
+	return gtkterm_configuration_set_status(self, rc, error);
 }
 
 /**
@@ -340,23 +361,37 @@ static int gtkterm_configuration_load_keyfile(GtkTermConfiguration *self, gpoint
 static int gtkterm_configuration_save_keyfile(GtkTermConfiguration *self, gpointer user_data)
 {
 	GError *error = NULL;
+	GtkTermConfigurationState rc = GTKTERM_CONFIGURATION_SUCCESS;	
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
-	if (priv->config_file == NULL)
-	{
-		g_debug("No keyfile loaded. Nothing to save file.");
+	if (priv->config_file == NULL) 	{
+		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                             GTKTERM_CONFIGURATION_NO_KEYFILE_LOADED,
+                             _ ("File not saved. No keyfile loaded")
+                             );
 
-		return gtkterm_configuration_status_set(self, CONF_ERROR_NO_KEYFILE_LOADED);
+		rc = GTKTERM_CONFIGURATION_NO_KEYFILE_LOADED;
+
+	} else  if (!g_key_file_save_to_file(priv->key_file, g_file_get_path(priv->config_file), &error)){
+		
+		g_propagate_error (&error, 
+							g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                          	GTKTERM_CONFIGURATION_FILE_NOT_SAVED,
+                          	_("Failed to save configuration file: %s\n%s"),
+                          	g_file_get_path(priv->config_file),
+						 	error->message));
+
+		rc = GTKTERM_CONFIGURATION_FILE_NOT_SAVED;
+	} else {
+		rc = GTKTERM_CONFIGURATION_FILE_SAVED;
+
+		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                             GTKTERM_CONFIGURATION_FILE_SAVED,
+                             _("Configuration saved")
+                             );
 	}
 
-	if (!g_key_file_save_to_file(priv->key_file, g_file_get_path(priv->config_file), &error))
-	{
-		g_error_free(error);
-
-		return gtkterm_configuration_status_set(self, CONF_ERROR_FILE_NOT_SAVED);
-	}
-
-	return CONF_ERROR_SUCCESS;
+	return gtkterm_configuration_set_status(self, rc, error);
 }
 
 /**
@@ -373,13 +408,13 @@ static int gtkterm_configuration_save_keyfile(GtkTermConfiguration *self, gpoint
 static int gtkterm_configuration_print_section(GtkTermConfiguration *self, gpointer data, gpointer user_data)
 {
 	char *section = (char *)data;
-	GtkTermConfigStatus rc;
+	GtkTermConfigurationState rc;
 	gsize nr_of_strings;
 	char **macrostring;
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
-	if ((rc = check_keyfile(self, section) != CONF_ERROR_SUCCESS))
-		return gtkterm_configuration_status_set(self, rc);
+	if ((rc = check_keyfile(self, section) != GTKTERM_CONFIGURATION_SUCCESS))
+		return rc;
 
 	g_printf(_("Configuration [%s] loaded from file\n"), section);
 
@@ -436,8 +471,11 @@ static int gtkterm_configuration_print_section(GtkTermConfiguration *self, gpoin
 			g_printf("[%2d] %-8s  %s\n", i, macros[i].shortcut, macros[i].action);
 	}
 
+	if ((rc = gtkterm_configuration_validate(self, section)) != GTKTERM_CONFIGURATION_SUCCESS)
+		return rc;
+
 	/** Inverse the return due to the handling return value of the callback */
-	return gtkterm_configuration_status_set(self, gtkterm_configuration_validate(self, section));
+	return gtkterm_configuration_set_status(self, rc, NULL);
 }
 
 /**
@@ -456,33 +494,44 @@ static int gtkterm_configuration_print_section(GtkTermConfiguration *self, gpoin
  */
 static int gtkterm_configuration_remove_section(GtkTermConfiguration *self, gpointer data, gpointer user_data)
 {
-	GtkTermConfigStatus rc;
+	GtkTermConfigurationState rc = GTKTERM_CONFIGURATION_SUCCESS;
 	char *section = (char *)data;
 	GError *error = NULL;
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
-	if ((rc = check_keyfile(self, section)) != CONF_ERROR_SUCCESS)
-		return gtkterm_configuration_status_set(self, rc);
+	if ((rc = check_keyfile(self, section)) != GTKTERM_CONFIGURATION_SUCCESS)
+		return rc;
 
 	/** If we remove the DEFAULT_SECTION then create a new one */
-	if (!g_strcmp0((const char *)section, (const char *)&DEFAULT_SECTION))
-	{
+	if (!g_strcmp0((const char *)section, (const char *)&DEFAULT_SECTION)) {
+
 		gtkterm_configuration_default_configuration(self, section);
 	}
-	else
-	{
+	else if (!g_key_file_remove_group(priv->key_file, section, &error))	{
+		
 		/** Remove the group from GKeyFile */
-		if (!g_key_file_remove_group(priv->key_file, section, &error))
-		{
-			g_error_free(error);
+		g_propagate_error (&error, 
+							g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                          	GTKTERM_CONFIGURATION_SECTION_NOT_REMOVED,
+                          	_("Failed to remove section: %s\n%s"),
+                          	section,
+						 	error->message));
 
-			return gtkterm_configuration_status_set(self, CONF_ERROR_SECTION_NOT_REMOVED);
-		}
+
+			rc = GTKTERM_CONFIGURATION_SECTION_NOT_REMOVED;
+	} else {
+		gtkterm_configuration_save_keyfile(self, user_data);
+
+		rc = GTKTERM_CONFIGURATION_SECTION_REMOVED;
+
+		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                             GTKTERM_CONFIGURATION_SECTION_REMOVED,
+                             _ ("Section [%s] removed"),
+							 section
+                             );
 	}
 
-	gtkterm_configuration_save_keyfile(self, user_data);
-
-	return gtkterm_configuration_status_set(self, CONF_ERROR_SUCCESS);
+	return gtkterm_configuration_set_status(self, rc, error);
 }
 
 /**
@@ -519,40 +568,40 @@ static int gtkterm_configuration_copy_section(GtkTermConfiguration *self, gpoint
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_BITS], port_conf->bits);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_STOPBITS], port_conf->stopbits);
 
-	switch (port_conf->parity)
-	{
-	case GTKTERM_SERIAL_PORT_PARITY_NONE:
-		string = g_strdup_printf("none");
-		break;
-	case GTKTERM_SERIAL_PORT_PARITY_ODD:
-		string = g_strdup_printf("odd");
-		break;
-	case GTKTERM_SERIAL_PORT_PARITY_EVEN:
-		string = g_strdup_printf("even");
-		break;
-	default:
-		string = g_strdup_printf("none");
+	switch (port_conf->parity) {
+
+		case GTKTERM_SERIAL_PORT_PARITY_NONE:
+			string = g_strdup_printf("none");
+			break;
+		case GTKTERM_SERIAL_PORT_PARITY_ODD:
+			string = g_strdup_printf("odd");
+			break;
+		case GTKTERM_SERIAL_PORT_PARITY_EVEN:
+			string = g_strdup_printf("even");
+			break;
+		default:
+			string = g_strdup_printf("none");
 	}
 
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_PARITY], string);
 	g_free(string);
 
-	switch (port_conf->flow_control)
-	{
-	case GTKTERM_SERIAL_PORT_FLOWCONTROL_NONE:
-		string = g_strdup_printf("none");
-		break;
-	case GTKTERM_SERIAL_PORT_FLOWCONTROL_XON_XOFF:
-		string = g_strdup_printf("xon");
-		break;
-	case GTKTERM_SERIAL_PORT_FLOWCONTROL_RTS_CTS:
-		string = g_strdup_printf("rts");
-		break;
-	case GTKTERM_SERIAL_PORT_FLOWCONTROL_RS485_HD:
-		string = g_strdup_printf("rs485");
-		break;
-	default:
-		string = g_strdup_printf("none");
+	switch (port_conf->flow_control) {
+
+		case GTKTERM_SERIAL_PORT_FLOWCONTROL_NONE:
+			string = g_strdup_printf("none");
+			break;
+		case GTKTERM_SERIAL_PORT_FLOWCONTROL_XON_XOFF:
+			string = g_strdup_printf("xon");
+			break;
+		case GTKTERM_SERIAL_PORT_FLOWCONTROL_RTS_CTS:
+			string = g_strdup_printf("rts");
+			break;
+		case GTKTERM_SERIAL_PORT_FLOWCONTROL_RS485_HD:
+			string = g_strdup_printf("rs485");
+			break;
+		default:
+			string = g_strdup_printf("none");
 	}
 
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_FLOW_CONTROL], string);
@@ -599,7 +648,7 @@ static int gtkterm_configuration_copy_section(GtkTermConfiguration *self, gpoint
 	g_key_file_set_double(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_BLUE], term_conf->background_color.blue);
 	g_key_file_set_double(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_ALPHA], term_conf->background_color.alpha);
 
-	return gtkterm_configuration_status_set(self, CONF_ERROR_SUCCESS);
+	return gtkterm_configuration_set_status (self, GTKTERM_CONFIGURATION_SUCCESS, NULL);
 }
 
 /**
@@ -614,17 +663,16 @@ static int gtkterm_configuration_copy_section(GtkTermConfiguration *self, gpoint
  *
  * @param user_data Not used.
  *
- * @return The terminal configuration which ends up as the last param in the signal.
+ * @return The terminal configuration which ends up as the last param in the signal. NULL on error.
  */
-static term_config_t *gtkterm_configuration_load_terminal_config(GtkTermConfiguration *self, gpointer data, gpointer user_data)
-{
+static term_config_t *gtkterm_configuration_load_terminal_config(GtkTermConfiguration *self, gpointer data, gpointer user_data) {
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 	term_config_t *term_conf;
 	char *section = (char *)data;
 	char *key_str = NULL;
 	int key_value = 0;
 
-	if (check_keyfile(self, section))
+	if (check_keyfile(self, section) != GTKTERM_CONFIGURATION_SUCCESS)
 		return NULL;
 
 	term_conf = g_malloc0(sizeof(term_config_t));
@@ -635,48 +683,42 @@ static term_config_t *gtkterm_configuration_load_terminal_config(GtkTermConfigur
 	term_conf->scrollback = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SCROLLBACK], NULL);
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BLOCK_CURSOR], NULL);
-	if (key_str != NULL)
-	{
+	if (key_str != NULL) {
 		term_conf->block_cursor = g_ascii_strcasecmp(key_str, "true") ? true : false;
 
 		g_free(key_str);
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SHOW_CURSOR], NULL);
-	if (key_str != NULL)
-	{
+	if (key_str != NULL) {
 		term_conf->show_cursor = g_ascii_strcasecmp(key_str, "true") ? true : false;
 
 		g_free(key_str);
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_CRLF_AUTO], NULL);
-	if (key_str != NULL)
-	{
+	if (key_str != NULL) {
 		term_conf->crlfauto = g_ascii_strcasecmp(key_str, "true") ? true : false;
 
 		g_free(key_str);
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], NULL);
-	if (key_str != NULL)
-	{
+	if (key_str != NULL) {
 		term_conf->echo = g_ascii_strcasecmp(key_str, "true") ? true : false;
 
 		g_free(key_str);
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_TIMESTAMP], NULL);
-	if (key_str != NULL)
-	{
+	if (key_str != NULL) {
 		term_conf->timestamp = g_ascii_strcasecmp(key_str, "true") ? true : false;
 
 		g_free(key_str);
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VISUAL_BELL], NULL);
-	if (key_str != NULL)
-	{
+	if (key_str != NULL) {
 		term_conf->visual_bell = g_ascii_strcasecmp(key_str, "true") ? true : false;
 
 		g_free(key_str);
@@ -720,16 +762,15 @@ static term_config_t *gtkterm_configuration_load_terminal_config(GtkTermConfigur
  *
  * @param user_data Not used.
  *
- * @return The port configuration which ends up as the last param in the signal.
+ * @return The port configuration which ends up as the last param in the signal. NULL on error.
  */
-static port_config_t *gtkterm_configuration_load_serial_config(GtkTermConfiguration *self, gpointer data, gpointer user_data)
-{
+static port_config_t *gtkterm_configuration_load_serial_config(GtkTermConfiguration *self, gpointer data, gpointer user_data) {
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 	port_config_t *port_conf;
 	char *section = (char *)data;
 	char *key_str = NULL;
 
-	if (check_keyfile(self, section))
+	if (check_keyfile(self, section) != GTKTERM_CONFIGURATION_SUCCESS)
 		return NULL;
 
 	port_conf = g_malloc0(sizeof(port_config_t));
@@ -742,8 +783,7 @@ static port_config_t *gtkterm_configuration_load_serial_config(GtkTermConfigurat
 	port_conf->rs485_rts_time_after_transmit = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_RS485_RTS_TIME_AFTER_TX], NULL);
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_PARITY], NULL);
-	if (key_str != NULL)
-	{
+	if (key_str != NULL) {
 		if (!g_ascii_strcasecmp(key_str, "none"))
 			port_conf->parity = GTKTERM_SERIAL_PORT_PARITY_NONE;
 		else if (!g_ascii_strcasecmp(key_str, "odd"))
@@ -754,8 +794,7 @@ static port_config_t *gtkterm_configuration_load_serial_config(GtkTermConfigurat
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_FLOW_CONTROL], NULL);
-	if (key_str != NULL)
-	{
+	if (key_str != NULL) {
 		if (!g_ascii_strcasecmp(key_str, "none"))
 			port_conf->flow_control = GTKTERM_SERIAL_PORT_FLOWCONTROL_NONE;
 		else if (!g_ascii_strcasecmp(key_str, "xon"))
@@ -769,8 +808,7 @@ static port_config_t *gtkterm_configuration_load_serial_config(GtkTermConfigurat
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_DISABLE_PORT_LOCK], NULL);
-	if (key_str != NULL)
-	{
+	if (key_str != NULL) {
 		port_conf->disable_port_lock = g_ascii_strcasecmp(key_str, "true") ? true : false;
 
 		g_free(key_str);
@@ -790,8 +828,7 @@ static port_config_t *gtkterm_configuration_load_serial_config(GtkTermConfigurat
  * @param section The section we want to get the config from.
  *
  */
-void gtkterm_configuration_default_configuration(GtkTermConfiguration *self, char *section)
-{
+void gtkterm_configuration_default_configuration(GtkTermConfiguration *self, char *section) {
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_PORT], DEFAULT_PORT);
@@ -843,60 +880,94 @@ void gtkterm_configuration_default_configuration(GtkTermConfiguration *self, cha
  * @return The result of the operation
  *
  */
-GtkTermConfigStatus gtkterm_configuration_validate(GtkTermConfiguration *self, char *section)
-{
+GtkTermConfigurationState gtkterm_configuration_validate(GtkTermConfiguration *self, char *section) {
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
+	GtkTermConfigurationState rc = GTKTERM_CONFIGURATION_SUCCESS;
+	GError *error;
 	int value;
 	unsigned long lvalue;
 
 	lvalue = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_BAUDRATE], NULL);
-	switch (lvalue)
-	{
-	case 300:
-	case 600:
-	case 1200:
-	case 2400:
-	case 4800:
-	case 9600:
-	case 19200:
-	case 38400:
-	case 57600:
-	case 115200:
-	case 230400:
-	case 460800:
-	case 576000:
-	case 921600:
-	case 1000000:
-	case 2000000:
-		break;
+	switch (lvalue) {
+		case 300:
+		case 600:
+		case 1200:
+		case 2400:
+		case 4800:
+		case 9600:
+		case 19200:
+		case 38400:
+		case 57600:
+		case 115200:
+		case 230400:
+		case 460800:
+		case 576000:
+		case 921600:
+		case 1000000:
+		case 2000000:
+			break;
 
-	default:
-		return CONF_ERROR_INVALID_BAUDRATE;
+		default:
+				error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                             GTKTERM_CONFIGURATION_INVALID_BAUDRATE,
+                             _ ("Baudrate %ld may not be supported by all hardware"),
+							 lvalue
+                             );
+
+				rc =  GTKTERM_CONFIGURATION_INVALID_BAUDRATE;
+				break;
 	}
 
 	value = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_STOPBITS], NULL);
-	if (value != 1 && value != 2)
-	{
-		return gtkterm_configuration_status_set(self, CONF_ERROR_INVALID_STOPBITS);
+	if (value != 1 && value != 2) {
+		
+		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                             GTKTERM_CONFIGURATION_INVALID_STOPBITS,
+                             _ ("Invalid number of stopbits: %d\nFalling back to default number of stopbits: %d"),
+							 value,
+							 DEFAULT_STOPBITS
+                             );
+
+		rc = GTKTERM_CONFIGURATION_INVALID_STOPBITS;
+
+		goto validate_exit;
 	}
 
 	value = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_BITS], NULL);
-	if (value < 5 || value > 8)
-	{
-		return gtkterm_configuration_status_set(self, CONF_ERROR_INVALID_BITS);
+	if (value < 5 || value > 8)	{
+		
+		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                             GTKTERM_CONFIGURATION_INVALID_BITS,
+                             _ ("Invalid number of bits: %d\nFalling back to default number of bits: %d"),
+							 value,
+							 DEFAULT_BITS
+                             );
+
+		rc = GTKTERM_CONFIGURATION_INVALID_BITS;
+
+		goto validate_exit;		
 	}
 
 	value = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], NULL);
-	if (value < 0 || value > 500)
-	{
+	if (value < 0 || value > 500) {
 
-		return gtkterm_configuration_status_set(self, CONF_ERROR_INVALID_DELAY);
+		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                             GTKTERM_CONFIGURATION_INVALID_DELAY,
+                             _ ("Invalid delay: %d ms\nFalling back to default delay: %d ms"),
+							 value,
+							 DEFAULT_STOPBITS
+                             );
+
+		rc = GTKTERM_CONFIGURATION_INVALID_DELAY;
+
+		goto validate_exit;
 	}
 
 	if (g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FONT], NULL) == NULL)
 		g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FONT], DEFAULT_FONT);
 
-	return gtkterm_configuration_status_set(self, CONF_ERROR_SUCCESS);
+validate_exit:
+	return gtkterm_configuration_set_status (self, rc, error);
 }
 
 /**
@@ -917,12 +988,11 @@ GtkTermConfigStatus gtkterm_configuration_validate(GtkTermConfiguration *self, c
  * 	 		the return value from GOptionEntry. GOptionEntry contuinues if callback returns 1.
  *
  */
-GtkTermConfigStatus on_set_config_options(const char *name, const char *value, gpointer data, GError **error)
-{
+GtkTermConfigurationState on_set_config_options(const char *name, const char *value, gpointer data, GError **error) {
 
 	int item_counter = 0;
-	int config_option_success = CONF_ERROR_SUCCESS;
 	char *section = GTKTERM_APP(data)->section;
+	GtkTermConfigurationState rc = GTKTERM_CONFIGURATION_SUCCESS;
 	GtkTermConfiguration *self = GTKTERM_APP(data)->config;
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
@@ -930,67 +1000,69 @@ GtkTermConfigStatus on_set_config_options(const char *name, const char *value, g
 	name += 2;
 
 	/** Search index for the option we want to set */
-	while (item_counter < CONF_ITEM_LAST)
-	{
+	while (item_counter < CONF_ITEM_LAST) {
 		if (!g_strcmp0(name, GtkTermConfigurationItems[item_counter]))
 			break;
 
 		item_counter++;
 	}
 
-	switch (item_counter)
-	{
-	case CONF_ITEM_TERM_ECHO:
-	case CONF_ITEM_SERIAL_DISABLE_PORT_LOCK:
-	case CONF_ITEM_SERIAL_PARITY:
-	case CONF_ITEM_SERIAL_FLOW_CONTROL:
-		g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[item_counter], value);
-		break;
-
-	case CONF_ITEM_SERIAL_BAUDRATE:
-		g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[item_counter], atol(value));
-		break;
-
-	case CONF_ITEM_SERIAL_BITS:
-	case CONF_ITEM_SERIAL_STOPBITS:
-	case CONF_ITEM_SERIAL_RS485_RTS_TIME_BEFORE_TX:
-	case CONF_ITEM_SERIAL_RS485_RTS_TIME_AFTER_TX:
-	case CONF_ITEM_TERM_WAIT_CHAR:
-	case CONF_ITEM_TERM_WAIT_DELAY:
-		g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[item_counter], atoi(value));
-		break;
-
-	case CONF_ITEM_TERM_RAW_FILENAME:
-	case CONF_ITEM_SERIAL_PORT:
-		/** Check for max path length. Exit if it is to long.
-		 * Note: Serial port is also a path to a device.
-		 */
-		if ((int)strlen(value) < PATH_MAX)
-		{
+	switch (item_counter) {
+		case CONF_ITEM_TERM_ECHO:
+		case CONF_ITEM_SERIAL_DISABLE_PORT_LOCK:
+		case CONF_ITEM_SERIAL_PARITY:
+		case CONF_ITEM_SERIAL_FLOW_CONTROL:
 			g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[item_counter], value);
-		}
-		else
-		{
-			g_printf(_("Filename to long\n\n"));
+			break;
 
-			config_option_success = CONF_ERROR_SECTION_UNKNOWN;
-		}
+		case CONF_ITEM_SERIAL_BAUDRATE:
+			g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[item_counter], atol(value));
+			break;
 
-		break;
+		case CONF_ITEM_SERIAL_BITS:
+		case CONF_ITEM_SERIAL_STOPBITS:
+		case CONF_ITEM_SERIAL_RS485_RTS_TIME_BEFORE_TX:
+		case CONF_ITEM_SERIAL_RS485_RTS_TIME_AFTER_TX:
+		case CONF_ITEM_TERM_WAIT_CHAR:
+		case CONF_ITEM_TERM_WAIT_DELAY:
+			g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[item_counter], atoi(value));
+			break;
 
-	default:
-		/** We should not get here. */
-		g_printf("Invalid option. Internal lookup failure");
-		config_option_success = CONF_ERROR_SECTION_UNKNOWN;
-		break;
+		case CONF_ITEM_TERM_RAW_FILENAME:
+		case CONF_ITEM_SERIAL_PORT:
+			/** Check for max path length. Exit if it is to long.
+			 * Note: Serial port is also a path to a device.
+			 */
+			if ((int)strlen(value) < PATH_MAX) {
+				g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[item_counter], value);
+			} else {
+				g_printf(_("Filename to long\n\n"));
+				*error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                             GTKTERM_CONFIGURATION_FILNAME_TO_LONG,
+                             _ ("Filename to long (%d)"),
+							 (int)strlen(value)
+                             );				
+
+				rc = GTKTERM_CONFIGURATION_FILNAME_TO_LONG;
+			}
+
+			break;
+
+		default:
+			/** We should not get here. */
+			*error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
+                            	GTKTERM_CONFIGURATION_UNKNOWN_OPTION,
+                             	_("Unknown option (%s)"),
+							 	name
+                             	);		
+			rc = GTKTERM_CONFIGURATION_UNKNOWN_OPTION;
+			break;
 	}
 
-	g_free(section);
-
-	if (config_option_success)
+	if (rc == GTKTERM_CONFIGURATION_SUCCESS)
 		gtkterm_configuration_validate(GTKTERM_APP(data)->config, section);
 
-	return gtkterm_configuration_status_set(self, config_option_success) == CONF_ERROR_SUCCESS ? true : false;
+	return (gtkterm_configuration_set_status(self, rc, *error) == GTKTERM_CONFIGURATION_SUCCESS);
 }
 
 /**
@@ -1032,38 +1104,55 @@ static void set_color(GdkRGBA *color, float R, float G, float B, float A)
 // }
 
 /**
- * @brief Check if the configuration file exists on disk.
+ * @brief  Sets the status and error of the last operation.
  *
- * If not it creates and new default one and save it to disk.
+ * @param self The configuration for which the get the status for.
  *
- * @param self The configuration class.
+ * @param status The status to be set.
+ * 
+ * @param error The error message (can be NULL)
  *
- * @param user_data Not used
- *
- * @return The result of the operation
+ * @return  The latest status.
  *
  */
-static GtkTermConfigStatus gtkterm_configuration_check_configuration_file(GtkTermConfiguration *self, gpointer user_data)
-{
-	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
-	struct stat my_stat;
+GtkTermConfigurationState gtkterm_configuration_set_status (GtkTermConfiguration *self, GtkTermConfigurationState status, GError *error) {
+    GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private (self);
 
-	/** is configuration file present
-	 * if not, create it, with the [default] section
-	 */
-	if (stat(g_file_get_path(priv->config_file), &my_stat) != 0)
-	{
+	priv->config_status = status;
 
-		priv->key_file = g_key_file_new();
-		gtkterm_configuration_default_configuration(self, DEFAULT_SECTION);
+	/** If there is a previous error, clear it */
+	if (priv->config_error != NULL)
+		g_error_free (priv->config_error);
+	
+	priv->config_error = error;	
 
-		/** And save the keyfile */
-		gtkterm_configuration_save_keyfile(self, user_data);
+	return status;
+}
 
-		g_key_file_unref(priv->key_file);
+/**
+ * @brief  Return the latest status condiation for the file operation.
+ *
+ * @param self The configuration for which the get the status for.
+ *
+ * @return  The latest status.
+ *
+ */
+GtkTermConfigurationState gtkterm_configuration_get_status (GtkTermConfiguration *self) {
+    GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private (self);
 
-		priv->last_status = CONF_ERROR_FILE_CREATED;
-	}
+	return (priv->config_status);
+}
 
-	return gtkterm_configuration_status_set(self, CONF_ERROR_SUCCESS);
+/**
+ * @brief  Return the latest error for the file operation.
+ *
+ * @param self The configuration for which the get the status for.
+ *
+ * @return  The latest error.
+ *
+ */
+GError *gtkterm_configuration_get_error (GtkTermConfiguration *self) {
+    GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private (self);
+
+	return (priv->config_error);
 }

@@ -531,6 +531,11 @@ static void gtkterm_serial_port_set_property (GObject *object,
     }
 }
 
+/**
+ * @brief Remote all pointers when removing the object.
+ * 
+ * @param object The pointer to the serial port object.
+ */
 static void gtkterm_serial_port_finalize (GObject *object) {
     GtkTermSerialPort *self = GTKTERM_SERIAL_PORT(object);
     GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);

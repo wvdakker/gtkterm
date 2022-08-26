@@ -216,6 +216,17 @@ static void gtkterm_class_init (GtkTermClass *class) {
                                                0,
                                                NULL);
 
+  gtkterm_signals[SIGNAL_GTKTERM_CONFIG_CHECK_FILE] = g_signal_new ("config_check",
+                                               GTKTERM_TYPE_CONFIGURATION,
+                                               G_SIGNAL_RUN_FIRST,
+                                               0,
+                                               NULL,
+                                               NULL,
+                                               NULL,
+                                               G_TYPE_NONE,
+                                               0,
+                                               NULL);                                               
+
     gtkterm_signals[SIGNAL_GTKTERM_CONFIG_TERMINAL] = g_signal_new ("config_terminal",
                                                GTKTERM_TYPE_CONFIGURATION,
                                                G_SIGNAL_RUN_FIRST,
