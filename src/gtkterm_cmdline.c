@@ -183,6 +183,8 @@ static GOptionEntry gtkterm_term_options[] = {
     {GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], 'e', 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_("Local echo"),  "<on|off>"},
     {GtkTermConfigurationItems[CONF_ITEM_TERM_RAW_FILENAME], 'f', 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_ ("Default file to send (default none)"), "<filename>"},
     {GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], 'r', 0, G_OPTION_ARG_CALLBACK, on_set_config_options, N_("Wait for a special char at end of line (default none)"), "<character in HEX>"},
+    {GtkTermConfigurationItems[CONF_ITEM_TERM_ROWS], 'o', 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_ ("Terminal rows (default 25)"), "<rows>"},
+    {GtkTermConfigurationItems[CONF_ITEM_TERM_COLS], 'c', 0, G_OPTION_ARG_CALLBACK, on_set_config_options,  N_ ("Terminal cols (default 80)"), "<cols>"},
     {NULL}
 };
 

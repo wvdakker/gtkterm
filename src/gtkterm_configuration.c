@@ -1072,6 +1072,8 @@ GtkTermConfigurationState on_set_config_options(const char *name, const char *va
 		case CONF_ITEM_SERIAL_RS485_RTS_TIME_AFTER_TX:
 		case CONF_ITEM_TERM_WAIT_CHAR:
 		case CONF_ITEM_TERM_WAIT_DELAY:
+		case CONF_ITEM_TERM_COLS:
+		case CONF_ITEM_TERM_ROWS:				
 			g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[item_counter], atoi(value));
 			break;
 
