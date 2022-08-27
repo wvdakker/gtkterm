@@ -83,8 +83,8 @@ static bool on_remove_config (const char *name, const char *value, gpointer data
 static bool on_save_section (const char *name, const char *value, gpointer data,  GError **error) {
     int rc = GTKTERM_CONFIGURATION_SUCCESS;
 
-    /** Signal to load the configuration and dump it to the cli */
-    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_SAVE_CONFIG], 0, value, &rc);
+    /** Signal to save the configuration and dump it to the cli */
+    g_signal_emit(GTKTERM_APP(data)->config, gtkterm_signals[SIGNAL_GTKTERM_SAVE_CONFIG], 0, &rc);
 
     g_printf ("%s\n", gtkterm_configuration_get_error (GTKTERM_APP(data)->config)->message);
 
@@ -181,7 +181,6 @@ static bool on_use_config (const char *name, const char *value, gpointer data,  
     if (strlen (value) < MAX_SECTION_LENGTH)  {
 
         GTKTERM_APP(data)->section = g_strdup ( value);
-        return true;
 
     } else {
 
@@ -193,7 +192,8 @@ static bool on_use_config (const char *name, const char *value, gpointer data,  
 }
 
 /**
- * @brief GOptionEntry mappings
+ * @brief GOptionEntry mappings.
+ * 
  * We use callback in GOptionEntry. So we can directly put them
  * in the Terminal configuration instead of handing over a pointer from the config.
  * 
@@ -202,7 +202,7 @@ static bool on_use_config (const char *name, const char *value, gpointer data,  
  */
 static GOptionEntry gtkterm_config_options[] = {    
     {"show_config", 'V', 0, G_OPTION_ARG_CALLBACK, on_print_section, N_("Show configuration"), "[configuration]"}, 
-    {"save_config", 'S', 0, G_OPTION_ARG_CALLBACK, on_save_section, N_("Save configuration"), "[configuration]"},     
+    {"save_config", 'S', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, on_save_section, N_("Save configuration"), NULL},     
     {"remove_config", 'R', 0, G_OPTION_ARG_CALLBACK, on_remove_config, N_("Remove configuration"), "[configuration]"},
     {"use_config", 'U', 0, G_OPTION_ARG_CALLBACK, on_use_config, N_("Use configuration (must be first argument)"), "[configuration]"},
     {"list_config", 'L', G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, on_list_config, N_("List all configurations"), NULL},   

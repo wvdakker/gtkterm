@@ -438,16 +438,14 @@ static int gtkterm_configuration_save_keyfile(GtkTermConfiguration *self, gpoint
 	GtkTermConfigurationState rc = GTKTERM_CONFIGURATION_SUCCESS;	
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
-	if (priv->config_file == NULL) 	{
+	if (priv->key_file == NULL) 	{
 		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
                              GTKTERM_CONFIGURATION_NO_KEYFILE_LOADED,
                              _ ("File not saved. No keyfile loaded")
                              );
-
 		rc = GTKTERM_CONFIGURATION_NO_KEYFILE_LOADED;
 
 	} else  if (!g_key_file_save_to_file(priv->key_file, g_file_get_path(priv->config_file), &error)){
-		
 		g_propagate_error (&error, 
 							g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
                           	GTKTERM_CONFIGURATION_FILE_NOT_SAVED,
@@ -458,7 +456,6 @@ static int gtkterm_configuration_save_keyfile(GtkTermConfiguration *self, gpoint
 		rc = GTKTERM_CONFIGURATION_FILE_NOT_SAVED;
 	} else {
 		rc = GTKTERM_CONFIGURATION_FILE_SAVED;
-
 		error = g_error_new (g_quark_from_static_string ("GTKTERM_CONFIGURATION"),
                              GTKTERM_CONFIGURATION_FILE_SAVED,
                              _("Configuration saved")
@@ -467,7 +464,6 @@ static int gtkterm_configuration_save_keyfile(GtkTermConfiguration *self, gpoint
 		/** Reset the dirty flag now we saved the keyfile */
 		priv->config_is_dirty = false;							 
 	}
-
 	return gtkterm_configuration_set_status(self, rc, error);
 }
 
@@ -922,6 +918,7 @@ void gtkterm_configuration_default_configuration(GtkTermConfiguration *self, cha
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FONT], DEFAULT_FONT);
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BLOCK_CURSOR], "true");
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SHOW_CURSOR], "true");
+	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_TIMESTAMP], "false");
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ROWS], 80);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_COLS], 25);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SCROLLBACK], DEFAULT_SCROLLBACK);
@@ -1071,7 +1068,7 @@ GtkTermConfigurationState on_set_config_options(const char *name, const char *va
 	GtkTermConfigurationPrivate *priv = gtkterm_configuration_get_instance_private(self);
 
 	/** First check and load the keyfile */
-	if ((rc =check_keyfile(self, section)) != GTKTERM_CONFIGURATION_SUCCESS)
+	if ((rc = check_keyfile(self, section)) != GTKTERM_CONFIGURATION_SUCCESS)
 		return rc;
 
 	/**
