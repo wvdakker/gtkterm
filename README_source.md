@@ -70,6 +70,8 @@ and does the handling for the statusbar.
 
 The terminal window in which all serial communication is shown. It is an VTE object
 and hold the configuration for the terminal and serial port.
+Each terminal window (just 1 for now) has only one serial interface which it connects 
+to. It has 2 USR signals for communication from scripts.
 
 #### Members
 #### Signals
@@ -88,7 +90,19 @@ It also copies the section configuration info the configuration for the terminal
 ### GtkTermSerialPort
 
 The Serial port object which does all communication to the serial port.
-It configures the port based on the port_conf from terminal.
+It configures the port based on the port_conf from terminal. It has an in- and output
+stream to communicate with the serial device.
+
+#### Members
+#### Signals
+#### Main functions
+
+### GtkTermBuffer
+
+The buffer is the interface between the serial port and the terminal. The buffer receives
+the data from the serial port and 'translates' it to ASCII or HEX. 
+It gets notified from the serial port when nieuw data is recieved. After conversion and
+markup (CR/LF Timestamps) it notifies the terminal which can feed it to the vte.
 
 #### Members
 #### Signals
