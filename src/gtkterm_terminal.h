@@ -30,7 +30,8 @@ typedef struct {
 	bool show_cursor;			/** Show cursor in window. \todo This is not possible, so remove? */
 	char char_queue;            /** character in queue			*/
 	bool echo;               	/** local echo 					*/
-	bool crlfauto;           	/** auto line feed				*/
+	bool auto_lf;           	/** auto line feed				*/
+	bool auto_cr;           	/** auto return				*/
 	bool timestamp;				/** Show timestamp in output	*/
 	int delay;                  /** end of char delay: in ms	*/
 	int rows;					/** Number of rows in terminal  */

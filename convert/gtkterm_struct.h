@@ -36,7 +36,8 @@ typedef struct
 	bool show_cursor;
 	char char_queue;             // character in queue
 	bool echo;               // echo local
-	bool crlfauto;           // line feed auto
+	bool auto_cr;           // line feed auto
+	bool auto_lf;           // return auto
 	bool timestamp;
 	int delay;                  // end of char delay: in ms
 	int rows;

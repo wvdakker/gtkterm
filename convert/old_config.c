@@ -145,10 +145,14 @@ int load_old_configuration_from_file(int section_nr)
 	else
 		term_conf.echo = FALSE;
 
-	if(crlfauto[section_nr] != -1)
-		term_conf.crlfauto = (gboolean)crlfauto[section_nr];
-	else
-		term_conf.crlfauto = FALSE;
+	if(crlfauto[section_nr] != -1) {
+		term_conf.auto_lf = (gboolean)crlfauto[section_nr];
+		term_conf.auto_cr = (gboolean)crlfauto[section_nr];
+	}
+	else {
+		term_conf.auto_lf = FALSE;
+		term_conf.auto_cr = FALSE;
+	}
 
 	if(timestamp[section_nr] != -1)
 		term_conf.timestamp = (gboolean)timestamp[section_nr];

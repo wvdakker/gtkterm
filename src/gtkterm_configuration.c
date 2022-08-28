@@ -57,7 +57,8 @@ const char GtkTermConfigurationItems[][CONF_ITEM_LENGTH] = {
 	"macros",
 	"term_raw_filename",
 	"term_echo",
-	"term_crlfauto",
+	"term_auto_lf",
+	"term_auto_cr",
 	"disable_port_lock",
 	"term_font",
 	"term_show_timestamp",
@@ -91,6 +92,7 @@ const char GtkTermCLIShortOption[][CONF_ITEM_LENGTH] = {
 	"",
 	"f",
 	"e",
+	"",
 	"",
 	"l",
 	"",
@@ -508,7 +510,8 @@ static int gtkterm_configuration_print_section(GtkTermConfiguration *self, gpoin
 	g_printf(_("%-24s : %s\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_FONT], g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FONT], NULL));
 	g_printf(_("%-24s : %s\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_RAW_FILENAME], g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_RAW_FILENAME], NULL));
 	g_printf(_("%-24s : %s\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], NULL));
-	g_printf(_("%-24s : %s\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_CRLF_AUTO], g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_CRLF_AUTO], NULL));
+	g_printf(_("%-24s : %s\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_LF], g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_LF], NULL));
+	g_printf(_("%-24s : %s\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_CR], g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_CR], NULL));	
 	g_printf(_("%-24s : %d\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], NULL));
 	g_printf(_("%-24s : %d\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], NULL));
 	g_printf(_("%-24s : %s\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_TIMESTAMP], g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_TIMESTAMP], NULL));
@@ -688,7 +691,8 @@ static int gtkterm_configuration_copy_section(GtkTermConfiguration *self, gpoint
 						   port_conf->rs485_rts_time_after_transmit);
 
 	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], term_conf->echo);
-	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_CRLF_AUTO], term_conf->crlfauto);
+	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_LF], term_conf->auto_lf);
+	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_CR], term_conf->auto_cr);	
 	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_DISABLE_PORT_LOCK], port_conf->disable_port_lock);
 
 	string = pango_font_description_to_string(term_conf->font);
@@ -769,12 +773,19 @@ static term_config_t *gtkterm_configuration_load_terminal_config(GtkTermConfigur
 		g_free(key_str);
 	}
 
-	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_CRLF_AUTO], NULL);
+	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_LF], NULL);
 	if (key_str != NULL) {
-		term_conf->crlfauto = g_ascii_strcasecmp(key_str, "true") ? true : false;
+		term_conf->auto_lf = g_ascii_strcasecmp(key_str, "true") ? true : false;
 
 		g_free(key_str);
 	}
+
+	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_CR], NULL);
+	if (key_str != NULL) {
+		term_conf->auto_cr = g_ascii_strcasecmp(key_str, "true") ? true : false;
+
+		g_free(key_str);
+	}	
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], NULL);
 	if (key_str != NULL) {
@@ -914,7 +925,8 @@ void gtkterm_configuration_default_configuration(GtkTermConfiguration *self, cha
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], DEFAULT_CHAR);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], DEFAULT_DELAY);
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], DEFAULT_ECHO);
-	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_CRLF_AUTO], "false");
+	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_LF], "false");
+	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_CR], "false");	
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FONT], DEFAULT_FONT);
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BLOCK_CURSOR], "true");
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SHOW_CURSOR], "true");
@@ -1089,6 +1101,8 @@ GtkTermConfigurationState on_set_config_options(const char *name, const char *va
 
 	switch (item_counter) {
 		case CONF_ITEM_TERM_ECHO:
+		case CONF_ITEM_TERM_AUTO_LF:
+		case CONF_ITEM_TERM_AUTO_CR:		
 		case CONF_ITEM_SERIAL_DISABLE_PORT_LOCK:
 		case CONF_ITEM_SERIAL_PARITY:
 		case CONF_ITEM_SERIAL_FLOW_CONTROL:

@@ -52,7 +52,8 @@ enum {
 		CONF_ITEM_TERM_MACROS,
 		CONF_ITEM_TERM_RAW_FILENAME,
 		CONF_ITEM_TERM_ECHO,
-		CONF_ITEM_TERM_CRLF_AUTO,
+		CONF_ITEM_TERM_AUTO_LF,
+		CONF_ITEM_TERM_AUTO_CR,
 		CONF_ITEM_SERIAL_DISABLE_PORT_LOCK,
 		CONF_ITEM_TERM_FONT,
 		CONF_ITEM_TERM_TIMESTAMP,		
@@ -88,7 +89,8 @@ const char ConfigurationItem [][32] = {
 		"macros",
 		"term_raw_filename",		
 		"term_echo",
-		"term_crlfauto",
+		"term_auto_lf",
+		"term_auto_cr",
 		"disable_port_lock",
 		"term_font",
 		"term_show_timestamp",
@@ -185,7 +187,8 @@ void dump_configuration_to_cli (char *section) {
 	i18n_printf (_("\nTerminal\n"));
 	i18n_printf (_("Font                     : %s\n"), pango_font_description_to_string (term_conf.font));
 	i18n_printf (_("Echo                     : %s\n"), term_conf.echo ? _("True") : _("False"));
-	i18n_printf (_("CRLF                     : %s\n"), term_conf.crlfauto ? _("True") : _("False"));
+	i18n_printf (_("Auto LF                  : %s\n"), term_conf.auto_lf ? _("True") : _("False"));
+	i18n_printf (_("Auto CR                  : %s\n"), term_conf.auto_cr ? _("True") : _("False"));
 	i18n_printf (_("Wait delay               : %d\n"), term_conf.delay);
 	i18n_printf (_("Wait char                : %d\n"), term_conf.char_queue);
 	i18n_printf (_("Timestamp                : %s\n"), term_conf.timestamp ? _("True") : _("False"));
@@ -317,7 +320,8 @@ int load_configuration_from_file(const char *section)
 	port_conf.rs485_rts_time_before_transmit = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_SERIAL_RS485_RTS_TIME_BEFORE_TX], NULL);
 	port_conf.rs485_rts_time_after_transmit = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_SERIAL_RS485_RTS_TIME_AFTER_TX], NULL);
 	term_conf.echo = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_ECHO], NULL);
-	term_conf.crlfauto = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_CRLF_AUTO], NULL);
+	term_conf.auto_cr = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_AUTO_CR], NULL);
+	term_conf.auto_lf = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_AUTO_LF], NULL);
 	port_conf.disable_port_lock = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_SERIAL_DISABLE_PORT_LOCK], NULL);
 
 	//! The Font is a Pango structure. This only can be added to a terminal
@@ -452,7 +456,8 @@ void copy_configuration(GKeyFile *configrc, const char *section)
     	                        port_conf.rs485_rts_time_after_transmit);
 
 	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_TERM_ECHO], term_conf.echo);
-	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_TERM_CRLF_AUTO], term_conf.crlfauto);
+	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_TERM_AUTO_LF], term_conf.auto_lf);
+	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_TERM_AUTO_CR], term_conf.auto_cr);
 	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_SERIAL_DISABLE_PORT_LOCK], port_conf.disable_port_lock);
 
 	string = pango_font_description_to_string (term_conf.font);
@@ -588,7 +593,8 @@ void hard_default_configuration(void)
 	term_conf.char_queue = DEFAULT_CHAR;
 	term_conf.delay = DEFAULT_DELAY;
 	term_conf.echo = DEFAULT_ECHO;
-	term_conf.crlfauto = FALSE;
+	term_conf.auto_cr = FALSE;
+	term_conf.auto_lf = FALSE;
 	term_conf.timestamp = FALSE;
 	term_conf.font = pango_font_description_from_string (DEFAULT_FONT);
 	term_conf.block_cursor = TRUE;
