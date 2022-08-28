@@ -546,6 +546,8 @@ static void gtkterm_serial_port_finalize (GObject *object) {
     GtkTermSerialPort *self = GTKTERM_SERIAL_PORT(object);
     GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
 
+	gtkterm_serial_port_close (self);	
+	gtkterm_serial_port_unlock (self);
     g_clear_error (&priv->port_error);
 
     GObjectClass *object_class = G_OBJECT_CLASS (gtkterm_serial_port_parent_class);
@@ -685,6 +687,7 @@ static bool gtkterm_serial_port_handle_usr2(gpointer user_data) {
 	GtkTermSerialPort *self = GTKTERM_SERIAL_PORT(user_data);
 
 	gtkterm_serial_port_close (self);
+
 	return G_SOURCE_CONTINUE;
 }
 
