@@ -36,6 +36,7 @@
 #include <config.h>
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
+#include <glib-unix.h>
 #include <gudev/gudev.h>
 
 #include "gtkterm_defaults.h"
@@ -88,6 +89,9 @@ int gtkterm_serial_port_lock (GtkTermSerialPort *, GError **);
 int gtkterm_serial_port_unlock (GtkTermSerialPort *);
 void gtkterm_serial_port_set_status (GtkTermSerialPort *, GtkTermSerialPortState, GError *);
 
+static bool gtkterm_serial_port_handle_usr1 (gpointer);
+static bool gtkterm_serial_port_handle_usr2 (gpointer);
+
 #ifdef HAVE_LINUX_SERIAL_H
 int gtkterm_serial_port_set_custom_speed(int, int);
 #endif
@@ -109,8 +113,6 @@ GtkTermSerialPort *gtkterm_serial_port_new (port_config_t *port_conf) {
 
 /**
  * @brief Opens or closes the serial port.
- * 
- * It will notify the change of the port.
  * 
  * @param self The serial port structure.
  * 
@@ -464,6 +466,10 @@ static void gtkterm_serial_port_class_constructed(GObject *object) {
 	GtkTermSerialPort *self = GTKTERM_SERIAL_PORT(object);
 
 	gtkterm_serial_port_device_monitor (self);
+
+	/** Add the user signals */
+	g_unix_signal_add(SIGUSR1, (GSourceFunc) gtkterm_serial_port_handle_usr1, self);
+	g_unix_signal_add(SIGUSR2, (GSourceFunc) gtkterm_serial_port_handle_usr2, self);	
 }
 
 /**
@@ -651,6 +657,35 @@ GError *gtkterm_serial_port_get_error (GtkTermSerialPort *self) {
     GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
 
 	return (priv->port_error);
+}
+
+/**
+ * @brief Handles USR1 signal. It opens the port.
+ * 
+ * @param user_data The serial port structure. Last param when installing the signal
+ * 
+ * @return Continue the signal operation.
+ */
+static bool gtkterm_serial_port_handle_usr1(gpointer user_data) {
+	GtkTermSerialPort *self = GTKTERM_SERIAL_PORT(user_data);
+
+	gtkterm_serial_port_open (self);
+
+	return G_SOURCE_CONTINUE;
+}
+
+/**
+ * @brief Handles USR2 signal. It closes the port.
+ * 
+ * @param user_data The serial port structure. Last param when installing the signal
+ * 
+ * @return Continue the signal operation.
+ */
+static bool gtkterm_serial_port_handle_usr2(gpointer user_data) {
+	GtkTermSerialPort *self = GTKTERM_SERIAL_PORT(user_data);
+
+	gtkterm_serial_port_close (self);
+	return G_SOURCE_CONTINUE;
 }
 
 #ifdef HAVE_LINUX_SERIAL_H
