@@ -70,9 +70,5 @@ int main (int argc, char **argv) {
 
 	save_configuration_to_file(configrc);
 
-	//! Dump all sections to cli
-	for (i = 0; i < section_count; i++)
-		dump_configuration_to_cli (cfgSectionNumberToName(i));
-
 	g_key_file_unref (configrc);
 }
