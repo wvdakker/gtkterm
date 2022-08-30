@@ -63,14 +63,11 @@ typedef struct {
 
 G_BEGIN_DECLS
 
-typedef struct _GtkTermSerialPort GtkTermSerialPort;
-
 #define GTKTERM_TYPE_SERIAL_PORT gtkterm_serial_port_get_type ()
 G_DECLARE_FINAL_TYPE (GtkTermSerialPort, gtkterm_serial_port, GTKTERM, SERIAL_PORT, GObject)
+typedef struct _GtkTermSerialPort GtkTermSerialPort;
 
 GtkTermSerialPort *gtkterm_serial_port_new (port_config_t *);
-
-G_END_DECLS
 
 /** Global functions */
 char* gtkterm_serial_port_get_string (GtkTermSerialPort *);
@@ -78,5 +75,7 @@ GtkTermSerialPortState gtkterm_serial_port_get_status (GtkTermSerialPort *);
 GError *gtkterm_serial_port_get_error (GtkTermSerialPort *);
 
 extern const char GtkTermSerialPortStateString [][DEFAULT_STRING_LEN];
+
+G_END_DECLS
 
 #endif // GTKTERM_SERIAL_H

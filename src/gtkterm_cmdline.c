@@ -26,6 +26,10 @@
 
 #include "gtkterm_defaults.h"
 #include "gtkterm.h"
+#include "gtkterm_window.h"
+#include "gtkterm_terminal.h"
+#include "gtkterm_serial_port.h"
+#include "gtkterm_buffer.h"
 #include "gtkterm_configuration.h"
 #include "gtkterm_cmdline.h"
 #include "gtkterm_serial_port.h"

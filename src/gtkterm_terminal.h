@@ -48,6 +48,7 @@ G_BEGIN_DECLS
 
 #define GTKTERM_TYPE_TERMINAL gtkterm_terminal_get_type()
 G_DECLARE_FINAL_TYPE (GtkTermTerminal, gtkterm_terminal, GTKTERM, TERMINAL, VteTerminal)
+typedef struct _GtkTermTerminal GtkTermTerminal;
 
 GtkTermTerminal *gtkterm_terminal_new (char *, GtkTerm *, GtkTermWindow *);
 

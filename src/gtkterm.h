@@ -24,6 +24,9 @@ enum {
     SIGNAL_GTKTERM_CONFIG_CHECK_FILE,  
     SIGNAL_GTKTERM_TERMINAL_CHANGED,
     SIGNAL_GTKTERM_SERIAL_CONNECT,
+    SIGNAL_GTKTERM_SERIAL_DATA_RECEIVED,
+    SIGNAL_GTKTERM_SERIAL_DATA_TRANSMIT,
+    SIGNAL_GTKTERM_BUFFER_UPDATED,
     LAST_GTKTERM_SIGNAL
 };
 
@@ -51,8 +54,8 @@ struct _GtkTerm {
 };
 
 #define GTKTERM_TYPE_APP gtkterm_get_type()
-typedef struct _GtkTerm GtkTerm;
 G_DECLARE_FINAL_TYPE (GtkTerm, gtkterm, GTKTERM, APP, GtkApplication)
+typedef struct _GtkTerm GtkTerm;
 
 G_END_DECLS
 

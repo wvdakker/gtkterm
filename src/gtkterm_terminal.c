@@ -10,7 +10,6 @@
 /*      Handles all VTE in/output to/from serial port                  */
 /*                                                                     */
 /*   ChangeLog                                                         */
-
 /***********************************************************************/
 
 #include <stdio.h>
@@ -26,18 +25,25 @@
 
 #include "gtkterm_defaults.h"
 #include "gtkterm_window.h"
-#include "gtkterm_terminal.h"
 #include "gtkterm_serial_port.h"
+#include "gtkterm_terminal.h"
 #include "gtkterm_buffer.h"
 #include "macros.h"
 #include "gtkterm_configuration.h"
 
+typedef enum  {
+    GTKTERM_TERMINAL_VIEW_TEXT,
+    GGTKTERM_TERMINAL_VIEW_HEX
+
+} GtkTermTerminalView;
+
 typedef struct  {
-    GtkTermBuffer *term_buffer;     /**< Terminal buffer for serial port                                    */
+    GtkTermBuffer *term_buffer;     /**< Terminal buffer for serial port and terminal                       */
     GtkTermSerialPort *serial_port; /**< The active serial port for this terminal                           */
     term_config_t *term_conf;       /**< The configuration loaded from the keyfile                          */
     port_config_t *port_conf;       /**< Port configuration used in this terminal                           */
     macro_t       *macros;          /**< \todo convert macros -> object                                     */
+    GtkTermTerminalView view_mode;
  
     char *section;           		/**< Section used in this terminal for configuration from config file   */
 	GtkTerm *app;                   /**< Pointer to the app for getting [section] and keyfile               */
@@ -67,6 +73,10 @@ enum {
 
 static GParamSpec *gtkterm_terminal_properties[N_PROPS] = {NULL};
 
+
+void gtkterm_terminal_view_ascii (GtkTermTerminal *, char *, uint);
+void gtkterm_terminal_view_hex (GtkTermTerminal *, char *, uint);
+
 /**
  * @brief Create a new terminal object.
  * 
@@ -84,6 +94,18 @@ static GParamSpec *gtkterm_terminal_properties[N_PROPS] = {NULL};
 GtkTermTerminal *gtkterm_terminal_new (char *section, GtkTerm *gtkterm_app, GtkTermWindow *main_window) {
 
     return g_object_new (GTKTERM_TYPE_TERMINAL, "section", section, "app", gtkterm_app, "main_window", main_window, NULL);
+}
+
+static void gtkterm_terminal_vte_data_received (VteTerminal *widget, char *text, unsigned int length, gpointer ptr) {
+    GtkTermTerminal *self = GTKTERM_TERMINAL(ptr);
+    GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
+    int chars_transmitted = 0; 
+
+    g_signal_emit(priv->serial_port, gtkterm_signals[SIGNAL_GTKTERM_SERIAL_DATA_TRANSMIT], 0, text, length, &chars_transmitted);
+
+    if (chars_transmitted > 0 && priv->term_conf->echo) {
+ //       gtkterm_buffer_append_text (priv->term_buffer, text, nr_of_chars);
+    }
 }
 
 static void gtkterm_terminal_port_status_changed (GObject *object, GParamSpec *pspec, gpointer user_data) {
@@ -118,6 +140,16 @@ static void gtkterm_terminal_port_status_changed (GObject *object, GParamSpec *p
     g_free(serial_string);
 }
 
+ static void gtkterm_terminal_buffer_updated (GObject *object, gpointer data, uint size, gpointer user_data) {
+     GtkTermTerminal *self = GTKTERM_TERMINAL(user_data);
+     GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
+
+    if (priv->view_mode == GTKTERM_TERMINAL_VIEW_TEXT) 
+        gtkterm_terminal_view_ascii (self, data, size);
+    else
+        gtkterm_terminal_view_hex (self, data, size);
+}
+
 /**
  * @brief Constructs the terminal.
  * 
@@ -146,18 +178,24 @@ static void gtkterm_terminal_constructed (GObject *object) {
      */
     g_signal_emit(priv->app->config, gtkterm_signals[SIGNAL_GTKTERM_CONFIG_TERMINAL], 0, priv->section, &priv->term_conf);
     g_signal_emit(priv->app->config, gtkterm_signals[SIGNAL_GTKTERM_CONFIG_SERIAL], 0, priv->section, &priv->port_conf);
-
+    
+    /** 
+     * Create the serial port. The buffer will be a propertie, so they can exchange data without
+     * interference of the terminal.
+     */
     priv->serial_port = gtkterm_serial_port_new (priv->port_conf);
+
+    /** Create a buffer for the terminal */
+    priv->term_buffer = gtkterm_buffer_new (priv->serial_port, priv->term_conf);
+
     g_signal_connect (G_OBJECT(priv->serial_port), "notify::port-status", G_CALLBACK(gtkterm_terminal_port_status_changed), self);
+    g_signal_connect (G_OBJECT(priv->term_buffer), "buffer-updated", G_CALLBACK(gtkterm_terminal_buffer_updated), self);    
 
     /** Send initial notify to update the status bar */
 	g_object_notify(G_OBJECT(priv->serial_port), "port-status");		
 
-    /** Create a buffer for the terminal */
-    priv->term_buffer = gtkterm_buffer_new ();
-
-  	/** Set terminal properties 
-     * 
+  	/**  
+     * Set terminal properties.
      * \todo: make configurable from the config file
      */
 	vte_terminal_set_scroll_on_output(VTE_TERMINAL(self), FALSE);
@@ -170,7 +208,8 @@ static void gtkterm_terminal_constructed (GObject *object) {
     vte_terminal_set_scrollback_lines (VTE_TERMINAL (self), priv->term_conf->scrollback);
     vte_terminal_set_audible_bell (VTE_TERMINAL (self), priv->term_conf->visual_bell);
     vte_terminal_set_color_background (VTE_TERMINAL (self), &priv->term_conf->background_color);
-    vte_terminal_set_color_foreground (VTE_TERMINAL (self), &priv->term_conf->foreground_color);	
+    vte_terminal_set_color_foreground (VTE_TERMINAL (self), &priv->term_conf->foreground_color);
+    vte_terminal_set_size(VTE_TERMINAL (self), priv->term_conf->columns, priv->term_conf->rows);	
 
     G_OBJECT_CLASS (gtkterm_terminal_parent_class)->constructed (object);
 }
@@ -259,6 +298,19 @@ static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
                                                 0,
                                                 NULL); 
 
+  	gtkterm_signals[SIGNAL_GTKTERM_SERIAL_DATA_TRANSMIT] = g_signal_new ("serial-data-transmit",
+                                                GTKTERM_TYPE_SERIAL_PORT,
+                                                G_SIGNAL_RUN_FIRST,
+                                                0,
+                                                NULL,
+                                                NULL,
+                                                NULL,
+                                                G_TYPE_INT,
+                                                2,
+                                                G_TYPE_POINTER,
+                                                G_TYPE_INT,
+                                                NULL);                                                 
+
 	/** 
      * Parameters to hand over at creation of the object
 	 * We need the section to load the config from the keyfile.
@@ -294,6 +346,19 @@ static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
  * 
  */
 static void gtkterm_terminal_init (GtkTermTerminal *self) {
-//    GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
+    GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
+
+    priv->view_mode = GTKTERM_TERMINAL_VIEW_TEXT;
+
+    g_signal_connect_after (G_OBJECT (self), "commit", G_CALLBACK (gtkterm_terminal_vte_data_received), self);
+
+}
+
+void gtkterm_terminal_view_ascii (GtkTermTerminal *self, char *data, uint size) {
+
+    vte_terminal_feed (VTE_TERMINAL(self), data, size);
+}
+
+void gtkterm_terminal_view_hex (GtkTermTerminal *self, char *data, uint size) {
 
 }
