@@ -110,8 +110,7 @@ const char ConfigurationItem [][32] = {
 		"term_background_alpha",
 };
 
-void config_file_init(void)
-{
+void config_file_init(void) {
 	/*
 	 * Old location of configuration file was $HOME/.gtktermrc
 	 * New location is $XDG_CONFIG_HOME/.gtktermrc
@@ -130,12 +129,12 @@ void config_file_init(void)
 		g_file_move(config_file_old, config_file, G_FILE_COPY_NONE, NULL, NULL, NULL, NULL);
 
 	// Save the original file
+	i18n_printf(_("Your original file will be backuped to %s\n"), g_file_get_path (config_file_v1));
 	g_file_copy(config_file, config_file_v1, G_FILE_COPY_BACKUP, NULL, NULL, NULL, NULL);
 }
 
 /* Save <section> configuration to file */
-void save_configuration_to_file(GKeyFile *config)
-{
+void save_configuration_to_file(GKeyFile *config) {
 	GError *error = NULL;
 
 	g_key_file_save_to_file (config, g_file_get_path(config_file), &error);
@@ -144,8 +143,7 @@ void save_configuration_to_file(GKeyFile *config)
 
 /* Load the configuration from <section> into the port and term config */
 /* If it does not exists it creates one from the defaults              */
-int load_configuration_from_file(const char *section)
-{
+int load_configuration_from_file(const char *section) {
 	GKeyFile *config_object = NULL;
 	GError *error = NULL;
 	char *str = NULL;
