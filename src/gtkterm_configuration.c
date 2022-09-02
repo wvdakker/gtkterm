@@ -761,49 +761,49 @@ static term_config_t *gtkterm_configuration_load_terminal_config(GtkTermConfigur
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BLOCK_CURSOR], NULL);
 	if (key_str != NULL) {
-		term_conf->block_cursor = g_ascii_strcasecmp(key_str, "true") ? true : false;
+		term_conf->block_cursor = g_ascii_strcasecmp(key_str, "true") ? false : true;
 
 		g_free(key_str);
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SHOW_CURSOR], NULL);
 	if (key_str != NULL) {
-		term_conf->show_cursor = g_ascii_strcasecmp(key_str, "true") ? true : false;
+		term_conf->show_cursor = g_ascii_strcasecmp(key_str, "true") ? false : true;
 
 		g_free(key_str);
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_LF], NULL);
 	if (key_str != NULL) {
-		term_conf->auto_lf = g_ascii_strcasecmp(key_str, "true") ? true : false;
+		term_conf->auto_lf = g_ascii_strcasecmp(key_str, "true") ? false : true;
 
 		g_free(key_str);
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_CR], NULL);
 	if (key_str != NULL) {
-		term_conf->auto_cr = g_ascii_strcasecmp(key_str, "true") ? true : false;
+		term_conf->auto_cr = g_ascii_strcasecmp(key_str, "true") ? false : true;
 
 		g_free(key_str);
 	}	
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], NULL);
 	if (key_str != NULL) {
-		term_conf->echo = g_ascii_strcasecmp(key_str, "true") ? true : false;
-
+		term_conf->echo = g_ascii_strcasecmp(key_str, "true") ? false : true;
+		
 		g_free(key_str);
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_TIMESTAMP], NULL);
 	if (key_str != NULL) {
-		term_conf->timestamp = g_ascii_strcasecmp(key_str, "true") ? true : false;
+		term_conf->timestamp = g_ascii_strcasecmp(key_str, "true") ? false : true;
 
 		g_free(key_str);
 	}
 
 	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VISUAL_BELL], NULL);
 	if (key_str != NULL) {
-		term_conf->visual_bell = g_ascii_strcasecmp(key_str, "true") ? true : false;
+		term_conf->visual_bell = g_ascii_strcasecmp(key_str, "true") ? false : true;
 
 		g_free(key_str);
 	}
