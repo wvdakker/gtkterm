@@ -72,6 +72,7 @@ GtkTermSerialPort *gtkterm_serial_port_new (port_config_t *);
 /** Global functions */
 char* gtkterm_serial_port_get_string (GtkTermSerialPort *);
 GtkTermSerialPortState gtkterm_serial_port_get_status (GtkTermSerialPort *);
+unsigned int gtkterm_serial_port_get_signals (GtkTermSerialPort *);
 GError *gtkterm_serial_port_get_error (GtkTermSerialPort *);
 
 extern const char GtkTermSerialPortStateString [][DEFAULT_STRING_LEN];

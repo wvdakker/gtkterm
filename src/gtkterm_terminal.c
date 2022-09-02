@@ -108,6 +108,34 @@ static void gtkterm_terminal_vte_data_received (VteTerminal *widget, char *text,
     }
 }
 
+/**
+ * @brief When signalsof the serial port is changed we get a signal and have to update GtkTermWindow.
+ * 
+ * @param object The serial port.
+ * 
+ * @param pspec Not used.
+ * 
+ * @param user_data The active terminal.
+ * 
+ */
+static void gtkterm_terminal_port_signals_changed (GObject *object, GParamSpec *pspec, gpointer user_data) {
+    GtkTermTerminal *self = GTKTERM_TERMINAL(user_data);
+    GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
+
+    g_signal_emit (priv->main_window, gtkterm_signals[SIGNAL_GTKTERM_SERIAL_SIGNALS_CHANGED], 0, 
+                   gtkterm_serial_port_get_signals (GTKTERM_SERIAL_PORT (object)));  
+}
+
+/**
+ * @brief When the status of the serial port is changed we get a signal and have to update GtkTermWindow.
+ * 
+ * @param object The serial port.
+ * 
+ * @param pspec Not used.
+ * 
+ * @param user_data The active terminal.
+ * 
+ */
 static void gtkterm_terminal_port_status_changed (GObject *object, GParamSpec *pspec, gpointer user_data) {
     char *serial_string;
     GError *error;
@@ -186,9 +214,10 @@ static void gtkterm_terminal_constructed (GObject *object) {
     priv->serial_port = gtkterm_serial_port_new (priv->port_conf);
 
     /** Create a buffer for the terminal */
-    priv->term_buffer = gtkterm_buffer_new (priv->serial_port, priv->term_conf);
+    priv->term_buffer = gtkterm_buffer_new (priv->serial_port, self, priv->term_conf);
 
     g_signal_connect (G_OBJECT(priv->serial_port), "notify::port-status", G_CALLBACK(gtkterm_terminal_port_status_changed), self);
+    g_signal_connect (G_OBJECT(priv->serial_port), "notify::port-signals", G_CALLBACK(gtkterm_terminal_port_signals_changed), self);
     g_signal_connect (G_OBJECT(priv->term_buffer), "buffer-updated", G_CALLBACK(gtkterm_terminal_buffer_updated), self);    
 
     /** Send initial notify to update the status bar */

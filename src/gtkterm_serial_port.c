@@ -33,6 +33,7 @@
 #include <fcntl.h>
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <config.h>
 #include <glib/gi18n.h>
@@ -50,6 +51,9 @@
 #include <linux/serial.h>
 #endif
 
+/** In milliseconds for control signals */
+#define GTKTERM_SERIAL_PORT_CONTROL_POLL_DELAY	100
+
 const char GtkTermSerialPortStateString [][DEFAULT_STRING_LEN] = {
 	"Connected",
 	"Disconnected",
@@ -63,9 +67,10 @@ typedef struct {
 	GOutputStream *output_stream;		/**< The outgoing stream to the device					*/
     GInputStream *input_stream;			/**< The incomming stream from the device				*/
     GCancellable *cancellable;			/**< Allowing canceling async operation (reading port)	*/
-    unsigned int status_timeout;		/**< 													*/
+    unsigned int control_signal_timeout;/**< Interval to check/update serial control signals	*/
 
     int port_fd;						/**< The port file descriptor							*/
+	int control_signals;				/**< The last serial signals (updated from the timeout)	*/
 	GtkTermSerialPortState port_status;	/**< State of the serial port							*/
 	GError *port_error;					//*< Last error detected on the port					*/
 
@@ -85,6 +90,7 @@ enum {
 	PROP_0, 
 	PROP_PORT_CONFIG,
 	PROP_PORT_STATUS,
+	PROP_PORT_SIGNALS,
 	N_PROPS 
 };
 
@@ -98,6 +104,9 @@ int gtkterm_serial_port_unlock (GtkTermSerialPort *);
 void gtkterm_serial_port_set_status (GtkTermSerialPort *, GtkTermSerialPortState, GError *);
 static void gtkterm_serial_port_serial_data_received (GObject *, GAsyncResult *, gpointer);
 static int gtkterm_serial_port_serial_data_transmit (GObject *, gpointer, unsigned int, gpointer);
+static int gtkterm_serial_port_control_signals_read (gpointer);
+void gtkterm_serial_port_set_signals (GtkTermSerialPort *, unsigned int);
+
 
 static bool gtkterm_serial_port_handle_usr1 (gpointer);
 static bool gtkterm_serial_port_handle_usr2 (gpointer);
@@ -112,8 +121,6 @@ int gtkterm_serial_port_set_custom_speed(int, int);
  * This also binds the parameter to the properties of the serial port.
  * 
  * @param port_conf The section for the configuration in this terminal
- * 
- * @param term_buffer The buffer used for serial port and terminal.
  * 
  * @return The serial_port object.
  * 
@@ -367,9 +374,8 @@ static int gtkterm_serial_port_open (GtkTermSerialPort *self) {
 	/** Set the created termios to the file descriptor */
     tcsetattr (priv->port_fd, TCSANOW, &termios_p);
 
-	/** Flush the in- output data which are not written/read */
-    tcflush (priv->port_fd, TCOFLUSH);
-    tcflush (priv->port_fd, TCIFLUSH);
+	/** Flush the in- output data which is not written/read */
+    tcflush (priv->port_fd, TCIOFLUSH);
 
 	/** Set the streams for communicating with the device */
     priv->input_stream = g_unix_input_stream_new (priv->port_fd, FALSE);
@@ -382,10 +388,10 @@ static int gtkterm_serial_port_open (GtkTermSerialPort *self) {
                                      gtkterm_serial_port_serial_data_received,
                                      self);
 
-//    priv->status_timeout =
-//        g_timeout_add (GT_SERIAL_PORT_CONTROL_POLL_DELAY,
-//                       gt_serial_port_on_control_signals_read,
-//                       self);
+    priv->control_signal_timeout =
+        g_timeout_add (GTKTERM_SERIAL_PORT_CONTROL_POLL_DELAY,
+                       gtkterm_serial_port_control_signals_read,
+                       self);
 
     gtkterm_serial_port_set_status (self, GTKTERM_SERIAL_PORT_CONNECTED, NULL);
 
@@ -428,9 +434,9 @@ static int gtkterm_serial_port_close (GtkTermSerialPort *self) {
 		close(priv->port_fd);
 		priv->port_fd = -1;
 
-		if (priv->status_timeout != 0) {
-			g_source_remove (priv->status_timeout);
-			priv->status_timeout = 0;
+		if (priv->control_signal_timeout != 0) {
+			g_source_remove (priv->control_signal_timeout);
+			priv->control_signal_timeout = 0;
 		}		
 	}
 
@@ -544,7 +550,12 @@ static void gtkterm_serial_port_get_property (GObject *object,
     switch (prop_id) {
     	case PROP_PORT_STATUS:
         	g_value_set_int (value, priv->port_status);
+        	break;
+
+    	case PROP_PORT_SIGNALS:
+        	g_value_set_int (value, priv->control_signals);
         	break;		
+
 
     	default:
         	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -632,7 +643,16 @@ static void gtkterm_serial_port_class_init (GtkTermSerialPortClass *class) {
 		0,
 		G_MAXINT,
 		0,
-        G_PARAM_READABLE| G_PARAM_STATIC_STRINGS);    		
+        G_PARAM_READABLE| G_PARAM_STATIC_STRINGS);
+
+  	gtkterm_serial_port_properties[PROP_PORT_SIGNALS] = g_param_spec_int (
+        "port-signals",
+        "port-signals",
+        "port-signals",
+		0,
+		G_MAXINT,
+		0,
+        G_PARAM_READABLE| G_PARAM_STATIC_STRINGS);    				
 
     g_object_class_install_properties (object_class, N_PROPS, gtkterm_serial_port_properties);
 }
@@ -646,10 +666,18 @@ static void gtkterm_serial_port_class_init (GtkTermSerialPortClass *class) {
 static void gtkterm_serial_port_init (GtkTermSerialPort *self) {
     GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
 
-	//! Not yet connected
+	/** Not yet connected */
 	priv->port_fd = -1;
+	priv->control_signals = 0;
 }
 
+/**
+ * @brief Unlocks the serial port
+ * 
+ * @param self The serial port
+ * 
+ * @return int The result of the lock operation.
+ */
 int gtkterm_serial_port_unlock (GtkTermSerialPort *self) {
     GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
 	int rc = 0;
@@ -660,6 +688,15 @@ int gtkterm_serial_port_unlock (GtkTermSerialPort *self) {
 	return rc;
 }
 
+/**
+ * @brief Locks the serial port
+ * 
+ * @param self The serial port
+ * 
+ * @param error The error occured when locking the port
+ * 
+ * @return int The result of the lock operation.
+ */
 int gtkterm_serial_port_lock (GtkTermSerialPort *self, GError **error) {
     GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
 	int rc = 0;
@@ -680,6 +717,15 @@ int gtkterm_serial_port_lock (GtkTermSerialPort *self, GError **error) {
 	return rc;	
 }
 
+/**
+ * @brief Set the status of the serial port
+ * 
+ * @param self The serial port
+ * 
+ * @param new_status The new status of the serial port.
+ * 
+ * @param error The port error to set.
+ */
 void gtkterm_serial_port_set_status (GtkTermSerialPort *self, GtkTermSerialPortState new_status, GError *error) {
     GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
 
@@ -695,12 +741,26 @@ void gtkterm_serial_port_set_status (GtkTermSerialPort *self, GtkTermSerialPortS
 	g_object_notify(G_OBJECT(self), "port-status");		
 }
 
+/**
+ * @brief Return the status of the serial port
+ * 
+ * @param self The serial port
+ * 
+ * @return GtkTermSerialPortState The status of the serial port.
+ */
 GtkTermSerialPortState gtkterm_serial_port_get_status (GtkTermSerialPort *self) {
     GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
 
 	return (priv->port_status);
 }
 
+/**
+ * @brief Return the last error which occured.
+ * 
+ * @param self The serial port
+ * 
+ * @return GERrror The pointer to the GError struct
+ */
 GError *gtkterm_serial_port_get_error (GtkTermSerialPort *self) {
     GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
 
@@ -734,7 +794,7 @@ static int gtkterm_serial_port_serial_data_transmit (GObject *object, gpointer d
 		/** Are we in RS485 half-duplex mode */
 		if (priv->port_conf->flow_control == GTKTERM_SERIAL_PORT_FLOWCONTROL_RS485_HD) {
 			/* set RTS (start to send) */
-	//        gtkterm_serial_port_set_signals (self, 1);
+	        gtkterm_serial_port_set_signals (self, 1);
 
 	        if (priv->port_conf->rs485_rts_time_before_transmit > 0)
 	             usleep (priv->port_conf->rs485_rts_time_before_transmit * 1000);
@@ -762,7 +822,7 @@ static int gtkterm_serial_port_serial_data_transmit (GObject *object, gpointer d
 	            usleep (priv->port_conf->rs485_rts_time_after_transmit * 1000);
 
 			/** Reset RTS (end of send, now receiving back) */
-	//        gtkterm_serial_port_set_signals (self, 1);
+	        gtkterm_serial_port_set_signals (self, 1);
 		}
 	}
 
@@ -841,6 +901,177 @@ static bool gtkterm_serial_port_handle_usr2(gpointer user_data) {
 	gtkterm_serial_port_close (self);
 
 	return G_SOURCE_CONTINUE;
+}
+
+/**
+ * @brief Set the signals for the Serial Port structure.
+ * 
+ * @param self The serial port structure.
+ * 
+ * @param param The signals for the serial port.
+ */
+void gtkterm_serial_port_set_signals (GtkTermSerialPort *self, unsigned int param) {
+    GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
+    int stat_;
+
+    if (priv->port_fd == -1)
+        return;
+
+	/** Get the terminal status */
+    if (ioctl (priv->port_fd, TIOCMGET, &stat_) == -1) {
+		GError *error = NULL;
+
+		gtkterm_serial_port_close (self);
+		error = g_error_new (G_IO_ERROR,
+								g_io_error_from_errno (errno),
+								_ ("Control signals read: %s"),
+								g_strerror (errno));
+
+		gtkterm_serial_port_set_status (self, GTKTERM_SERIAL_PORT_ERROR, error);
+
+        return;
+    }
+
+    /** Set the DTR signal */
+    if (param == 0) {
+        if (stat_ & TIOCM_DTR)
+            stat_ &= ~TIOCM_DTR;
+        else
+            stat_ |= TIOCM_DTR;
+
+		/** Failure during setting the signal */
+        if (ioctl (priv->port_fd, TIOCMSET, &stat_) == -1) {
+			GError *error = NULL;
+
+			gtkterm_serial_port_close (self);
+			error = g_error_new (G_IO_ERROR,
+									g_io_error_from_errno (errno),
+									_ ("DTR write failed: %s"),
+									g_strerror (errno));
+
+			gtkterm_serial_port_set_status (self, GTKTERM_SERIAL_PORT_ERROR, error);
+        }
+    }
+    /** Set the RTS signal */
+    else if (param == 1) {
+        if (stat_ & TIOCM_RTS)
+            stat_ &= ~TIOCM_RTS;
+        else
+            stat_ |= TIOCM_RTS;
+			
+        if (ioctl (priv->port_fd, TIOCMSET, &stat_) == -1) {
+   			GError *error = NULL;
+
+			gtkterm_serial_port_close (self);
+			error = g_error_new (G_IO_ERROR,
+									g_io_error_from_errno (errno),
+									_ ("RTS write failed: %s"),
+									g_strerror (errno));
+
+			gtkterm_serial_port_set_status (self, GTKTERM_SERIAL_PORT_ERROR, error);		
+		}
+    }
+}
+
+/**
+ * @brief Get the signals from the Serial Port structure.
+ * 
+ * This is also used for external reading.
+ * 
+ * @param self The serial port to read the signals for.
+ *
+ * @return unsigned int The latest serial port signals
+ */
+unsigned int gtkterm_serial_port_get_signals (GtkTermSerialPort *self) {
+    GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
+
+    return priv->control_signals;
+}
+
+/**
+ * @brief Does the actual reading of the serial signals
+ * 
+ * @param self The serial port to read the signals for.
+ *
+ * @return int The terminal status bits.
+ */
+static int gtkterm_serial_port_read_signals (GtkTermSerialPort *self) {
+    GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
+    int stat_read;
+
+    if (priv->port_conf->flow_control == GTKTERM_SERIAL_PORT_FLOWCONTROL_RS485_HD) {
+        /** reset RTS (default = receive) */
+        gtkterm_serial_port_set_signals (self, 1);
+    }
+
+	/**
+	 * Check if we have af valid file desciptor and
+	 * if the file destriptor points to a terminal device (tty*)
+	 */
+    if (priv->port_fd != -1 && isatty(priv->port_fd)) {
+		/** Get the terminal statusbits */
+        if (ioctl (priv->port_fd, TIOCMGET, &stat_read) == -1) {
+            /** 
+			 * Ignore EINVAL, as some serial ports genuinely lack these lines
+             * Thanks to Elie De Brauwer on ubuntu launchpad
+			 */
+
+            /** 
+			 * Apparently recently trying this on Linux PTYs fails with ENOTTY
+             * instead, so exempt this as well
+			 */
+            if (errno != EINVAL && errno != ENOTTY) {
+                GError *error = NULL;
+
+                gtkterm_serial_port_close (self);
+                error = g_error_new (G_IO_ERROR,
+                                     g_io_error_from_errno (errno),
+                                     _ ("Control signals read failed: %s"),
+                                     g_strerror (errno));
+
+                gtkterm_serial_port_set_status (self, GTKTERM_SERIAL_PORT_ERROR, error);
+            }
+
+            return -1;
+        }
+
+        return stat_read;
+    }
+
+    return -1;
+}
+
+/**
+ * @brief Reads the serial port signals (DTR, etc)
+ * 
+ * @param data The serial port to read the signals for.
+ *
+ * 
+ * @return int The result of readings.
+ */
+static int gtkterm_serial_port_control_signals_read (gpointer data) {
+    GtkTermSerialPort *self = GTKTERM_SERIAL_PORT (data);
+    GtkTermSerialPortPrivate *priv = gtkterm_serial_port_get_instance_private (self);
+    int control_signals = 0;
+
+    control_signals = gtkterm_serial_port_read_signals (self);
+    if (control_signals < 0) {
+        priv->control_signals = 0;
+
+        return 0;
+    }
+
+	/** 
+	 * If the signals are changed then notify the terminal so the statusbar
+	 * can be updated
+	 */
+    if (control_signals != priv->control_signals) {
+        priv->control_signals = control_signals;
+
+        g_object_notify (G_OBJECT (self), "port-signals");
+    }
+
+    return 1;
 }
 
 #ifdef HAVE_LINUX_SERIAL_H

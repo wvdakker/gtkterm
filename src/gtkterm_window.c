@@ -10,6 +10,7 @@
 #include "gtkterm_window.h"
 #include "gtkterm_terminal.h"
 
+#define SERIAL_SIGNALS    6
 
 /**
  * @brief MainWindow specific variables here.
@@ -29,7 +30,7 @@ struct _GtkTermWindow {
   GtkWidget *search_bar;                /**< Searchbar                              */
   GActionGroup *action_group;           /**< Window action group                    */
   GtkWidget *status_config_message[3];
-  GtkWidget *status_serial_signal[6];  
+  GtkWidget *status_serial_signal[SERIAL_SIGNALS];  
   GtkWidget *status_message;
 
   int width;                            /**< Window width                           */
@@ -52,6 +53,7 @@ static void on_gtkterm_toggle_state (GSimpleAction *, GVariant *, gpointer);
 static void on_gtkterm_toggle_dark (GSimpleAction *, GVariant *, gpointer);
 
 /** Serial signals                */
+static unsigned int signal_flags[] = {TIOCM_DTR, TIOCM_RTS, TIOCM_CTS, TIOCM_CD, TIOCM_DSR, TIOCM_RI};
 static char const *serial_signal[] = {"DTR", "RTS", "CTS", "CD", "DSR", "RI"};
 
 /** Menu definitions and callbacks */
@@ -273,6 +275,27 @@ static void on_gtkterm_about (GSimpleAction *action,
 }
 
 /**
+ * @brief Set the serial signals (DTR etc) in the status bar
+ * 
+ * @param window The GtkTermWindow with the statusbar.
+ * 
+ * @param port_signals The port signals to set.
+ * 
+ * @param user_data Not used.
+ * 
+ */
+static void gtkterm_window_set_signals (GtkTermWindow *window, unsigned int port_signals, gpointer user_data) {
+
+    g_printf ("update status signals\n");
+
+    for (int i = 0; i < SERIAL_SIGNALS; i++) {
+
+        bool active = (port_signals & signal_flags[i]) != 0;
+        gtk_widget_set_sensitive (window->status_serial_signal[i], active);
+    }
+}
+
+/**
  * @brief Set the statusbar with all relevant fields.
  * 
  * @param window The GtkTermWindow with the statusbar.
@@ -363,7 +386,8 @@ void set_window_title (GtkTermWindow *window, gpointer serial_config_string) {
  * @param user_data Not used.
  * 
  */
-static void gtkterm_window_update_statusbar (GtkTermWindow *window, gpointer section, gpointer serial_config_string, gpointer serial_status, gpointer user_data) {
+static void gtkterm_window_update_statusbar (GtkTermWindow *window, gpointer section, gpointer serial_config_string, 
+                                            gpointer serial_status, gpointer user_data) {
 
   set_window_title (window, serial_config_string);
   update_statusbar (window, section, serial_config_string, serial_status);
@@ -511,7 +535,8 @@ static void gtkterm_window_constructed (GObject *object) {
   //gtk_scrolled_window_set_child(window->scrolled_window, GTK_WIDGET(window->terminal_window));  
 
   /** Connect to the terminal_changed so we can update the statusbar and window title */
-  g_signal_connect (window, "terminal_changed", G_CALLBACK(gtkterm_window_update_statusbar), NULL);	 
+  g_signal_connect (window, "terminal-changed", G_CALLBACK(gtkterm_window_update_statusbar), NULL);	
+  g_signal_connect (window, "serial-signals-changed", G_CALLBACK(gtkterm_window_set_signals), NULL);	   
 
   if (window->maximized)
     gtk_window_maximize (GTK_WINDOW (window));
@@ -630,7 +655,7 @@ static void gtkterm_window_class_init (GtkTermWindowClass *class) {
   widget_class->realize = gtkterm_window_realize;
   widget_class->unrealize = gtkterm_window_unrealize;
 
-  gtkterm_signals[SIGNAL_GTKTERM_TERMINAL_CHANGED] = g_signal_new ("terminal_changed",
+  gtkterm_signals[SIGNAL_GTKTERM_TERMINAL_CHANGED] = g_signal_new ("terminal-changed",
                                             GTKTERM_TYPE_GTKTERM_WINDOW,
                                             G_SIGNAL_RUN_FIRST,
                                             0,
@@ -643,6 +668,18 @@ static void gtkterm_window_class_init (GtkTermWindowClass *class) {
                                             G_TYPE_POINTER,
                                             G_TYPE_POINTER,
                                             NULL);
+
+  gtkterm_signals[SIGNAL_GTKTERM_SERIAL_SIGNALS_CHANGED] = g_signal_new ("serial-signals-changed",
+                                            GTKTERM_TYPE_GTKTERM_WINDOW,
+                                            G_SIGNAL_RUN_FIRST,
+                                            0,
+                                            NULL,
+                                            NULL,
+                                            NULL,
+                                            G_TYPE_NONE,
+                                            1,
+                                            G_TYPE_INT,
+                                            NULL);                                            
 
   gtk_widget_class_set_template_from_resource (widget_class, "/com/github/jeija/gtkterm/gtkterm_main.ui");
   gtk_widget_class_bind_template_child (widget_class, GtkTermWindow, message);
