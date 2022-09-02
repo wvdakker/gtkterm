@@ -3,6 +3,7 @@
 #include <vte/vte.h>
 #include <glib/gi18n.h>
 #include <glib/gprintf.h>
+#include <sys/ioctl.h>
 
 #include "config.h"
 #include "gtkterm_defaults.h"
@@ -107,7 +108,6 @@ void create_window (GApplication *app, GtkTermWindow *window) {
   /** Make the VTE window scrollable */
   gtk_scrolled_window_set_child(window->scrolled_window, GTK_WIDGET(window->terminal_window));
 }
-
 
 /**
  * @brief  Shows a message into the Infobar.

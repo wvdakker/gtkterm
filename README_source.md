@@ -72,6 +72,7 @@ The terminal window in which all serial communication is shown. It is an VTE obj
 and hold the configuration for the terminal and serial port.
 Each terminal window (just 1 for now) has only one serial interface which it connects 
 to. It has 2 USR signals for communication from scripts.
+The terminal communicates (transmit/receive) with the serial port through the GtkTermBuffer.
 
 #### Members
 #### Signals

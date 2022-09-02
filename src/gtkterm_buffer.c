@@ -13,16 +13,22 @@
 #include "gtkterm_serial_port.h"
 #include "gtkterm_buffer.h"
 
+#define TIMESTAMP_SIZE 50
+
 typedef struct {
-    char *buffer;
-	uint32_t head;
-	uint32_t tail;
+    char *buffer;								/**< The actual buffer										*/
+	uint32_t tail;								/**< The tail of the buffer									*/
 	term_config_t *term_conf;
 
-	bool lf_received;
-	bool cr_received;
+	bool lf_received;							/**< Reminder if we have a LF received						*/
+	bool cr_received;							/**< Reminder if we have a CR received						*/
+	bool need_to_write_timestamp;				/**< Reminder we need to write the timestamp (after a CR)	*/
 
-	GtkTermSerialPort *serial_port;
+	GError *config_error;						/**< Error of the last file operation						*/
+	GtkTermConfigurationState config_status; 	/**< Status when operating the buffer						*/	
+
+	GtkTermSerialPort *serial_port;				/**< For connecting to the serial-data-received signals 	*/
+	GtkTermTerminal *terminal;					/**< For connecting to the vte-data-received signals 		*/
 	GError *error;
 
 } GtkTermBufferPrivate;
@@ -42,13 +48,17 @@ G_DEFINE_TYPE_WITH_PRIVATE (GtkTermBuffer, gtkterm_buffer, G_TYPE_OBJECT)
 enum { 
 	PROP_0, 
 	PROP_SERIAL_PORT,
+	PROP_TERMINAL,		
 	PROP_TERM_CONF,	
 	N_PROPS 
 };
 
 static GParamSpec *gtkterm_buffer_properties[N_PROPS] = {NULL};
 
-static void gtkterm_buffer_serial_data_received (GObject *, gpointer, gpointer);
+static GtkTermBufferState gtkterm_buffer_add_data (GObject *, gpointer, gpointer);
+GtkTermBufferState gtkterm_buffer_set_status(GtkTermBuffer *, GtkTermBufferState, GError *);
+unsigned int insert_timestamp (char *);
+void gtkterm_buffer_repage (GtkTermBuffer *);
 
 /**
  * @brief Create a new buffer object
@@ -56,9 +66,9 @@ static void gtkterm_buffer_serial_data_received (GObject *, gpointer, gpointer);
  * @return The buffer object.
  * 
  */
-GtkTermBuffer *gtkterm_buffer_new (GtkTermSerialPort * serial_port, term_config_t *term_conf) {
+GtkTermBuffer *gtkterm_buffer_new (GtkTermSerialPort * serial_port, GtkTermTerminal *terminal, term_config_t *term_conf) {
 
-    return g_object_new (GTKTERM_TYPE_BUFFER, "serial_port", serial_port, NULL);
+    return g_object_new (GTKTERM_TYPE_BUFFER, "serial_port", serial_port, "terminal", terminal, "term_conf", term_conf, NULL);
 }
 
 /**
@@ -79,11 +89,21 @@ static void gtkterm_buffer_finalize (GObject *object) {
     object_class->finalize (object);    
 }
 
+/**
+ * @brief Constructs the buffer.
+ * 
+ * Setup signals etc.
+ * 
+ * @param object The buffer object we are constructing.
+ * 
+ */
 static void gtkterm_buffer_constructed (GObject *object) {
     GtkTermBuffer *self = GTKTERM_BUFFER(object);
     GtkTermBufferPrivate *priv = gtkterm_buffer_get_instance_private (self);   
 
-   	g_signal_connect (G_OBJECT(priv->serial_port), "serial-data-received", G_CALLBACK(gtkterm_buffer_serial_data_received), self);
+	/** Connect to data received signals from vte and serial */
+   	g_signal_connect (priv->serial_port, "serial-data-received", G_CALLBACK(gtkterm_buffer_add_data), self);
+  	g_signal_connect (priv->terminal, "vte-data-received", G_CALLBACK(gtkterm_buffer_add_data), self);
 
     G_OBJECT_CLASS (gtkterm_buffer_parent_class)->constructed (object);
 }
@@ -102,6 +122,7 @@ static void gtkterm_buffer_dispose (GObject *object) {
 	
     g_free(priv->term_conf);
     g_free(priv->serial_port);
+	g_free(priv->terminal);
 }
 
 /**
@@ -130,6 +151,10 @@ static void gtkterm_buffer_set_property (GObject *object,
     	case PROP_SERIAL_PORT:
         	priv->serial_port = g_value_dup_object (value);
         	break;
+
+    	case PROP_TERMINAL:
+        	priv->terminal = g_value_dup_object(value);
+        	break;					
 
     	case PROP_TERM_CONF:
         	priv->term_conf = g_value_get_pointer(value);
@@ -177,7 +202,14 @@ static void gtkterm_buffer_class_init (GtkTermBufferClass *class) {
         "serial_port",
         "serial_port",
         GTKTERM_TYPE_SERIAL_PORT,
-       G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY);
+        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY);
+
+  	gtkterm_buffer_properties[PROP_TERMINAL] = g_param_spec_object (
+        "terminal",
+        "terminal",
+        "terminal",
+        GTKTERM_TYPE_TERMINAL,
+        G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY);	   
 
   	gtkterm_buffer_properties[PROP_TERM_CONF] = g_param_spec_pointer (
         "term_conf",
@@ -198,114 +230,131 @@ static void gtkterm_buffer_init (GtkTermBuffer *self) {
     GtkTermBufferPrivate *priv = gtkterm_buffer_get_instance_private (self);
 
     priv->buffer = g_malloc0 (BUFFER_SIZE);
-	priv->head = 0;
 	priv->tail = 0;
 
 	priv->lf_received = false;
 	priv->cr_received = false;
+	priv->need_to_write_timestamp = false;
 }
 
-static void gtkterm_buffer_serial_data_received (GObject *object, gpointer data, gpointer user_data) {
+/**
+ * @brief New data is available to add to the buffer.
+ * 
+ * The buffer will signal the terminal new data is available.
+ * 
+ * @param object Not used.
+ * 
+ * @param data The new byte-string of data for the buffer.
+ * 
+ * @param user_data The buffer.
+ * 
+ */
+static GtkTermBufferState gtkterm_buffer_add_data (GObject *object, gpointer data, gpointer user_data) {
     GtkTermBuffer *self = GTKTERM_BUFFER(user_data);
     GtkTermBufferPrivate *priv = gtkterm_buffer_get_instance_private (self);
-
 	size_t str_size;
+	uint32_t old_tail = priv->tail;					/**< Indicates from where to send data to the terminal */
     const char *string = g_bytes_get_data ((GBytes *)data, &str_size);
-//	g_printf ("%s", string);
-
-	/**
-     * buffer must still be valid after cr conversion or adding timestamp
-	 * only pointer is copied below
-     */
-//	char out_buffer[(BUFFER_RECEPTION*2) + TIMESTAMP_SIZE];
-//	const char *characters;
-
-	/* If the auto CR LF mode on, read the buffer to add \r before \n */
-//	if(priv->term_conf->auto_lf || priv->term_conf->auto_cr || priv->term_conf->timestamp)
-	{
-		int i, out_size = 0;
-
-//		for (i=0; i<size; i++)
-		{
-            // if(crlf_auto)
-			// {
-			// 	if (chars[i] == '\r')
-			// 	{
-			// 		/* If the previous character was a CR too, insert a newline */
-			// 		if (cr_received)
-			// 		{
-			// 			out_buffer[out_size] = '\n';
-			// 			out_size++;
-			// 			need_to_write_timestamp = 1;
-			// 		}
-			// 		cr_received = 1;
-			// 	}
-			// 	else
-			// 	{
-			// 		if (chars[i] == '\n')
-			// 		{
-			// 			/* If we get a newline without a CR first, insert a CR */
-			// 			if (!cr_received)
-			// 			{
-			// 				out_buffer[out_size] = '\r';
-			// 				out_size++;
-			// 			}
-			// 		}
-			// 		else
-			// 		{
-			// 			/* If we receive a normal char, and the previous one was a
-			// 			   CR insert a newline */
-			// 			if (cr_received)
-			// 			{
-			// 				out_buffer[out_size] = '\n';
-			// 				out_size++;
-			// 				need_to_write_timestamp = 1;
-			// 			}
-			// 		}
-			// 		cr_received = 0;
-			// 	}
-			// } //if crlf_auto
-
-			// if(need_to_write_timestamp)
-			// {
-			// 	out_size += insert_timestamp(&out_buffer[out_size]);
-			// 	need_to_write_timestamp = 0;
-			// }
-
-			// if(chars[i] == '\n' )
-			// {
-			// 	need_to_write_timestamp = 1; //remember until we have a new character to print
-			// }
-
-			//copy each character to new buffer
-//			out_buffer[out_size] = chars[i];
-//			out_size++; // increment for each stored character
-
-		} // for
-
-		/**
-         * Set "incoming" data pointer to new buffer containing all normal and
-		 * converted newline characters
-         */
-//		chars = out_buffer;
-//		size = out_size;
-	} // if(crlf_auto || timestamp_on)
 
 	if(priv->buffer == NULL) {
-//		i18n_printf(_("ERROR : Buffer is not initialized !\n"));
-		return;
+		GError *error;
+		error = g_error_new (g_quark_from_static_string ("GTKTERM_BUFFER"),
+                             GTKTERM_BUFFER_NOT_INITALIZED,
+                             _("Buffer not initialized")
+                             );
+
+		return gtkterm_buffer_set_status (self, GTKTERM_BUFFER_NOT_INITALIZED, error);
 	}
 
 	/**
-     * When incoming size is larger than buffer, then just print the
-	 * last BUFFER_SIZE characters and ignore all other at begin of buffer
+     * (When incoming size is larger than buffer, then just print the
+	 * last BUFFER_SIZE characters and ignore all other at begin of buffer)
+	 * In theory the str_size (8k) cannot be larger then the buffer size (128k)
+	 * 
+	 * \todo Make buffer also work with greater datastrings to make tbe above work.
      */
-//	if(size > BUFFER_SIZE) {
-//		characters = chars + (size - BUFFER_SIZE);
-//		size = BUFFER_SIZE;
-//	} else
-	memcpy ((priv->buffer + priv->tail), string, str_size);
-	priv->tail += str_size;	
+	if (str_size > BUFFER_SIZE) {
+		string += (str_size - BUFFER_SIZE);
+		str_size = BUFFER_SIZE;
+
+		GError *error;
+		error = g_error_new (g_quark_from_static_string ("GTKTERM_BUFFER"),
+                             GTKTERM_BUFFER_OVERFLOW,
+                             _("Buffer overflow")
+                             );
+
+		return gtkterm_buffer_set_status (self, GTKTERM_BUFFER_OVERFLOW, error);
+	}
+
+	/**
+     * When incoming size is larger than free space in the buffer
+	 * then repage the buffer which will move the head.
+	 * We use 2x the str_size to 
+     */
+	if ((2 * str_size) > (BUFFER_SIZE - priv->tail))
+		gtkterm_buffer_repage (self);
+
+	/** If the auto CR or LF mode on, read the buffer to add LF before CR */
+	if (priv->term_conf->auto_lf || priv->term_conf->auto_cr || priv->term_conf->timestamp) {
+
+		for (int i = 0; i < str_size; i++) {
+
+            if (priv->term_conf->auto_cr) {
+
+			 	/** If the previous character was a CR too, insert a newline */
+			 	if (string[i] == '\r' && priv->cr_received) {
+			 		
+					*(priv->buffer + priv->tail) = '\n';
+			 		priv->tail++;
+			 		priv->need_to_write_timestamp = 1;
+
+					priv->cr_received = 1;
+			 	}
+			} 
+
+			if (priv->term_conf->auto_lf) {
+			 		if (string[i] == '\n') {
+
+			 			/* If we get a newline without a CR first, insert a CR */
+			 			if (!priv->cr_received) {
+			 				*(priv->buffer + priv->tail) = '\r';
+			 				priv->tail++;
+			 			}
+			 		} else {
+			 			/** If we receive a normal char, and the previous one was a CR insert a newline */
+			 			if (priv->cr_received) {
+			 				*(priv->buffer + priv->tail) = '\n';
+			 				priv->tail++;
+			 				priv->need_to_write_timestamp = 1;
+			 			}
+					}
+
+			 	priv->cr_received = 0;
+			}
+
+			/** If we have timestamps configured and it is time to print one, print it */
+		    if (priv->term_conf->timestamp && priv->need_to_write_timestamp) {
+
+			 	priv->tail += insert_timestamp (priv->buffer + priv->tail);
+				priv->need_to_write_timestamp = 0;
+			}
+
+			if (string[i] == '\n')
+			 	priv->need_to_write_timestamp = 1; 					/**< remember until we have a new character to print	*/
+
+			*(priv->buffer + priv->tail) = string[i];				/**< Copy the string character to the buffer			*/
+			priv->tail++; 											/**< Increment for each stored character				*/
+
+			/** If we are growing out of the buffer, then repage */
+			if ((priv->tail + 2 * TIMESTAMP_SIZE) == BUFFER_SIZE)
+				gtkterm_buffer_repage (self);
+		}
+	} else {
+
+		/** We dont need any timestamps or LF/CR so just copy the string into the buffer */
+		memcpy ((priv->buffer + priv->tail), string, str_size);
+		priv->tail += str_size;	
+	}
 
 //	if((size + pointer) >= BUFFER_SIZE) {
 //		memcpy(current_buffer, characters, BUFFER_SIZE - pointer);
@@ -314,16 +363,114 @@ static void gtkterm_buffer_serial_data_received (GObject *object, gpointer data,
 //		memcpy(buffer, chars, pointer);
 //		current_buffer = buffer + pointer;
 //		overlapped = 1;
-//	} else {
-//		memcpy(current_buffer, characters, size);
-//		pointer += size;
-//		current_buffer += size;
-//	}
-
-//	if(write_func != NULL)
-//		write_func(characters, size);
+//	} 
 
     g_bytes_unref (data);	
 
-	g_signal_emit (self, gtkterm_signals[SIGNAL_GTKTERM_BUFFER_UPDATED], 0, string, str_size);
+	/** Send new data to the terminal */
+	g_signal_emit (self, 
+					gtkterm_signals[SIGNAL_GTKTERM_BUFFER_UPDATED], 0, 
+					(priv->buffer + old_tail), 
+					priv->tail - old_tail);
+
+	return GTKTERM_BUFFER_SUCCESS;				
+}
+
+/**
+ * @brief Add a timestamp to the buffer.
+ * 
+ * Assumes that buffer always has space for timestamp (TIMESTAMP_SIZE)
+ * 
+ * @param buffer Points to location where timestamp will be inserted.
+ * 
+ * @return unsigned int Length of the timestamp added.
+ * 
+ */
+unsigned int insert_timestamp (char *buffer) {
+  	unsigned int timestamp_length = 0;
+	struct timespec ts;
+	int d,h,m,s,x;
+
+	timespec_get(&ts, TIME_UTC);
+	d = (ts.tv_sec / (3600 * 24));
+	h = (ts.tv_sec / 3600) % 24;
+	m = (ts.tv_sec / 60 ) % 60;
+	s = ts.tv_sec % 60;
+	x = ts.tv_nsec / 1000000;
+
+	g_snprintf(buffer, TIMESTAMP_SIZE - 1, "[%d.%02uh.%02um.%02us.%03u] ", d, h, m, s, x );
+
+	timestamp_length = strlen(buffer);
+
+  	return timestamp_length;
+}
+
+/**
+ * @brief  Repage the buffer to make room for new data
+ * 
+ * When repaging thebuffer is moved 2 pages up.
+ * The head is always placed after a CR to make sure we start with a new string.
+ */
+void gtkterm_buffer_repage (GtkTermBuffer *self) {
+    GtkTermBufferPrivate *priv = gtkterm_buffer_get_instance_private (self);
+
+	priv->tail = 0;
+	memmove (priv->buffer + 16 * 1024, priv->buffer, BUFFER_SIZE - 16 * 1024);
+
+	while (*(priv->buffer + priv->tail) != '\n')
+		priv->tail++;
+}
+
+/**
+ * @brief  Sets the status and error of the last operation.
+ *
+ * @param self The configuration for which the get the status for.
+ *
+ * @param status The status to be set.
+ * 
+ * @param error The error message (can be NULL)
+ *
+ * @return  The latest status.
+ *
+ */
+GtkTermBufferState gtkterm_buffer_set_status (GtkTermBuffer *self, GtkTermBufferState status, GError *error) {
+    GtkTermBufferPrivate *priv = gtkterm_buffer_get_instance_private (self);
+
+	priv->config_status = status;
+
+	/** If there is a previous error, clear it */
+	if (priv->config_error != NULL)
+		g_error_free (priv->config_error);
+	
+	priv->config_error = error;	
+
+	return status;
+}
+
+/**
+ * @brief  Return the latest status condiation for the buffer operation.
+ *
+ * @param self The configuration for which the get the status for.
+ *
+ * @return  The latest status.
+ *
+ */
+GtkTermBufferState gtkterm_buffer_get_status (GtkTermBuffer*self) {
+    GtkTermBufferPrivate *priv = gtkterm_buffer_get_instance_private (self);
+
+	return (priv->config_status);
+}
+
+/**
+ * @brief  Return the latest error for the buffer operation.
+ *
+ * @param self The configuration for which the get the status for.
+ *
+ * @return  The latest error.
+ *
+ */
+GError *gtkterm_buffer_get_error (GtkTermBuffer *self) {
+    GtkTermBufferPrivate *priv = gtkterm_buffer_get_instance_private (self);
+
+	return (priv->config_error);
 }

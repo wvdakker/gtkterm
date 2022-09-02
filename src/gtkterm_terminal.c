@@ -96,6 +96,21 @@ GtkTermTerminal *gtkterm_terminal_new (char *section, GtkTerm *gtkterm_app, GtkT
     return g_object_new (GTKTERM_TYPE_TERMINAL, "section", section, "app", gtkterm_app, "main_window", main_window, NULL);
 }
 
+/**
+ * @brief Callback when new data from the VTE widget is received.
+ * 
+ * If echo is enabled the string is also send to the buffer. Which will update
+ * the terminal by sending the new data signal.
+ * 
+ * @param widget The VTE widget.
+ * 
+ * @param text The text which is entered
+ * 
+ * @param length The length of the text
+ * 
+ * @param ptr Not used.
+ * 
+ */
 static void gtkterm_terminal_vte_data_received (VteTerminal *widget, char *text, unsigned int length, gpointer ptr) {
     GtkTermTerminal *self = GTKTERM_TERMINAL(ptr);
     GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
@@ -103,8 +118,13 @@ static void gtkterm_terminal_vte_data_received (VteTerminal *widget, char *text,
 
     g_signal_emit(priv->serial_port, gtkterm_signals[SIGNAL_GTKTERM_SERIAL_DATA_TRANSMIT], 0, text, length, &chars_transmitted);
 
+    /** On echo send data to the buffer which will update the terminal */
     if (chars_transmitted > 0 && priv->term_conf->echo) {
- //       gtkterm_buffer_append_text (priv->term_buffer, text, nr_of_chars);
+        /** Convert to GBytes, needed for the buffer */
+        GBytes *data = g_bytes_new (text, chars_transmitted);
+	    
+        /** Send signal to buffer when new data is arrived */
+        g_signal_emit (self, gtkterm_signals[SIGNAL_GTKTERM_VTE_DATA_RECEIVED], 0, data);
     }
 }
 
@@ -168,14 +188,28 @@ static void gtkterm_terminal_port_status_changed (GObject *object, GParamSpec *p
     g_free(serial_string);
 }
 
- static void gtkterm_terminal_buffer_updated (GObject *object, gpointer data, uint size, gpointer user_data) {
+/**
+ * @brief When the buffer is updated the terminal is notified data new data is available.
+ * 
+ * Depending of the setting the output will be in ASCII for HEX.
+ * 
+ * @param object Not used.
+ * 
+ * @param data The new string of data in the buffer.
+ * 
+ * @param length The length of the new string
+ * 
+ * @param user_data The terminal.
+ * 
+ */
+ static void gtkterm_terminal_buffer_updated (GObject *object, gpointer data, unsigned int length, gpointer user_data) {
      GtkTermTerminal *self = GTKTERM_TERMINAL(user_data);
      GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
 
     if (priv->view_mode == GTKTERM_TERMINAL_VIEW_TEXT) 
-        gtkterm_terminal_view_ascii (self, data, size);
+        gtkterm_terminal_view_ascii (self, data, length);
     else
-        gtkterm_terminal_view_hex (self, data, size);
+        gtkterm_terminal_view_hex (self, data, length);
 }
 
 /**
@@ -316,7 +350,8 @@ static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
     object_class->constructed = gtkterm_terminal_constructed;
   	object_class->dispose = gtkterm_terminal_dispose;	
 
-  	gtkterm_signals[SIGNAL_GTKTERM_SERIAL_CONNECT] = g_signal_new ("serial_connect",
+    /** Connect the serial port */
+  	gtkterm_signals[SIGNAL_GTKTERM_SERIAL_CONNECT] = g_signal_new ("serial-connect",
                                                 GTKTERM_TYPE_SERIAL_PORT,
                                                 G_SIGNAL_RUN_FIRST,
                                                 0,
@@ -327,6 +362,7 @@ static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
                                                 0,
                                                 NULL); 
 
+    /** We received data from the VTE widget and send it to the serial port */
   	gtkterm_signals[SIGNAL_GTKTERM_SERIAL_DATA_TRANSMIT] = g_signal_new ("serial-data-transmit",
                                                 GTKTERM_TYPE_SERIAL_PORT,
                                                 G_SIGNAL_RUN_FIRST,
@@ -339,6 +375,18 @@ static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
                                                 G_TYPE_POINTER,
                                                 G_TYPE_INT,
                                                 NULL);                                                 
+
+    gtkterm_signals[SIGNAL_GTKTERM_VTE_DATA_RECEIVED] = g_signal_new ("vte-data-received",
+                                                   GTKTERM_TYPE_TERMINAL,
+                                                   G_SIGNAL_RUN_FIRST,
+                                                   0,
+                                                   NULL,
+                                                   NULL,
+                                                   NULL,
+                                                   G_TYPE_NONE,
+                                                   1,
+                                                   G_TYPE_BYTES,
+                                                   0);
 
 	/** 
      * Parameters to hand over at creation of the object
@@ -383,11 +431,31 @@ static void gtkterm_terminal_init (GtkTermTerminal *self) {
 
 }
 
-void gtkterm_terminal_view_ascii (GtkTermTerminal *self, char *data, uint size) {
+/**
+ * @brief Outputs a string to the terminal widget in ASCII.
+ * 
+ * @param self The terminal.
+ * 
+ * @param data The string of data we want to show
+ * 
+ * @param length The length of the string
+ * 
+ */
+void gtkterm_terminal_view_ascii (GtkTermTerminal *self, char *data, unsigned int length) {
 
-    vte_terminal_feed (VTE_TERMINAL(self), data, size);
+    vte_terminal_feed (VTE_TERMINAL(self), data, length);
 }
 
-void gtkterm_terminal_view_hex (GtkTermTerminal *self, char *data, uint size) {
+/**
+ * @brief Outputs a string to the terminal widget in HEX layout.
+ * 
+ * @param self The terminal.
+ * 
+ * @param data The string of data we want to show
+ * 
+ * @param length The length of the string
+ * 
+ */
+void gtkterm_terminal_view_hex (GtkTermTerminal *self, char *data, unsigned int length) {
 
 }
