@@ -20,14 +20,13 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 #include <glib/gi18n.h>
+#include <glib/gprintf.h>
 #include <pango/pango-font.h>
 
 #include <config.h>
 
-#include "i18n.h"
 #include "gtkterm_struct.h"
 #include "resource_file_conv.h"
-#include "i18n.h"
 #include "macros.h"
 
 //! Default configuration filename
@@ -129,7 +128,7 @@ void config_file_init(void) {
 		g_file_move(config_file_old, config_file, G_FILE_COPY_NONE, NULL, NULL, NULL, NULL);
 
 	// Save the original file
-	i18n_printf(_("Your original file will be backuped to %s\n"), g_file_get_path (config_file_v1));
+	g_printf(_("Your original file will be backuped to %s\n"), g_file_get_path (config_file_v1));
 	g_file_copy(config_file, config_file_v1, G_FILE_COPY_BACKUP, NULL, NULL, NULL, NULL);
 }
 
@@ -462,7 +461,7 @@ int remove_section(char *cfg_file, char *section)
 
 	if(i == size - length)
 	{
-		i18n_printf(_("Cannot find section %s\n"), to_search);
+		g_printf(_("Cannot find section %s\n"), to_search);
 		return -1;
 	}
 

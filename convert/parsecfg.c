@@ -36,10 +36,10 @@
 #include <locale.h>
 
 #include "parsecfg.h"
-#include "i18n.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
+#include <glib/gprintf.h>
 
 /* proto type declaration of private functions */
 
@@ -352,42 +352,42 @@ static void cfgFatalFunc(cfgErrorCode error_code, const char *file, int line, co
 	switch (error_code)
 	{
 	case CFG_OPEN_FAIL:
-		i18n_fprintf(stderr, _("Cannot open configuration file `%s'.\n"), file);
+		g_fprintf(stderr, _("Cannot open configuration file `%s'.\n"), file);
 		break;
 	case CFG_CREATE_FAIL:
-		i18n_fprintf(stderr, _("Cannot create configuration file `%s'.\n"), file);
+		g_fprintf(stderr, _("Cannot create configuration file `%s'.\n"), file);
 		break;
 	case CFG_SYNTAX_ERROR:
-		i18n_fprintf(stderr, _("%s(%d): %s\nSyntax error\n"), file, line, str);
+		g_fprintf(stderr, _("%s(%d): %s\nSyntax error\n"), file, line, str);
 		break;
 	case CFG_WRONG_PARAMETER:
-		i18n_fprintf(stderr, _("%s(%d): %s\nUnrecognized parameter\n"), file, line, str);
+		g_fprintf(stderr, _("%s(%d): %s\nUnrecognized parameter\n"), file, line, str);
 		break;
 	case CFG_INTERNAL_ERROR:
-		i18n_fprintf(stderr, _("%s(%d): %s\nInternal error\n"), file, line, str);
+		g_fprintf(stderr, _("%s(%d): %s\nInternal error\n"), file, line, str);
 		break;
 	case CFG_INVALID_NUMBER:
-		i18n_fprintf(stderr, _("%s(%d): %s\nInvalid number\n"), file, line, str);
+		g_fprintf(stderr, _("%s(%d): %s\nInvalid number\n"), file, line, str);
 		break;
 	case CFG_OUT_OF_RANGE:
-		i18n_fprintf(stderr, _("%s(%d): %s\nOut of range\n"), file, line, str);
+		g_fprintf(stderr, _("%s(%d): %s\nOut of range\n"), file, line, str);
 		break;
 	case CFG_MEM_ALLOC_FAIL:
-		i18n_fprintf(stderr, _("%s(%d): %s\nCannot allocate memory.\n"), file, line, str);
+		g_fprintf(stderr, _("%s(%d): %s\nCannot allocate memory.\n"), file, line, str);
 		break;
 	case CFG_BOOL_ERROR:
-		i18n_fprintf(stderr, _("%s(%d): %s\nIt must be specified TRUE or FALSE.\n"), file, line, str);
+		g_fprintf(stderr, _("%s(%d): %s\nIt must be specified TRUE or FALSE.\n"), file, line, str);
 		break;
 	case CFG_USED_SECTION:
-		i18n_fprintf(stderr, _("%s(%d): %s\nThe section name is already used.\n"), file, line, str);
+		g_fprintf(stderr, _("%s(%d): %s\nThe section name is already used.\n"), file, line, str);
 		break;
 	case CFG_NO_CLOSING_BRACE:
-		i18n_fprintf(stderr, _("%s(%d)\nThere is no closing bracket.\n"), file, line);
+		g_fprintf(stderr, _("%s(%d)\nThere is no closing bracket.\n"), file, line);
 		break;
 	case CFG_JUST_RETURN_WITHOUT_MSG:
 		break;
 	default:
-		i18n_fprintf(stderr, _("%s(%d): %s\nUnexplained error\n"), file, line, str);
+		g_fprintf(stderr, _("%s(%d): %s\nUnexplained error\n"), file, line, str);
 	}
 }
 

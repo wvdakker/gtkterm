@@ -3,11 +3,11 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 #include <glib/gi18n.h>
+#include <glib/gprintf.h>
 #include <pango/pango-font.h>
 
 #include "gtkterm_struct.h"
 #include "resource_file_conv.h"
-#include "i18n.h"
 #include "parsecfg.h"
 
 #include <config.h>
@@ -24,7 +24,7 @@ port_config_t port_conf;
 
 //! This is the cli version of the one in gtkterm
 void show_message (char * msg, int type) {
-	i18n_printf ("%s\n", msg);
+	g_printf ("%s\n", msg);
 };
 
 int main (int argc, char **argv) {
@@ -39,10 +39,10 @@ int main (int argc, char **argv) {
 	bind_textdomain_codeset(PACKAGE, "UTF-8");
 	textdomain(PACKAGE);
 
-	i18n_printf(_("\nGTKTerm version %s\n"), PACKAGE_VERSION);
-	i18n_printf(_("\t (c) Julien Schmitt\n"));
-	i18n_printf(_("\nThis program is released under the terms of the GPL V3 or later\n"));
-	i18n_printf(_("GTKTerm_conv converts the 1.x resource file (.gtktermrc) to 2.0 resource structure.\n\n"));
+	g_printf(_("\nGTKTerm version %s\n"), PACKAGE_VERSION);
+	g_printf(_("\t (c) Julien Schmitt\n"));
+	g_printf(_("\nThis program is released under the terms of the GPL V3 or later\n"));
+	g_printf(_("GTKTerm_conv converts the 1.x resource file (.gtktermrc) to 2.0 resource structure.\n\n"));
 
 	//! Check if the file exists
 	config_file_init ();
@@ -50,15 +50,15 @@ int main (int argc, char **argv) {
 	section_count  = cfgParse(g_file_get_path(config_file), cfg, CFG_INI);
 
 	for (i = 0; i < section_count; i++)
-		i18n_printf(_("Found section [%s]\n"), cfgSectionNumberToName(i));
+		g_printf(_("Found section [%s]\n"), cfgSectionNumberToName(i));
 
-	i18n_printf("\n");
+	g_printf("\n");
 
 	configrc  = g_key_file_new ();
 
 	for (i = 0; i < section_count; i++) {
 
-		i18n_printf(_("Converting section [%s]\n"), cfgSectionNumberToName(i));
+		g_printf(_("Converting section [%s]\n"), cfgSectionNumberToName(i));
 		//! load old config file with parsecfg
 		error = load_old_configuration_from_file (i);
 

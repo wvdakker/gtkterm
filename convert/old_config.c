@@ -3,6 +3,7 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 #include <glib/gi18n.h>
+#include <glib/gprintf.h>
 #include <pango/pango-font.h>
 #include "parsecfg.h"
 #include "macros.h"

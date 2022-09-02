@@ -3,8 +3,7 @@ gtkterm_conv_sources = [
 	'resource_file_conv.c',
 	'old_config.c',
 	'parsecfg.c',
-	'i18n.c',
-	'../src/macros.c'
+	'macros.c'
 ]
 
 executable(
