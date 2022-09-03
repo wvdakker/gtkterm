@@ -1,19 +1,31 @@
-/***********************************************************************
- * resource_config.c                                 
- * -----------------                                    
- *           GTKTerm Software                              
- *                      (c) Julien Schmitt  
- *                                              
- * ------------------------------------------------------------------- 
- *                                           
- *   \brief Purpose                               
- *      Save and load configuration from resource file          
- *                                              
- *   ChangeLog                                
- *      - 2.0 : Remove parsecfg. Switch to GKeyFile  
- *              Migration done by Jens Georg (phako)       
- *                                                                
- ***********************************************************************/
+/************************************************************************/
+/* resource_file_conv.c                                                 */
+/* --------------------                                                 */
+/*           GTKTerm Software                                           */
+/*                      (c) Julien Schmitt                              */
+/*                                                                      */
+/* -------------------------------------------------------------------  */
+/*                                                                      */
+/*   Purpose                                                            */
+/*      Conversion v1 to v2 configuration                               */
+/*                                                                      */
+/*   ChangeLog                                                          */
+/*      - 2.0 : Initial  file creation                                  */
+/*                                                                      */
+/* This GtkTerm is free software: you can redistribute it and/or modify	*/ 
+/* it under the terms of the GNU  General Public License as published  	*/
+/* by the Free Software Foundation, either version 3 of the License,   	*/
+/* or (at your option) any later version.							   	*/
+/*													                 	*/
+/* GtkTerm is distributed in the hope that it will be useful, but	   	*/
+/* WITHOUT ANY WARRANTY; without even the implied warranty of 		   	*/
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 			   	*/
+/* See the GNU General Public License for more details.					*/
+/*																	    */
+/* You should have received a copy of the GNU General Public License 	*/
+/* along with GtkTerm If not, see <https://www.gnu.org/licenses/>. 		*/
+/*                                                                     	*/
+/************************************************************************/
 
 #include <stdio.h>
 #include <sys/stat.h>

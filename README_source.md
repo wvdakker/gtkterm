@@ -122,3 +122,16 @@ The gtk room on IRC was a big support when asking questions.
 
 Also special thanks to Jens Georg. Sellerie (an earlier fork of GTKTerm)
 was used as inspiration to solve some problems.
+
+# Copyright 
+
+This GtkTerm is free software: you can redistribute it and/or modify it under the terms of the GNU 
+General Public License as published by the Free Software Foundation, either version 3 of the License, 
+or (at your option) any later version.
+
+GtkTerm is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with GtkTerm 
+If not, see <https://www.gnu.org/licenses/>. 

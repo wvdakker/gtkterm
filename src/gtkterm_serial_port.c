@@ -1,23 +1,37 @@
-/***********************************************************************/
-/* serial.c                                                             */
-/* -------                                                             */
-/*           GTKTerm Software                                          */
-/*                      (c) Julien Schmitt                             */
-/*                                                                     */
-/* ------------------------------------------------------------------- */
-/*                                                                     */
-/*   Purpose                                                           */
-/*      Serial port access functions                                   */
-/*                                                                     */
-/*   ChangeLog                                                         */
-/*      - 0.99.7 : Removed auto crlf stuff - (use macros instead)      */
-/*      - 0.99.5 : changed all calls to strerror() by strerror_utf8()  */
-/*      - 0.99.2 : Internationalization                                */
-/*      - 0.98.6 : new sendbreak() function                            */
-/*      - 0.98.1 : lockfile implementation (based on minicom)          */
-/*      - 0.98 : removed IOChannel                                     */
-/*                                                                     */
-/***********************************************************************/
+/************************************************************************/
+/* gtkterm_serial_port.c                                               	*/
+/* ---------------------                                               	*/
+/*           GTKTerm Software                                          	*/
+/*                      (c) Julien Schmitt                             	*/
+/*                                                                     	*/
+/* ------------------------------------------------------------------- 	*/
+/*                                                                     	*/
+/*   Purpose                                                           	*/
+/*      Serial port access functions                                   	*/
+/*                                                                     	*/
+/*   ChangeLog                                                         	*/
+/*		- 2.0	 : Port to Gtk4											*/
+/*      - 0.99.7 : Removed auto crlf stuff - (use macros instead)      	*/
+/*      - 0.99.5 : changed all calls to strerror() by strerror_utf8()  	*/
+/*      - 0.99.2 : Internationalization                                	*/
+/*      - 0.98.6 : new sendbreak() function                            	*/
+/*      - 0.98.1 : lockfile implementation (based on minicom)          	*/
+/*      - 0.98 : removed IOChannel                                     	*/
+/*                                                                     	*/
+/* This GtkTerm is free software: you can redistribute it and/or modify	*/ 
+/* it under the terms of the GNU  General Public License as published  	*/
+/* by the Free Software Foundation, either version 3 of the License,   	*/
+/* or (at your option) any later version.							   	*/
+/*																	   	*/
+/* GtkTerm is distributed in the hope that it will be useful, but	   	*/
+/* WITHOUT ANY WARRANTY; without even the implied warranty of 		   	*/
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 			   	*/
+/* See the GNU General Public License for more details.					*/
+/*																		*/
+/* You should have received a copy of the GNU General Public License 	*/
+/* along with GtkTerm If not, see <https://www.gnu.org/licenses/>. 		*/
+/*                                                                     	*/
+/************************************************************************/
 
 #include <gtk/gtk.h>
 #include <glib.h>
