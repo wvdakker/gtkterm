@@ -286,8 +286,6 @@ static void on_gtkterm_about (GSimpleAction *action,
  */
 static void gtkterm_window_set_signals (GtkTermWindow *window, unsigned int port_signals, gpointer user_data) {
 
-    g_printf ("update status signals\n");
-
     for (int i = 0; i < SERIAL_SIGNALS; i++) {
 
         bool active = (port_signals & signal_flags[i]) != 0;
@@ -315,7 +313,7 @@ void config_status_bar (GtkTermWindow *window) {
 
     /** 
      * Fill in the serial signals
-     * The signals are appended at the statusbox so they can glide along when resizing the window
+     * The signals are added at the statusbox so they can glide along when resizing the window
      */
     for (int i = 0; i < 6; i++) {
         label = gtk_label_new (serial_signal[i]);
