@@ -17,7 +17,7 @@
 
 typedef struct {
     char *buffer;								/**< The actual buffer										*/
-	uint32_t tail;								/**< The tail of the buffer									*/
+	size_t tail;								/**< The tail of the buffer									*/
 	term_config_t *term_conf;
 
 	bool lf_received;							/**< Reminder if we have a LF received						*/
@@ -253,7 +253,7 @@ static GtkTermBufferState gtkterm_buffer_add_data (GObject *object, gpointer dat
     GtkTermBuffer *self = GTKTERM_BUFFER(user_data);
     GtkTermBufferPrivate *priv = gtkterm_buffer_get_instance_private (self);
 	size_t str_size;
-	uint32_t old_tail = priv->tail;					/**< Indicates from where to send data to the terminal */
+	size_t old_tail;
     const char *string = g_bytes_get_data ((GBytes *)data, &str_size);
 
 	if(priv->buffer == NULL) {
@@ -289,10 +289,13 @@ static GtkTermBufferState gtkterm_buffer_add_data (GObject *object, gpointer dat
 	/**
      * When incoming size is larger than free space in the buffer
 	 * then repage the buffer which will move the head.
-	 * We use 2x the str_size to 
+	 * We use 2x the str_size to be sure.
      */
 	if ((2 * str_size) > (BUFFER_SIZE - priv->tail))
 		gtkterm_buffer_repage (self);
+
+	/** Indicates from where to send data to the terminal */
+	old_tail = priv->tail;
 
 	/** If the auto CR or LF mode on, read the buffer to add LF before CR */
 	if (priv->term_conf->auto_lf || priv->term_conf->auto_cr || priv->term_conf->timestamp) {
@@ -346,7 +349,7 @@ static GtkTermBufferState gtkterm_buffer_add_data (GObject *object, gpointer dat
 			priv->tail++; 											/**< Increment for each stored character				*/
 
 			/** If we are growing out of the buffer, then repage */
-			if ((priv->tail + 2 * TIMESTAMP_SIZE) == BUFFER_SIZE)
+			if ((priv->tail + 2 * TIMESTAMP_SIZE) >= BUFFER_SIZE)
 				gtkterm_buffer_repage (self);
 		}
 	} else {
@@ -356,14 +359,7 @@ static GtkTermBufferState gtkterm_buffer_add_data (GObject *object, gpointer dat
 		priv->tail += str_size;	
 	}
 
-//	if((size + pointer) >= BUFFER_SIZE) {
-//		memcpy(current_buffer, characters, BUFFER_SIZE - pointer);
-//		chars = characters + BUFFER_SIZE - pointer;
-//		pointer = size - (BUFFER_SIZE - pointer);
-//		memcpy(buffer, chars, pointer);
-//		current_buffer = buffer + pointer;
-//		overlapped = 1;
-//	} 
+//	g_printf ("T %ld S %ld O %ld\n", priv->tail, str_size, old_tail);
 
     g_bytes_unref (data);	
 
@@ -414,11 +410,15 @@ unsigned int insert_timestamp (char *buffer) {
 void gtkterm_buffer_repage (GtkTermBuffer *self) {
     GtkTermBufferPrivate *priv = gtkterm_buffer_get_instance_private (self);
 
-	priv->tail = 0;
+//	g_printf ("Repaging ...\n");
+
 	memmove (priv->buffer + 16 * 1024, priv->buffer, BUFFER_SIZE - 16 * 1024);
+	priv->tail = BUFFER_SIZE - 16 * 1024;
 
 	while (*(priv->buffer + priv->tail) != '\n')
 		priv->tail++;
+
+//	g_printf ("Repaging ready %ld...\n", priv->tail);		
 }
 
 /**
