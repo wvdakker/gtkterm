@@ -34,26 +34,39 @@
 #include "gtkterm.h"
 
 /**
+ * @brief The typedef for mode in which the output of the terminal can be viewed.
+ *
+ */
+typedef enum  {
+    GTKTERM_TERMINAL_VIEW_ASCII,
+    GTKTERM_TERMINAL_VIEW_HEX
+
+} GtkTermTerminalView;
+
+/**
  * @brief The typedef for the terminal configuration.
  *
  */
 typedef struct {
 	
-	bool block_cursor;			/** Show a block shape cursor	*/
-	bool show_cursor;			/** Show cursor in window. \todo This is not possible, so remove? */
-	char char_queue;            /** character in queue			*/
-	bool echo;               	/** local echo 					*/
-	bool auto_lf;           	/** auto line feed				*/
-	bool auto_cr;           	/** auto return				*/
-	bool timestamp;				/** Show timestamp in output	*/
-	int delay;                  /** end of char delay: in ms	*/
-	int rows;					/** Number of rows in terminal  */
-	int columns;				/** Number of cols in terminal  */
-	int scrollback;				/** Number of scrollback lines  */
-	bool visual_bell;			/**	Visual bell					*/
-	GdkRGBA foreground_color;	/** Terminal Background color	*/
-	GdkRGBA background_color;	/** Terminal Foreground color   */
-	PangoFontDescription *font;	/** Terminal Font				*/
+	bool block_cursor;					/** Show a block shape cursor	*/
+	bool show_cursor;					/** Show cursor in window. \todo This is not possible, so remove? */
+	char char_queue;            		/** character in queue			*/
+	bool echo;               			/** local echo 					*/
+	bool auto_lf;           			/** auto line feed				*/
+	bool auto_cr;           			/** auto return					*/
+	bool timestamp;						/** Show timestamp in output	*/
+	int delay;                  		/** end of char delay: in ms	*/
+	int rows;							/** Number of rows in terminal  */
+	int columns;						/** Number of cols in terminal  */
+	int scrollback;						/** Number of scrollback lines  */
+	int show_index;						/** Show index in output		*/
+	GtkTermTerminalView view_mode;		/** Mode to view output in		*/
+	int hex_chars;						/** Number of chars in hex mode	*/	
+	bool visual_bell;					/**	Visual bell					*/
+	GdkRGBA foreground_color;			/** Terminal Background color	*/
+	GdkRGBA background_color;			/** Terminal Foreground color   */
+	PangoFontDescription *font;			/** Terminal Font				*/
 
 } term_config_t;
 

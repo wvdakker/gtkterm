@@ -84,19 +84,13 @@
 #include "macros.h"
 #include "gtkterm_configuration.h"
 
-typedef enum  {
-    GTKTERM_TERMINAL_VIEW_TEXT,
-    GGTKTERM_TERMINAL_VIEW_HEX
-
-} GtkTermTerminalView;
-
 typedef struct  {
     GtkTermBuffer *term_buffer;     /**< Terminal buffer for serial port and terminal                       */
     GtkTermSerialPort *serial_port; /**< The active serial port for this terminal                           */
     term_config_t *term_conf;       /**< The configuration loaded from the keyfile                          */
     port_config_t *port_conf;       /**< Port configuration used in this terminal                           */
     macro_t       *macros;          /**< \todo convert macros -> object                                     */
-    GtkTermTerminalView view_mode;
+    GActionGroup *action_group;     /**< Terminal action group                                              */
  
     char *section;           		/**< Section used in this terminal for configuration from config file   */
 	GtkTerm *app;                   /**< Pointer to the app for getting [section] and keyfile               */
@@ -259,7 +253,7 @@ static void gtkterm_terminal_port_status_changed (GObject *object, GParamSpec *p
      GtkTermTerminal *self = GTKTERM_TERMINAL(user_data);
      GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
 
-    if (priv->view_mode == GTKTERM_TERMINAL_VIEW_TEXT) 
+    if (priv->term_conf->view_mode == GTKTERM_TERMINAL_VIEW_ASCII) 
         gtkterm_terminal_view_ascii (self, data, length);
     else
         gtkterm_terminal_view_hex (self, data, length);
@@ -478,7 +472,7 @@ static void gtkterm_terminal_class_init (GtkTermTerminalClass *class) {
 static void gtkterm_terminal_init (GtkTermTerminal *self) {
     GtkTermTerminalPrivate *priv = gtkterm_terminal_get_instance_private (self);
 
-    priv->view_mode = GTKTERM_TERMINAL_VIEW_TEXT;
+    /** Set the menu actions for this terminal */
 
     g_signal_connect_after (G_OBJECT (self), "commit", G_CALLBACK (gtkterm_terminal_vte_data_received), self);
 
