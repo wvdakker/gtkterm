@@ -48,7 +48,7 @@ extern cfgStruct cfg[];
 
 //! Define external variables here
 //! configuration for terminal window and serial port
-display_config_t term_conf;
+term_config_t term_conf;
 port_config_t port_conf;
 
 //! This is the cli version of the one in gtkterm

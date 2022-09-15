@@ -44,6 +44,18 @@
 #define DEFAULT_STOPBITS 1
 #define DEFAULT_FLOW 	 "none"
 
+
+/**
+ * @brief The typedef for mode in which the output of the terminal can be viewed.
+ *
+ */
+typedef enum  {
+    GTKTERM_TERMINAL_VIEW_ASCII,
+    GGTKTERM_TERMINAL_VIEW_HEX
+
+} GtkTermTerminalView;
+
+
 typedef struct
 {
 	char port[PATH_MAX];
@@ -63,15 +75,18 @@ typedef struct
 {
 	bool block_cursor;
 	bool show_cursor;
-	char char_queue;             // character in queue
-	bool echo;               // echo local
-	bool auto_cr;           // line feed auto
-	bool auto_lf;           // return auto
+	char char_queue;            		// character in queue
+	bool echo;               			// echo local
+	bool auto_cr;           			// line feed auto
+	bool auto_lf;           			// return auto
 	bool timestamp;
-	int delay;                  // end of char delay: in ms
+	int delay;                  		// end of char delay: in ms
 	int rows;
 	int columns;
 	int scrollback;
+	int show_index;						/** Show index in output		*/
+	GtkTermTerminalView view_mode;		/** Mode to view output in		*/
+	int hex_chars;						/** Number of chars in hex mode	*/	
 	bool visual_bell;
 	GdkRGBA foreground_color;
 	GdkRGBA background_color;
@@ -80,7 +95,7 @@ typedef struct
 
 	char *default_filename;
 
-} display_config_t;
+} term_config_t;
 
-extern display_config_t term_conf;
+extern term_config_t term_conf;
 extern port_config_t port_conf;

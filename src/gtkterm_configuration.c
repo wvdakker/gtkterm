@@ -54,8 +54,6 @@
  * Used configuration options to hold consistency between load/save functions
  * Also used as long-option when configuring by CLI
  *
- * @todo Add the short option.
- *
  */
 const char GtkTermConfigurationItems[][CONF_ITEM_LENGTH] = {
 	"port",
@@ -81,6 +79,9 @@ const char GtkTermConfigurationItems[][CONF_ITEM_LENGTH] = {
 	"term_rows",
 	"term_columns",
 	"term_scrollback",
+	"term_index",		
+	"term_view_mode",
+	"term_hex_chars",	
 	"term_visual_bell",
 	"term_foreground_red",
 	"term_foreground_green",
@@ -92,6 +93,13 @@ const char GtkTermConfigurationItems[][CONF_ITEM_LENGTH] = {
 	"term_background_alpha",
 };
 
+/**
+ * @brief Configuration options
+ *
+ * Used configuration options to hold consistency between load/save functions
+ * Also used as short-option when configuring by CLI
+ *
+ */
 const char GtkTermCLIShortOption[][CONF_ITEM_LENGTH] = {
 	"p",
 	"s",
@@ -115,6 +123,9 @@ const char GtkTermCLIShortOption[][CONF_ITEM_LENGTH] = {
 	"",
 	"o",
 	"c",
+	"",
+	"",
+	"",
 	"",
 	"",
 	"",
@@ -534,6 +545,9 @@ static int gtkterm_configuration_print_section(GtkTermConfiguration *self, gpoin
 	g_printf(_("%-24s : %d\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_ROWS], g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ROWS], NULL));
 	g_printf(_("%-24s : %d\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_COLS], g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_COLS], NULL));
 	g_printf(_("%-24s : %d\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_SCROLLBACK], g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SCROLLBACK], NULL));
+	g_printf(_("%-24s : %s\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_INDEX], g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_INDEX], NULL));
+	g_printf(_("%-24s : %s\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_VIEW_MODE], g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VIEW_MODE], NULL));
+	g_printf(_("%-24s : %d\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_HEX_CHARS], g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_HEX_CHARS], NULL));
 	g_printf(_("%-24s : %s\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_VISUAL_BELL], g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VISUAL_BELL], NULL));
 	g_printf(_("%-24s : %f\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_RED], g_key_file_get_double(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_RED], NULL));
 	g_printf(_("%-24s : %f\n"), GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_BLUE], g_key_file_get_double(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BACKGROUND_BLUE], NULL));
@@ -724,9 +738,12 @@ static int gtkterm_configuration_copy_section(GtkTermConfiguration *self, gpoint
 	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SHOW_CURSOR], term_conf->show_cursor);
 	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_TIMESTAMP], term_conf->timestamp);
 	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BLOCK_CURSOR], term_conf->block_cursor);
+	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BLOCK_CURSOR], term_conf->show_index);	
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ROWS], term_conf->rows);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_COLS], term_conf->columns);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SCROLLBACK], term_conf->scrollback);
+	g_key_file_set_string (priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VIEW_MODE], term_conf->view_mode == GTKTERM_TERMINAL_VIEW_ASCII ? "ASCII" : "HEX");		
+	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_HEX_CHARS], term_conf->hex_chars);
 	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VISUAL_BELL], term_conf->visual_bell);
 
 	g_key_file_set_double(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_RED], term_conf->foreground_color.red);
@@ -949,6 +966,9 @@ void gtkterm_configuration_default_configuration(GtkTermConfiguration *self, cha
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_COLS], 25);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SCROLLBACK], DEFAULT_SCROLLBACK);
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VISUAL_BELL], DEFAULT_VISUAL_BELL);
+	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_INDEX], "false");
+	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VIEW_MODE], "ASCII");
+	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_HEX_CHARS], 16);	
 
 	g_key_file_set_double(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_RED], 0.66);
 	g_key_file_set_double(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_GREEN], 0.66);

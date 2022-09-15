@@ -26,6 +26,7 @@
 /* along with GtkTerm If not, see <https://www.gnu.org/licenses/>. 		*/
 /*                                                                     	*/
 /************************************************************************/
+
 #ifndef RESOURCE_FILE_H_
 #define RESOURCE_FILE_H_
 

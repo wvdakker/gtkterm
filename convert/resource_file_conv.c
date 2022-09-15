@@ -73,6 +73,9 @@ enum {
 		CONF_ITEM_TERM_ROWS,
 		CONF_ITEM_TERM_COLS,
 		CONF_ITEM_TERM_SCROLLBACK,
+		CONF_ITEM_TERM_INDEX,
+		CONF_ITEM_TERM_VIEW_MODE,
+		CONF_ITEM_TERM_HEX_CHARS,
 		CONF_ITEM_TERM_VISUAL_BELL,		
 		CONF_ITEM_TERM_FOREGROUND_RED,
 		CONF_ITEM_TERM_FOREGROUND_GREEN,
@@ -110,6 +113,9 @@ const char ConfigurationItem [][32] = {
 		"term_rows",
 		"term_columns",
 		"term_scrollback",
+		"term_index",		
+		"term_view_mode",
+		"term_hex_chars",				
 		"term_visual_bell",
 		"term_foreground_red",
 		"term_foreground_green",
@@ -150,178 +156,6 @@ void save_configuration_to_file(GKeyFile *config) {
 
 	g_key_file_save_to_file (config, g_file_get_path(config_file), &error);
 
-}
-
-/* Load the configuration from <section> into the port and term config */
-/* If it does not exists it creates one from the defaults              */
-int load_configuration_from_file(const char *section) {
-	GKeyFile *config_object = NULL;
-	GError *error = NULL;
-	char *str = NULL;
-	char **macrostring;
-	gsize nr_of_strings;
-	int value = 0;
-
-	char *string = NULL;
-
-	//! Load the key file
-	//! Note: all sections are loaded into memory.
-	config_object = g_key_file_new ();
-	if (!g_key_file_load_from_file (config_object, g_file_get_path (config_file), G_KEY_FILE_NONE, &error)) {
-		g_debug ("Failed to load configuration file: %s", error->message);
-		g_error_free (error);
-		g_key_file_unref (config_object);
-
-		return -1;
-	}
-
-	//! Check if the <section> exists in the key file.
-	if (!g_key_file_has_group (config_object, section)) {
-		string = g_strdup_printf(_("No section \"%s\" in configuration file\n"), section);
-		show_message(string, GTK_MESSAGE_ERROR);
-		g_free(string);
-		g_key_file_unref (config_object);
-		return -1;
-	}
-
-	//! First initialize with a default structure.
-	//! Not really needed.
-	hard_default_configuration();
-
-	// Load all key file items into the port_conf or term_conf so we can use it 
-	str = g_key_file_get_string (config_object, section, ConfigurationItem[CONF_ITEM_SERIAL_PORT], NULL);
-	if (str != NULL) {
-		g_strlcpy (port_conf.port, str, sizeof (port_conf.port) - 1);
-		g_free (str);
-	}
-
-	value = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_SERIAL_BAUDRATE], NULL);
-	if (value != 0) {
-		port_conf.baudrate = value;
-	}
-
-	value = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_SERIAL_BITS], NULL);
-	if (value != 0) {
-		port_conf.bits = value;
-	}
-
-	value = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_SERIAL_STOPBITS], NULL);
-	if (value != 0) {
-		port_conf.stopbits = value;
-	}
-
-	str = g_key_file_get_string (config_object, section, ConfigurationItem[CONF_ITEM_SERIAL_PARITY], NULL);
-	if (str != NULL) {
-		if(!g_ascii_strcasecmp(str, "none"))
-			port_conf.parity = 0;
-		else if(!g_ascii_strcasecmp(str, "odd"))
-			port_conf.parity = 1;
-		else if(!g_ascii_strcasecmp(str, "even"))
-			port_conf.parity = 2;
-		g_free (str);
-	}
-
-	str = g_key_file_get_string (config_object, section,  ConfigurationItem[CONF_ITEM_SERIAL_FLOW_CONTROL], NULL);
-	if (str != NULL) {
-		if(!g_ascii_strcasecmp(str, "none"))
-			port_conf.flow_control = 0;
-		else if(!g_ascii_strcasecmp(str, "xon"))
-			port_conf.flow_control = 1;
-		else if(!g_ascii_strcasecmp(str, "rts"))
-			port_conf.flow_control = 2;
-		else if(!g_ascii_strcasecmp(str, "rs485"))
-			port_conf.flow_control = 3;
-    		
-		g_free (str);
-	}
-
-	term_conf.delay = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_TERM_WAIT_DELAY], NULL);
-
-	value = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_TERM_WAIT_CHAR], NULL);
-	if (value != 0) {
-		term_conf.char_queue = (signed char) value;
-	} else {
-		term_conf.char_queue = -1;
-	}
-    
-	port_conf.rs485_rts_time_before_transmit = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_SERIAL_RS485_RTS_TIME_BEFORE_TX], NULL);
-	port_conf.rs485_rts_time_after_transmit = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_SERIAL_RS485_RTS_TIME_AFTER_TX], NULL);
-	term_conf.echo = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_ECHO], NULL);
-	term_conf.auto_cr = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_AUTO_CR], NULL);
-	term_conf.auto_lf = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_AUTO_LF], NULL);
-	port_conf.disable_port_lock = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_SERIAL_DISABLE_PORT_LOCK], NULL);
-
-	//! The Font is a Pango structure. This only can be added to a terminal
-	//! So we have to convert it.
-	g_clear_pointer (&term_conf.font, pango_font_description_free);
-	str = g_key_file_get_string (config_object, section, ConfigurationItem[CONF_ITEM_TERM_FONT], NULL);
-	term_conf.font = pango_font_description_from_string (str);
-	g_free (str);
-
-	/// Convert the stringlist to macros. Existing shortcuts will be delete from convert_string_to_macros
-	macrostring = g_key_file_get_string_list (config_object, section, ConfigurationItem[CONF_ITEM_TERM_MACROS], &nr_of_strings, NULL);
-	convert_string_to_macros (macrostring, nr_of_strings);
-	g_strfreev(macrostring);
-
-	term_conf.show_cursor = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_SHOW_CURSOR], NULL);
-	term_conf.rows = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_TERM_ROWS], NULL);
-	term_conf.columns = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_TERM_COLS], NULL);
-	value = g_key_file_get_integer (config_object, section, ConfigurationItem[CONF_ITEM_TERM_SCROLLBACK], NULL);
-	if (value != 0) {
-		term_conf.scrollback = value;
-	}
-
-	term_conf.visual_bell = g_key_file_get_boolean (config_object, section, ConfigurationItem[CONF_ITEM_TERM_VISUAL_BELL], NULL);
-	term_conf.foreground_color.red = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_RED], NULL);
-	term_conf.foreground_color.green = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_GREEN], NULL);
-	term_conf.foreground_color.blue = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_BLUE], NULL);
-	term_conf.foreground_color.alpha = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_ALPHA], NULL);
-	term_conf.background_color.red = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_RED], NULL);
-	term_conf.background_color.green = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_GREEN], NULL);
-	term_conf.background_color.blue = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_BLUE], NULL);
-	term_conf.background_color.alpha = g_key_file_get_double (config_object, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_ALPHA], NULL);
-
-	return 0;
-}
-
-//! This checks if the configuration file exists. If not it creates a
-//! new [default]
-int check_configuration_file(void)
-{
-	struct stat my_stat;
-	char *string = NULL;
-
-	/* is configuration file present ? */
-	if(stat(g_file_get_path(config_file), &my_stat) == 0)
-	{
-		/* If bad configuration file, fallback to _hardcoded_ defaults! */
-		if(load_configuration_from_file("default") == -1)
-		{
-			hard_default_configuration();
-			return -1;
-		}
-	} /* if not, create it, with the [default] section */
-	else
-	{
-		GKeyFile *config;
-
-		string = g_strdup_printf(_("Configuration file (%s) with [default] configuration has been created.\n"), g_file_get_path(config_file));
-		show_message(string, GTK_MESSAGE_WARNING);
-		g_free(string);
-
-		config = g_key_file_new ();
-		hard_default_configuration();
-
-		//! Put the new default in the key file
-		copy_configuration(config, "default");
-
-		//! And save the config to file
-		save_configuration_to_file(config);		
-
-		g_key_file_unref (config);
-	}
-
-	return 0;
 }
 
 //! Copy the active configuration into <section> of the Key file
@@ -404,7 +238,11 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_TERM_COLS], term_conf.columns);
 	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_TERM_SCROLLBACK], term_conf.scrollback);
 	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_TERM_VISUAL_BELL], term_conf.visual_bell);
-	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_TERM_TIMESTAMP], term_conf.timestamp);	
+	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_TERM_TIMESTAMP], term_conf.timestamp);
+	g_key_file_set_boolean (configrc, section, ConfigurationItem[CONF_ITEM_TERM_INDEX], term_conf.show_index);	
+
+	g_key_file_set_string (configrc, section, ConfigurationItem[CONF_ITEM_TERM_VIEW_MODE], term_conf.view_mode == GTKTERM_TERMINAL_VIEW_ASCII ? "ASCII" : "HEX");
+	g_key_file_set_integer (configrc, section, ConfigurationItem[CONF_ITEM_TERM_HEX_CHARS], term_conf.hex_chars);	
 
 	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_RED], term_conf.foreground_color.red);
 	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_FOREGROUND_GREEN], term_conf.foreground_color.green);
@@ -415,93 +253,6 @@ void copy_configuration(GKeyFile *configrc, const char *section)
 	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_GREEN], term_conf.background_color.green);
 	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_BLUE], term_conf.background_color.blue);
 	g_key_file_set_double (configrc, section, ConfigurationItem[CONF_ITEM_TERM_BACKGROUND_ALPHA], term_conf.background_color.alpha);
-}
-
-/*!
- * Remove a section from the file
- * \todo: Perhaps remove because we dont need it.
- */ 
-int remove_section(char *cfg_file, char *section)
-{
-	FILE *f = NULL;
-	char *buffer = NULL;
-	char *buf;
-	size_t size;
-	char *to_search;
-	size_t i, j, length, sect;
-
-	f = fopen(cfg_file, "r");
-	if(f == NULL)
-	{
-		perror(cfg_file);
-		return -1;
-	}
-
-	fseek(f, 0L, SEEK_END);
-	size = ftell(f);
-	rewind(f);
-
-	buffer = g_malloc(size);
-	if(buffer == NULL)
-	{
-		perror("malloc");
-		return -1;
-	}
-
-	if(fread(buffer, 1, size, f) != size)
-	{
-		perror(cfg_file);
-		fclose(f);
-		return -1;
-	}
-
-	to_search = g_strdup_printf("[%s]", section);
-	length = strlen(to_search);
-
-	/* Search section */
-	for(i = 0; i < size - length; i++)
-	{
-		for(j = 0; j < length; j++)
-		{
-			if(to_search[j] != buffer[i + j])
-				break;
-		}
-
-		if(j == length)
-			break;
-	}
-
-	if(i == size - length)
-	{
-		g_printf(_("Cannot find section %s\n"), to_search);
-		return -1;
-	}
-
-	sect = i;
-
-	/* Search for next section */
-	for(i = sect + length; i < size; i++)
-	{
-		if(buffer[i] == '[')
-			break;
-	}
-
-	f = fopen(cfg_file, "w");
-	if(f == NULL)
-	{
-		perror(cfg_file);
-		return -1;
-	}
-
-	fwrite(buffer, 1, sect, f);
-	buf = buffer + i;
-	fwrite(buf, 1, size - i, f);
-	fclose(f);
-
-	g_free(to_search);
-	g_free(buffer);
-
-	return 0;
 }
 
 //! Create a new <default> configuration
@@ -530,6 +281,9 @@ void hard_default_configuration(void)
 	term_conf.columns = 25;
 	term_conf.scrollback = DEFAULT_SCROLLBACK;
 	term_conf.visual_bell = TRUE;
+	term_conf.show_index = FALSE;	
+	term_conf.view_mode = GTKTERM_TERMINAL_VIEW_ASCII;
+	term_conf.hex_chars = 16;	
 
 	set_color (&term_conf.foreground_color, 0.66, 0.66, 0.66, 1.0);
 	set_color (&term_conf.background_color, 0, 0, 0, 1.0);
