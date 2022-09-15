@@ -778,7 +778,6 @@ static term_config_t *gtkterm_configuration_load_terminal_config(GtkTermConfigur
 	term_config_t *term_conf;
 	char *section = (char *)data;
 	char *key_str = NULL;
-	int key_value = 0;
 
 	if (check_keyfile(self, section) != GTKTERM_CONFIGURATION_SUCCESS)
 		return NULL;
@@ -789,58 +788,25 @@ static term_config_t *gtkterm_configuration_load_terminal_config(GtkTermConfigur
 	term_conf->rows = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ROWS], NULL);
 	term_conf->columns = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_COLS], NULL);
 	term_conf->scrollback = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SCROLLBACK], NULL);
+	term_conf->view_mode = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VIEW_MODE], NULL);
+	term_conf->hex_chars = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_HEX_CHARS], NULL);	
+	term_conf->block_cursor = g_key_file_get_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BLOCK_CURSOR], NULL);
+	term_conf->show_index  = g_key_file_get_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_INDEX], NULL);
+	term_conf->show_cursor = g_key_file_get_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SHOW_CURSOR], NULL);
+	term_conf->auto_lf = g_key_file_get_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_LF], NULL);
+	term_conf->auto_cr = g_key_file_get_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_CR], NULL);
+	term_conf->echo = g_key_file_get_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], NULL);
+	term_conf->timestamp  = g_key_file_get_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_TIMESTAMP], NULL);
+	term_conf->visual_bell= g_key_file_get_boolean( priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VISUAL_BELL], NULL);
 
-	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BLOCK_CURSOR], NULL);
+	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VIEW_MODE], NULL);
 	if (key_str != NULL) {
-		term_conf->block_cursor = g_ascii_strcasecmp(key_str, "true") ? false : true;
+		term_conf->view_mode = g_ascii_strcasecmp(key_str, "ASCII") ? GTKTERM_TERMINAL_VIEW_HEX : GTKTERM_TERMINAL_VIEW_ASCII;
 
 		g_free(key_str);
 	}
 
-	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SHOW_CURSOR], NULL);
-	if (key_str != NULL) {
-		term_conf->show_cursor = g_ascii_strcasecmp(key_str, "true") ? false : true;
-
-		g_free(key_str);
-	}
-
-	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_LF], NULL);
-	if (key_str != NULL) {
-		term_conf->auto_lf = g_ascii_strcasecmp(key_str, "true") ? false : true;
-
-		g_free(key_str);
-	}
-
-	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_CR], NULL);
-	if (key_str != NULL) {
-		term_conf->auto_cr = g_ascii_strcasecmp(key_str, "true") ? false : true;
-
-		g_free(key_str);
-	}	
-
-	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], NULL);
-	if (key_str != NULL) {
-		term_conf->echo = g_ascii_strcasecmp(key_str, "true") ? false : true;
-		
-		g_free(key_str);
-	}
-
-	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_TIMESTAMP], NULL);
-	if (key_str != NULL) {
-		term_conf->timestamp = g_ascii_strcasecmp(key_str, "true") ? false : true;
-
-		g_free(key_str);
-	}
-
-	key_str = g_key_file_get_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VISUAL_BELL], NULL);
-	if (key_str != NULL) {
-		term_conf->visual_bell = g_ascii_strcasecmp(key_str, "true") ? false : true;
-
-		g_free(key_str);
-	}
-
-	key_value = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], NULL);
-	term_conf->char_queue = key_value ? (signed char)key_value : -1;
+	term_conf->char_queue = g_key_file_get_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], NULL);
 
 	set_color(&term_conf->foreground_color,
 			  g_key_file_get_double(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FOREGROUND_RED], NULL),
@@ -951,22 +917,22 @@ void gtkterm_configuration_default_configuration(GtkTermConfiguration *self, cha
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_FLOW_CONTROL], DEFAULT_FLOW);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_RS485_RTS_TIME_BEFORE_TX], DEFAULT_DELAY_RS485);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_RS485_RTS_TIME_AFTER_TX], DEFAULT_DELAY_RS485);
-	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_DISABLE_PORT_LOCK], "false");
+	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_SERIAL_DISABLE_PORT_LOCK], false);
 
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_CHAR], DEFAULT_CHAR);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_WAIT_DELAY], DEFAULT_DELAY);
-	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], DEFAULT_ECHO);
-	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_LF], "false");
-	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_CR], "false");	
+	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ECHO], DEFAULT_ECHO);
+	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_LF], false);
+	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_AUTO_CR], false);	
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_FONT], DEFAULT_FONT);
-	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BLOCK_CURSOR], "true");
-	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SHOW_CURSOR], "true");
-	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_TIMESTAMP], "false");
+	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_BLOCK_CURSOR], true);
+	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SHOW_CURSOR], true);
+	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_TIMESTAMP], false);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_ROWS], 80);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_COLS], 25);
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_SCROLLBACK], DEFAULT_SCROLLBACK);
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VISUAL_BELL], DEFAULT_VISUAL_BELL);
-	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_INDEX], "false");
+	g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_INDEX], false);
 	g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_VIEW_MODE], "ASCII");
 	g_key_file_set_integer(priv->key_file, section, GtkTermConfigurationItems[CONF_ITEM_TERM_HEX_CHARS], 16);	
 
@@ -1138,6 +1104,9 @@ GtkTermConfigurationState on_set_config_options(const char *name, const char *va
 		case CONF_ITEM_TERM_AUTO_LF:
 		case CONF_ITEM_TERM_AUTO_CR:		
 		case CONF_ITEM_SERIAL_DISABLE_PORT_LOCK:
+			g_key_file_set_boolean(priv->key_file, section, GtkTermConfigurationItems[item_counter], g_strcmp0(value, "on") ? false : true);		
+			break;
+
 		case CONF_ITEM_SERIAL_PARITY:
 		case CONF_ITEM_SERIAL_FLOW_CONTROL:
 			g_key_file_set_string(priv->key_file, section, GtkTermConfigurationItems[item_counter], value);

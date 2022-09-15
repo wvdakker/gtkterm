@@ -33,8 +33,8 @@
 #define DEFAULT_DELAY 		    0
 #define DEFAULT_CHAR 		    -1
 #define DEFAULT_DELAY_RS485     30
-#define DEFAULT_ECHO 		    "false"
-#define DEFAULT_VISUAL_BELL     "false"
+#define DEFAULT_ECHO 		    false
+#define DEFAULT_VISUAL_BELL     false
 
 /** Defaults for serial ports    */
 #define DEFAULT_PORT 	        "/dev/ttyS0"
