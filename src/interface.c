@@ -79,6 +79,7 @@
 #include "logging.h"
 
 #include <config.h>
+#include <glib/gprintf.h>
 #include <glib/gi18n.h>
 
 guint id;

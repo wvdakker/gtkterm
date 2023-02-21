@@ -1,3 +1,4 @@
+#include <glib-unix.h>
 #include <gtk/gtk.h>
 #include "interface.h"
 
