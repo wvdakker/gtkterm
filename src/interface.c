@@ -85,6 +85,7 @@
 guint id;
 gboolean echo_on;
 gboolean crlfauto_on;
+gboolean esc_clear_screen_on;
 gboolean timestamp_on = 0;
 GtkWidget *StatusBar;
 GtkWidget *signals[6];
@@ -122,6 +123,7 @@ gboolean Envoie_car(GtkWidget *, GdkEventKey *, gpointer);
 gboolean control_signals_read(void);
 void echo_toggled_callback(GtkAction *action, gpointer data);
 void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data);
+void esc_clear_screen_toggled_callback(GtkAction *action, gpointer data);
 void timestamp_toggled_callback(GtkAction *action, gpointer data);
 void view_radio_callback(GtkAction *action, gpointer data);
 void view_hexadecimal_chars_radio_callback(GtkAction* action, gpointer data);
@@ -194,6 +196,7 @@ const GtkToggleActionEntry menu_toggle_entries[] =
 	/* Configuration Menu */
 	{"LocalEcho", NULL, N_("Local _echo"), NULL, NULL, G_CALLBACK(echo_toggled_callback), FALSE},
 	{"CRLFauto", NULL, N_("_CR LF auto"), NULL, NULL, G_CALLBACK(CR_LF_auto_toggled_callback), FALSE},
+	{"EscClearScreen", NULL, N_("ESC clear scree_n"), NULL, NULL, G_CALLBACK(esc_clear_screen_toggled_callback), FALSE},
 	{"Timestamp", NULL, N_("Timestamp"), NULL, NULL, G_CALLBACK(timestamp_toggled_callback), FALSE},
 
 	/* View Menu */
@@ -245,6 +248,7 @@ static const char *ui_description =
     "      <menuitem action='ConfigTerminal'/>"
     "      <menuitem action='LocalEcho'/>"
     "      <menuitem action='CRLFauto'/>"
+    "      <menuitem action='EscClearScreen'/>"
     "      <menuitem action='Timestamp'/>"
     "      <menuitem action='Macros'/>"
     "      <separator/>"
@@ -390,6 +394,23 @@ void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data)
 {
 	crlfauto_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
 	configure_crlfauto(crlfauto_on);
+}
+
+void Set_esc_clear_screen(gboolean esc_clear_screen)
+{
+	GtkAction *action;
+
+	esc_clear_screen_on = esc_clear_screen;
+
+	action = gtk_action_group_get_action(action_group, "EscClearScreen");
+	if(action)
+		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), esc_clear_screen_on);
+}
+
+void esc_clear_screen_toggled_callback(GtkAction *action, gpointer data)
+{
+	esc_clear_screen_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
+	configure_esc_clear_screen(esc_clear_screen_on);
 }
 
 void Set_timestamp(gboolean timestamp)
@@ -705,7 +726,7 @@ gint send_serial(gchar *string, gint len)
 	if(bytes_written > 0)
 	{
 		if(echo_on)
-			put_chars(string, bytes_written, crlfauto_on);
+			put_chars(string, bytes_written, crlfauto_on, esc_clear_screen_on);
 	}
 
 	return bytes_written;

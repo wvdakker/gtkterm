@@ -78,6 +78,7 @@ gint *rts_time_before_tx;
 gint *rts_time_after_tx;
 gint *echo;
 gint *crlfauto;
+gint *esc_clear_screen;
 gint *timestamp;
 cfgList **macro_list = NULL;
 gchar **font;
@@ -111,6 +112,7 @@ cfgStruct cfg[] =
 	{"rs485_rts_time_after_tx", CFG_INT, &rts_time_after_tx},
 	{"echo", CFG_BOOL, &echo},
 	{"crlfauto", CFG_BOOL, &crlfauto},
+	{"esc_clear_screen", CFG_BOOL, &esc_clear_screen},
 	{"timestamp", CFG_BOOL, &timestamp},
 	{"font", CFG_STRING, &font},
 	{"macros", CFG_STRING_LIST, &macro_list},
@@ -176,6 +178,7 @@ void config_file_init(void)
 void ConfigFlags(void)
 {
 	Set_crlfauto(config.crlfauto);
+	Set_esc_clear_screen(config.esc_clear_screen);
 	Set_timestamp(config.timestamp);
 }
 
@@ -973,6 +976,11 @@ gint Load_configuration_from_file(gchar *config_name)
 				else
 					config.crlfauto = FALSE;
 
+				if(esc_clear_screen[i] != -1)
+					config.esc_clear_screen = (gboolean)esc_clear_screen[i];
+				else
+					config.esc_clear_screen = FALSE;
+
 				if(timestamp[i] != -1)
 					config.timestamp = (gboolean)timestamp[i];
 				else
@@ -1199,6 +1207,7 @@ void Hard_default_configuration(void)
 	config.car = DEFAULT_CHAR;
 	config.echo = DEFAULT_ECHO;
 	config.crlfauto = FALSE;
+	config.esc_clear_screen = FALSE;
 	config.timestamp = FALSE;
   config.disable_port_lock = FALSE;
 
@@ -1303,6 +1312,14 @@ void Copy_configuration(int pos)
 		string = g_strdup_printf("True");
 
 	cfgStoreValue(cfg, "crlfauto", string, CFG_INI, pos);
+	g_free(string);
+
+	if(config.esc_clear_screen == FALSE)
+		string = g_strdup_printf("False");
+	else
+		string = g_strdup_printf("True");
+
+	cfgStoreValue(cfg, "esc_clear_screen", string, CFG_INI, pos);
 	g_free(string);
 
 	if(config.timestamp == FALSE)
