@@ -159,6 +159,7 @@ const GtkActionEntry menu_entries[] =
 	{"ClearScrollback", GTK_STOCK_CLEAR, N_("_Clear scrollback"), "<shift><control>K", NULL, G_CALLBACK(clear_scrollback)},
 	{"SendFile", GTK_STOCK_JUMP_TO, N_("Send _RAW file"), "<shift><control>R", NULL, G_CALLBACK(send_raw_file)},
 	{"SaveFile", GTK_STOCK_SAVE_AS, N_("_Save RAW file"), "", NULL, G_CALLBACK(save_raw_file)},
+        {"SaveAsciiFile", GTK_STOCK_SAVE_AS, N_("Save _ASCII file"), "", NULL, G_CALLBACK(save_ascii_file)},
 
 	/* Edit menu */
 	{"EditCopy", GTK_STOCK_COPY, NULL, "<shift><control>C", NULL, G_CALLBACK(edit_copy_callback)},
@@ -227,6 +228,7 @@ static const char *ui_description =
     "      <menuitem action='ClearScrollback'/>"
     "      <menuitem action='SendFile'/>"
     "      <menuitem action='SaveFile'/>"
+    "      <menuitem action='SaveAsciiFile'/>"
     "      <separator/>"
     "      <menuitem action='FileExit'/>"
     "    </menu>"

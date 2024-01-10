@@ -357,7 +357,7 @@ void Set_signals(guint param)
 
 	if(ioctl(serial_port_fd, TIOCMGET, &stat_) == -1)
 	{
-		i18n_perror(_("Control signals read"));
+		i18n_perror(_("Control signals read set signals"));
 		return;
 	}
 
@@ -403,7 +403,7 @@ int lis_sig(void)
 			/* Thanks to Elie De Brauwer on ubuntu launchpad */
 			if (errno != EINVAL)
 			{
-				i18n_perror(_("Control signals read"));
+				i18n_perror(_("Control signals read lis_sig"));
 				Close_port();
 			}
 
