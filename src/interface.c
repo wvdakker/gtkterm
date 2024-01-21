@@ -754,7 +754,7 @@ void help_about_callback(GtkAction *action, gpointer data)
 	gchar *authors[] = {"Julien Schimtt", "Zach Davis", "Florian Euchner", "Stephan Enderlein",
 			    "Kevin Picot", NULL};
 	gchar *comments_program = _("GTKTerm is a simple GTK+ terminal used to communicate with the serial port.");
-	gchar *comments[256];
+	gchar comments[256];
 	GError *error = NULL;
 	GdkPixbuf *logo = NULL;
 
