@@ -23,8 +23,8 @@
 
 void create_main_window(void);
 void Set_status_message(gchar *);
-void put_text(gchar *, guint);
-void put_hexadecimal(gchar *, guint);
+void put_text(const gchar *, guint);
+void put_hexadecimal(const gchar *, guint);
 void Set_local_echo(gboolean);
 void show_message(gchar *, gint);
 void clear_display(void);

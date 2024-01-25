@@ -65,7 +65,7 @@ gboolean timer(gpointer pointer);
 gboolean idle(gpointer pointer);
 void remove_input(void);
 void add_input(void);
-void write_file(char *, unsigned int);
+void write_file(const char *, unsigned int);
 
 extern struct configuration_port config;
 
@@ -280,7 +280,7 @@ gint close_all(void)
 	return FALSE;
 }
 
-void write_file(char *data, unsigned int size)
+void write_file(const char *data, unsigned int size)
 {
 	fwrite(data, size, 1, Fic);
 }

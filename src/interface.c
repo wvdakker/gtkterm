@@ -647,7 +647,7 @@ void initialize_hexadecimal_display(void)
 	blank_data[bytes_per_line * 3 + 5] = 0;
 }
 
-void put_hexadecimal(gchar *string, guint size)
+void put_hexadecimal(const gchar *string, guint size)
 {
 	static gchar data[128];
 	static gchar data_byte[6];
@@ -714,7 +714,7 @@ void put_hexadecimal(gchar *string, guint size)
 	}
 }
 
-void put_text(gchar *string, guint size)
+void put_text(const gchar *string, guint size)
 {
 	log_chars(string, size);
 	vte_terminal_feed(VTE_TERMINAL(display), string, size);
@@ -754,7 +754,7 @@ void help_about_callback(GtkAction *action, gpointer data)
 	gchar *authors[] = {"Julien Schimtt", "Zach Davis", "Florian Euchner", "Stephan Enderlein",
 			    "Kevin Picot", NULL};
 	gchar *comments_program = _("GTKTerm is a simple GTK+ terminal used to communicate with the serial port.");
-	gchar *comments[256];
+	gchar comments[256];
 	GError *error = NULL;
 	GdkPixbuf *logo = NULL;
 
