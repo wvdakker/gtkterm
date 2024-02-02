@@ -77,6 +77,7 @@
 #include "macros.h"
 #include "auto_config.h"
 #include "logging.h"
+#include "device_monitor.h"
 
 #include <config.h>
 #include <glib/gprintf.h>
@@ -84,6 +85,7 @@
 
 guint id;
 gboolean echo_on;
+gboolean autoreconnect_on;
 gboolean crlfauto_on;
 gboolean esc_clear_screen_on;
 gboolean timestamp_on = 0;
@@ -122,6 +124,7 @@ void help_about_callback(GtkAction *action, gpointer data);
 gboolean Envoie_car(GtkWidget *, GdkEventKey *, gpointer);
 gboolean control_signals_read(void);
 void echo_toggled_callback(GtkAction *action, gpointer data);
+void Autoreconnect_toggled_callback(GtkAction *action, gpointer data);
 void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data);
 void esc_clear_screen_toggled_callback(GtkAction *action, gpointer data);
 void timestamp_toggled_callback(GtkAction *action, gpointer data);
@@ -196,6 +199,7 @@ const GtkToggleActionEntry menu_toggle_entries[] =
 {
 	/* Configuration Menu */
 	{"LocalEcho", NULL, N_("Local _echo"), NULL, NULL, G_CALLBACK(echo_toggled_callback), FALSE},
+	{"Autoreconnect", NULL, N_("Autoreconnect"), NULL, NULL, G_CALLBACK(Autoreconnect_toggled_callback), FALSE},
 	{"CRLFauto", NULL, N_("_CR LF auto"), NULL, NULL, G_CALLBACK(CR_LF_auto_toggled_callback), FALSE},
 	{"EscClearScreen", NULL, N_("ESC clear scree_n"), NULL, NULL, G_CALLBACK(esc_clear_screen_toggled_callback), FALSE},
 	{"Timestamp", NULL, N_("Timestamp"), NULL, NULL, G_CALLBACK(timestamp_toggled_callback), FALSE},
@@ -249,6 +253,7 @@ static const char *ui_description =
     "      <menuitem action='ConfigPort'/>"
     "      <menuitem action='ConfigTerminal'/>"
     "      <menuitem action='LocalEcho'/>"
+    "      <menuitem action='Autoreconnect'/>"
     "      <menuitem action='CRLFauto'/>"
     "      <menuitem action='EscClearScreen'/>"
     "      <menuitem action='Timestamp'/>"
@@ -390,6 +395,12 @@ void Set_crlfauto(gboolean crlfauto)
 	action = gtk_action_group_get_action(action_group, "CRLFauto");
 	if(action)
 		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), crlfauto_on);
+}
+
+void Autoreconnect_toggled_callback(GtkAction *action, gpointer data)
+{
+	autoreconnect_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
+	device_autoreconnect_enable(autoreconnect_on);
 }
 
 void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data)
