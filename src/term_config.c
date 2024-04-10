@@ -78,6 +78,7 @@ gint *rts_time_before_tx;
 gint *rts_time_after_tx;
 gint *echo;
 gint *crlfauto;
+gint *autoreconnect_enabled;
 gint *esc_clear_screen;
 gint *timestamp;
 cfgList **macro_list = NULL;
@@ -112,6 +113,7 @@ cfgStruct cfg[] =
 	{"rs485_rts_time_after_tx", CFG_INT, &rts_time_after_tx},
 	{"echo", CFG_BOOL, &echo},
 	{"crlfauto", CFG_BOOL, &crlfauto},
+	{"autoreconnect_enabled", CFG_BOOL, &autoreconnect_enabled},
 	{"esc_clear_screen", CFG_BOOL, &esc_clear_screen},
 	{"timestamp", CFG_BOOL, &timestamp},
 	{"font", CFG_STRING, &font},
@@ -178,6 +180,7 @@ void config_file_init(void)
 void ConfigFlags(void)
 {
 	Set_crlfauto(config.crlfauto);
+	Set_autoreconnect_enabled(config.autoreconnect_enabled);
 	Set_esc_clear_screen(config.esc_clear_screen);
 	Set_timestamp(config.timestamp);
 }
@@ -976,6 +979,11 @@ gint Load_configuration_from_file(gchar *config_name)
 				else
 					config.crlfauto = FALSE;
 
+				if(autoreconnect_enabled[i] != -1)
+					config.autoreconnect_enabled = (gboolean)autoreconnect_enabled[i];
+				else
+					config.autoreconnect_enabled = FALSE;
+
 				if(esc_clear_screen[i] != -1)
 					config.esc_clear_screen = (gboolean)esc_clear_screen[i];
 				else
@@ -1207,6 +1215,7 @@ void Hard_default_configuration(void)
 	config.car = DEFAULT_CHAR;
 	config.echo = DEFAULT_ECHO;
 	config.crlfauto = FALSE;
+	config.autoreconnect_enabled = FALSE;
 	config.esc_clear_screen = FALSE;
 	config.timestamp = FALSE;
   config.disable_port_lock = FALSE;
@@ -1312,6 +1321,14 @@ void Copy_configuration(int pos)
 		string = g_strdup_printf("True");
 
 	cfgStoreValue(cfg, "crlfauto", string, CFG_INI, pos);
+	g_free(string);
+
+	if(config.autoreconnect_enabled == FALSE)
+		string = g_strdup_printf("False");
+	else
+		string = g_strdup_printf("True");
+
+	cfgStoreValue(cfg, "autoreconnect_enabled", string, CFG_INI, pos);
 	g_free(string);
 
 	if(config.esc_clear_screen == FALSE)

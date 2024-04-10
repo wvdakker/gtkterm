@@ -30,17 +30,11 @@
 #include "interface.h"
 
 extern struct configuration_port config;
-bool autoreconnect_enabled = false;
-
-void device_autoreconnect_enable(bool enabled)
-{
-	autoreconnect_enabled = enabled;
-}
 
 static inline void device_monitor_status(const bool connected)
 {
 	if (connected) {
-		if (autoreconnect_enabled)
+		if (config.autoreconnect_enabled)
 			interface_open_port();
 	} else
 		interface_close_port();

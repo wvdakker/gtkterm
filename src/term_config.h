@@ -47,6 +47,7 @@ struct configuration_port
 	gchar car;                   // caractere attendre
 	gboolean echo;               // echo local
 	gboolean crlfauto;           // line feed auto
+	gboolean autoreconnect_enabled;	// enable autoreconnect
 	gboolean esc_clear_screen;   // clear screen when receive ESC char ('\x1b' - 27)
 	gboolean timestamp;
 	gboolean disable_port_lock;

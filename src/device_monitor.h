@@ -15,9 +15,6 @@
 #ifndef DEV_MON_H_
 #define DEV_MON_H_
 
-#include <stdbool.h>
-
 extern void device_monitor_start(void);
-extern void device_autoreconnect_enable(bool enabled);
 
 #endif

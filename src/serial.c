@@ -321,6 +321,11 @@ void configure_crlfauto(gboolean crlfauto)
 	config.crlfauto = crlfauto;
 }
 
+void configure_autoreconnect_enable(gboolean autoreconnect)
+{
+	config.autoreconnect_enabled = autoreconnect;
+}
+
 void configure_esc_clear_screen(gboolean esc_clear_screen)
 {
 	config.esc_clear_screen = esc_clear_screen;

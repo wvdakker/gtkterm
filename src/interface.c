@@ -397,10 +397,21 @@ void Set_crlfauto(gboolean crlfauto)
 		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), crlfauto_on);
 }
 
+void Set_autoreconnect_enabled(gboolean autoreconnect_enabled)
+{
+	GtkAction *action;
+
+	autoreconnect_on = autoreconnect_enabled;
+
+	action = gtk_action_group_get_action(action_group, "Autoreconnect");
+	if(action)
+		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), autoreconnect_on);
+}
+
 void Autoreconnect_toggled_callback(GtkAction *action, gpointer data)
 {
 	autoreconnect_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
-	device_autoreconnect_enable(autoreconnect_on);
+	configure_autoreconnect_enable(autoreconnect_on);
 }
 
 void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data)
