@@ -10,6 +10,7 @@ msgstr ""
 "POT-Creation-Date: 2020-03-09 10:39+0100\n"
 "PO-Revision-Date: 2020-11-13 19:21+0200\n"
 "Last-Translator: Markus Hiereth <translation@hiereth.de>\n"
+"Last-Translator: Christian Weickhmann <christian.weickhmann@gmx.de>\n"
 "Language-Team: debian-l10n-german <debian-l10n-german@lists.debian.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -199,137 +200,137 @@ msgstr "Datei %s kann nicht geöffnet werden: %s\n"
 #. Toplevel
 #: ../src/interface.c:145
 msgid "_File"
-msgstr "/_Datei"
+msgstr "_Datei"
 
 #: ../src/interface.c:146
 msgid "_Edit"
-msgstr "/_Bearbeiten"
+msgstr "_Bearbeiten"
 
 #: ../src/interface.c:147
 msgid "_Log"
-msgstr "/_Logging"
+msgstr "_Logging"
 
 #: ../src/interface.c:148
 msgid "_Configuration"
-msgstr "/_Konfiguration"
+msgstr "_Konfiguration"
 
 #: ../src/interface.c:149
 msgid "Control _signals"
-msgstr "/_Steuersignale"
+msgstr "_Steuersignale"
 
 #: ../src/interface.c:150
 msgid "_View"
-msgstr "/_Ansicht"
+msgstr "_Ansicht"
 
 #: ../src/interface.c:151
 msgid "Hexadecimal _chars"
-msgstr "/Ansicht/Hexadezimale _Zeichen"
+msgstr "Hexadezimale _Zeichen"
 
 #: ../src/interface.c:152
 msgid "_Help"
-msgstr "/_Hilfe"
+msgstr "_Hilfe"
 
 #: ../src/interface.c:156
 msgid "_Clear screen"
-msgstr "/Datei/Bildschirm _leeren"
+msgstr "Bildschirm _leeren"
 
 #: ../src/interface.c:157
 msgid "_Clear scrollback"
-msgstr "/Datei/_Verlaufsspeicher leeren"
+msgstr "_Verlaufsspeicher leeren"
 
 #: ../src/interface.c:158
 msgid "Send _RAW file"
-msgstr "/Datei/Rohe Datei sen_den"
+msgstr "Rohe Datei sen_den"
 
 #: ../src/interface.c:159
 msgid "_Save RAW file"
-msgstr "/Datei/Rohe Datei _speichern"
+msgstr "Rohe Datei _speichern"
 
 #. Log Menu
 #: ../src/interface.c:167
 msgid "To file..."
-msgstr "/Logging/_In Datei ..."
+msgstr "_In Datei ..."
 
 #. Confuguration Menu
 #: ../src/interface.c:173
 msgid "_Port"
-msgstr "/Konfiguration/_Port"
+msgstr "_Port"
 
 #: ../src/interface.c:174
 msgid "_Main window"
-msgstr "/Konfiguration/_Hauptfenster"
+msgstr "_Hauptfenster"
 
 #: ../src/interface.c:175
 msgid "_Macros"
-msgstr "/Konfiguration/_Makros"
+msgstr "_Makros"
 
 #: ../src/interface.c:176
 msgid "_Load configuration"
-msgstr "/Konfiguration/Konfiguration _laden"
+msgstr "Konfiguration _laden"
 
 #: ../src/interface.c:177
 msgid "_Save configuration"
-msgstr "/Konfiguration/Konfiguration _speichern"
+msgstr "Konfiguration _speichern"
 
 #: ../src/interface.c:178
 msgid "_Delete configuration"
-msgstr "/Konfiguration/Konfiguration lös_chen"
+msgstr "Konfiguration lös_chen"
 
 #. Signals Menu
 #: ../src/interface.c:181
 msgid "Send break"
-msgstr "/Steuersignale/Pause _senden"
+msgstr "Pause _senden"
 
 #: ../src/interface.c:182
 msgid "_Open Port"
-msgstr "/Steuersignale/Port _öffnen"
+msgstr "Port _öffnen"
 
 #: ../src/interface.c:183
 msgid "_Close Port"
-msgstr "/Steuersignale/Port s_chließen"
+msgstr "Port s_chließen"
 
 #: ../src/interface.c:184
 msgid "Toggle DTR"
-msgstr "/Steuersignale/_DTR-Umschaltung"
+msgstr "_DTR-Umschaltung"
 
 #: ../src/interface.c:185
 msgid "Toggle RTS"
-msgstr "/Steuersignale/_RTS-Umschaltung"
+msgstr "_RTS-Umschaltung"
 
 #. Configuration Menu
 #: ../src/interface.c:194
 msgid "Local _echo"
-msgstr "/Konfiguration/Lokales _Echo"
+msgstr "Lokales _Echo"
 
 #: ../src/interface.c:195
 msgid "_CR LF auto"
-msgstr "/Konfiguration/CR-LF-_Automatik"
+msgstr "CR-LF-_Automatik"
 
 #: ../src/interface.c:196
 msgid "Timestamp"
-msgstr "/Konfiguration/_Zeitstempel"
+msgstr "_Zeitstempel"
 
 #. View Menu
 #: ../src/interface.c:199
 msgid "Show _index"
-msgstr "/Ansicht/Zeige _Index"
+msgstr "Zeige _Index"
 
 #: ../src/interface.c:200
 msgid "_Send hexadecimal data"
-msgstr "/Ansicht/Hexadezimale Daten sen_den"
+msgstr "Hexadezimale Daten sen_den"
 
 #: ../src/interface.c:205
 msgid "_ASCII"
-msgstr "/Ansicht/_ASCII"
+msgstr "_ASCII"
 
 #: ../src/interface.c:206
 msgid "_Hexadecimal"
-msgstr "/Ansicht/He_xadezimal"
+msgstr "He_xadezimal"
 
 #. technischen Hintergrund klären: Fehlen Menütexte in Zeilen 168-170 von interface.c? 
 #: ../src/interface.c:422
 msgid "Resume"
-msgstr "/Logging/_Wieder beginnen"
+msgstr "_Wieder beginnen"
 
 #: ../src/interface.c:567
 msgid "Hexadecimal data to send (separator : ';' or space) : "
