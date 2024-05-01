@@ -142,7 +142,7 @@ msgstr "Ligne de commande inconnue\n"
 
 #: ../src/files.c:77
 msgid "Send RAW File"
-msgstr ""
+msgstr "Envoi en fichier brut"
 
 #: ../src/files.c:96
 #, c-format
@@ -175,7 +175,7 @@ msgstr "Erreur d'ouverture du fichier\n"
 
 #: ../src/files.c:292
 msgid "Save RAW File"
-msgstr ""
+msgstr "Sauvegarde en fichier brut"
 
 #: ../src/files.c:311
 #, c-format
@@ -195,32 +195,32 @@ msgstr "_Fichier"
 
 #: ../src/interface.c:146
 msgid "_Edit"
-msgstr ""
+msgstr "_Édition"
 
 #: ../src/interface.c:147
 #, fuzzy
 msgid "_Log"
-msgstr "/_Log"
+msgstr "_Log"
 
 #: ../src/interface.c:148
 #, fuzzy
 msgid "_Configuration"
-msgstr "/_Configuration"
+msgstr "_Configuration"
 
 #: ../src/interface.c:149
 #, fuzzy
 msgid "Control _signals"
-msgstr "/_Signaux de contrôle"
+msgstr "_Signaux de contrôle"
 
 #: ../src/interface.c:150
 #, fuzzy
 msgid "_View"
-msgstr "/_Vue"
+msgstr "_Vue"
 
 #: ../src/interface.c:151
 #, fuzzy
 msgid "Hexadecimal _chars"
-msgstr "/Vue/_Largeur affichage hexadécimal"
+msgstr "_Largeur affichage hexadécimal"
 
 #: ../src/interface.c:152
 #, fuzzy
@@ -230,113 +230,113 @@ msgstr "_Aide"
 #: ../src/interface.c:156
 #, fuzzy
 msgid "_Clear screen"
-msgstr "/Fichier/Effacer l'écran"
+msgstr "Effacer l'é_cran"
 
 #: ../src/interface.c:157
 msgid "_Clear scrollback"
-msgstr ""
+msgstr "Effacer histoire"
 
 #: ../src/interface.c:158
 #, fuzzy
 msgid "Send _RAW file"
-msgstr "/Fichier/Envoi de _fichier brut"
+msgstr "Envoi de _fichier brut"
 
 #: ../src/interface.c:159
 #, fuzzy
 msgid "_Save RAW file"
-msgstr "/Fichier/_Sauvegarde en fichier brut"
+msgstr "_Sauvegarde en fichier brut"
 
 #. Log Menu
 #: ../src/interface.c:167
 #, fuzzy
 msgid "To file..."
-msgstr "/Log/Dans le fichier..."
+msgstr "Dans le fichier..."
 
 #. Confuguration Menu
 #: ../src/interface.c:173
 #, fuzzy
 msgid "_Port"
-msgstr "Port :"
+msgstr "_Port :"
 
 #: ../src/interface.c:174
 #, fuzzy
 msgid "_Main window"
-msgstr "/Configuration/_Fenêtre prncipale"
+msgstr "_Fenêtre prncipale"
 
 #: ../src/interface.c:175
 msgid "_Macros"
-msgstr ""
+msgstr "_Macros"
 
 #: ../src/interface.c:176
 #, fuzzy
 msgid "_Load configuration"
-msgstr "Charger une configuration"
+msgstr "_Charger une configuration"
 
 #: ../src/interface.c:177
 #, fuzzy
 msgid "_Save configuration"
-msgstr "Sauvegarde de la configuration"
+msgstr "_Sauvegarde de la configuration"
 
 #: ../src/interface.c:178
 #, fuzzy
 msgid "_Delete configuration"
-msgstr "Supprimer une configuration"
+msgstr "_Supprimer une configuration"
 
 #. Signals Menu
 #: ../src/interface.c:181
 msgid "Send break"
-msgstr ""
+msgstr "Envoi de break"
 
 #: ../src/interface.c:182
 #, fuzzy
 msgid "_Open Port"
-msgstr "Aucun port ouvert"
+msgstr "_Ouvre port"
 
 #: ../src/interface.c:183
 msgid "_Close Port"
-msgstr ""
+msgstr "Fermer port"
 
 #: ../src/interface.c:184
 msgid "Toggle DTR"
-msgstr ""
+msgstr "Basculer DTR"
 
 #: ../src/interface.c:185
 msgid "Toggle RTS"
-msgstr ""
+msgstr "Basculer RTS"
 
 #. Configuration Menu
 #: ../src/interface.c:194
 msgid "Local _echo"
-msgstr ""
+msgstr "_Écho local"
 
 #: ../src/interface.c:195
 msgid "_CR LF auto"
-msgstr ""
+msgstr "_CR LF automatique"
 
 #: ../src/interface.c:196
 msgid "Timestamp"
-msgstr ""
+msgstr "Horodatage"
 
 #. View Menu
 #: ../src/interface.c:199
 #, fuzzy
 msgid "Show _index"
-msgstr "/Vue/Afficher l'index"
+msgstr "Afficher l'_index"
 
 #: ../src/interface.c:200
 #, fuzzy
 msgid "_Send hexadecimal data"
-msgstr "/Vue/_Envoi d'hexadécimal"
+msgstr "_Envoi d'hexadécimal"
 
 #: ../src/interface.c:205
 #, fuzzy
 msgid "_ASCII"
-msgstr "/Vue/_ASCII"
+msgstr "_ASCII"
 
 #: ../src/interface.c:206
 #, fuzzy
 msgid "_Hexadecimal"
-msgstr "/Vue/_Hexadécimal"
+msgstr "_Hexadécimal"
 
 #: ../src/interface.c:422
 msgid "Resume"
@@ -349,7 +349,7 @@ msgstr "Donnée hexadécimale à envoyer (séparateur : ';' ou espace) : "
 #: ../src/interface.c:736
 msgid ""
 "GTKTerm is a simple GTK+ terminal used to communicate with the serial port."
-msgstr ""
+msgstr "GTKTerm est un simple terminal GTK+ utilisé pour communiquer avec un port série."
 
 #: ../src/interface.c:776
 msgid "Break signal sent!"
@@ -362,12 +362,12 @@ msgstr "0 octet(s) envoyé(s) !"
 
 #: ../src/interface.c:896
 msgid "Improper formatted hex input, 0 bytes sent!"
-msgstr ""
+msgstr "Entré hex mal formaté, 0 octets envoyés"
 
 #: ../src/interface.c:907
 #, fuzzy, c-format
 msgid "%d byte(s) sent!"
-msgstr "0 octet(s) envoyé(s) !"
+msgstr "%d octet(s) envoyé(s) !"
 
 #: ../src/logging.c:49
 #, c-format
@@ -536,12 +536,13 @@ msgstr "Impossible d'ouvrir %s : %s\n"
 msgid ""
 "Cannot lock port! The serial port may currently be in use by another "
 "program.\n"
-msgstr ""
+msgstr "Impossible de verrouiller le port! Le port série peut être "
+"utilisé par un autre logiciel.\n"
 
 #: ../src/serial.c:235
 #, c-format
 msgid "Arbitrary baud rates not supported"
-msgstr ""
+msgstr "Débits baud arbitraires non supportés"
 
 #: ../src/serial.c:352 ../src/serial.c:398
 msgid "Control signals read"
@@ -596,7 +597,7 @@ msgstr "Port :"
 
 #: ../src/term_config.c:214
 msgid "Baud Rate:"
-msgstr ""
+msgstr "Débit baud :"
 
 #: ../src/term_config.c:216
 msgid "Parity:"
@@ -633,15 +634,15 @@ msgstr "Attendre le caractère suivant avant de passer à la ligne suivante :"
 
 #: ../src/term_config.c:457
 msgid "RS-485 half-duplex parameters (RTS signal used to send)"
-msgstr ""
+msgstr "Paramètres RS-485 semi-duplex (utilisant signal RTS pour envoi)"
 
 #: ../src/term_config.c:464
 msgid "Time with RTS 'on' before transmit (milliseconds):"
-msgstr ""
+msgstr "Durée avec RTS actif (on) avant transmission (millisecondes):"
 
 #: ../src/term_config.c:466
 msgid "Time with RTS 'on' after transmit (milliseconds):"
-msgstr ""
+msgstr "Durée avec RTS actif (on) après transmission (millisecondes):"
 
 #: ../src/term_config.c:591
 msgid "Load configuration"
@@ -655,7 +656,8 @@ msgstr "Supprimer une configuration"
 msgid ""
 "Cannot read configuration file!\n"
 "Config file may contain invalid parameter.\n"
-msgstr ""
+msgstr "Erreur de lecture du fichier de configuration!\n"
+"Fichier de configuration peut contenir des paramètres incorrects.\n"
 
 #: ../src/term_config.c:637
 msgid "Configurations"
@@ -673,7 +675,8 @@ msgstr "Nom de la configuration : "
 msgid ""
 "Cannot save configuration file!\n"
 "Config file may contain invalid parameter.\n"
-msgstr ""
+msgstr "Erreur lors de l'enregistrement du fichier de configuration!\n"
+"Fichier de configuration peut contenir des paramètres incorrects.\n"
 
 #: ../src/term_config.c:770
 msgid "Cannot overwrite section!"
@@ -692,7 +695,8 @@ msgstr "Configuration [%s] sauvée\n"
 msgid ""
 "Cannot write configuration file!\n"
 "Config file may contain invalid parameter.\n"
-msgstr ""
+msgstr "Erreur lors d'enregistrement du fichier de configuration!\n"
+"Fichier de configuration peut contenir des paramètres incorrects.\n"
 
 #: ../src/term_config.c:819
 #, fuzzy, c-format
@@ -717,7 +721,7 @@ msgstr "Pas de section \"%s\" dans le fichier de configuration\n"
 #: ../src/term_config.c:1105
 #, c-format
 msgid "Baudrate %d may not be supported by all hardware"
-msgstr ""
+msgstr "Débit baud %d ne peut pas être pris en charge par tout hardware"
 
 #: ../src/term_config.c:1112
 #, c-format
@@ -762,7 +766,7 @@ msgstr "Impossible de trouver la section %s\n"
 
 #: ../src/term_config.c:1454
 msgid "Main Window"
-msgstr ""
+msgstr "Fenêtre principale"
 
 #~ msgid "File selection"
 #~ msgstr "Sélection de fichier"
