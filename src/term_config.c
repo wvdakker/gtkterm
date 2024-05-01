@@ -216,7 +216,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 		show_message(_("No serial devices found!\n"
 		               "\n"
 		               "Searched the following device path patterns:\n"
-		               "\t/dev/ttyS*\n\t/dev/tts/*\n\t/dev/ttyUSB*\n\t/dev/usb/tts/*\n\n"
+		               "\t/dev/ttyS*\n\t/dev/tts/*\n\t/dev/ttyUSB*\n\t/dev/ttyACM*\n\t/dev/usb/tts/*\n\n"
 		               "Enter a different device path in the 'Port' box.\n"), MSG_WRN);
 	}
 

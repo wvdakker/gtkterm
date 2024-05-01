@@ -20,7 +20,7 @@ msgstr ""
 "X-Generator: Virtaal 0.7.1\n"
 
 #: ../src/buffer.c:164
-msgid "ERROR : Buffer is not initialized !\n"
+msgid "ERROR: Buffer is not initialized!\n"
 msgstr "FEHLER: Puffer ist nicht initialisiert!\n"
 
 #: ../src/cmdline.c:37
@@ -45,7 +45,7 @@ msgstr ""
 "Dieses Programm wird unter den Bedingungen der GPL V.2 veröffentlicht\n"
 
 #: ../src/cmdline.c:40
-msgid "\t ** Use at your own risks ! **\n"
+msgid "\t ** Use at your own risks! **\n"
 msgstr "\t ** Gebrauch auf eigenes Risiko! **\n"
 
 #: ../src/cmdline.c:41
@@ -57,77 +57,77 @@ msgstr ""
 "Befehlszeilenoptionen\n"
 
 #: ../src/cmdline.c:42
-msgid "--help or -h : this help screen\n"
+msgid "--help or -h: this help screen\n"
 msgstr "--help oder -h: Diese Hilfe ausgeben\n"
 
 #: ../src/cmdline.c:43
-msgid "--config <configuration> or -c : load configuration\n"
+msgid "--config <configuration> or -c: load configuration\n"
 msgstr "--config <Konfiguration> oder -c: Konfiguration laden\n"
 
 #: ../src/cmdline.c:44
-msgid "--port <device> or -p : serial port device (default /dev/ttyS0)\n"
+msgid "--port <device> or -p: serial port device (default /dev/ttyS0)\n"
 msgstr "--port <Gerät> oder -p: serieller Port (/dev/ttyS0 ist voreingestellt)\n"
 
 #: ../src/cmdline.c:45
-msgid "--speed <speed> or -s : serial port speed (default 9600)\n"
+msgid "--speed <speed> or -s: serial port speed (default 9600)\n"
 msgstr ""
 "--speed <Rate> oder -s: Übertragungsrate des seriellen Ports\n"
 "(9600 ist voreingestellt)\n"
 
 #: ../src/cmdline.c:46
-msgid "--bits <bits> or -b : number of bits (default 8)\n"
+msgid "--bits <bits> or -b: number of bits (default 8)\n"
 msgstr "--bits <Bits> oder -b: Anzahl der Bits (Voreinstellung ist 8)\n"
 
 #: ../src/cmdline.c:47
-msgid "--stopbits <stopbits> or -t : number of stopbits (default 1)\n"
+msgid "--stopbits <stopbits> or -t: number of stopbits (default 1)\n"
 msgstr ""
 "--stopbits <Stoppbits> oder -t: Anzahl der Stoppbits (Voreinstellung ist 1)\n"
 
 #: ../src/cmdline.c:48
-msgid "--parity <odd | even> or -a : parity (default none)\n"
+msgid "--parity <odd | even> or -a: parity (default none)\n"
 msgstr "--parity <odd | even> oder -a: Parität (ohne ist voreingestellt)\n"
 
 #: ../src/cmdline.c:49
-msgid "--flow <Xon | RTS | RS-485> or -w : flow control (default none)\n"
+msgid "--flow <Xon | RTS | RS485> or -w: flow control (default none)\n"
 msgstr ""
-"--flow <Xon | RTS | RS-485> oder -w: Fluss-Steuerung (ohne ist voreingestellt)\n"
+"--flow <Xon | RTS | RS485> oder -w: Fluss-Steuerung (ohne ist voreingestellt)\n"
 
 #: ../src/cmdline.c:50
-msgid "--delay <ms> or -d : end of line delay in ms (default none)\n"
+msgid "--delay <ms> or -d: end of line delay in ms (default none)\n"
 msgstr ""
 "--delay <ms> oder -d: Verzögerung am Zeilenende in ms. (keine ist voreingestellt)\n"
 
 #: ../src/cmdline.c:51
 msgid ""
-"--char <char> or -r : wait for a special char at end of line (default none)\n"
+"--char <char> or -r: wait for a special char at end of line (default none)\n"
 msgstr ""
 "--char <Zeichen> oder -r: erwarte ein spezielles Zeichen als Zeilenende "
 "(Kein Zeichen ist voreingestellt)\n"
 
 #: ../src/cmdline.c:52
-msgid "--file <filename> or -f : default file to send (default none)\n"
+msgid "--file <filename> or -f: default file to send (default none)\n"
 msgstr ""
 "--file <Dateiname> oder -f: standardmäßig zu sendende Datei (keine ist "
 "voreingestellt)\n"
 
 #: ../src/cmdline.c:53
 msgid ""
-"--rts_time_before <ms> or -x : for RS-485, time in ms before transmit with "
+"--rts_time_before <ms> or -x: for RS-485, time in ms before transmit with "
 "rts on\n"
 msgstr ""
-"--rts_time_before <ms> oder -x : für RS-485: Zeit in Millisekunden mit »rts "
+"--rts_time_before <ms> oder -x: für RS-485: Zeit in Millisekunden mit »rts "
 "on«, ehe Daten übertragen werden\n"
 
 #: ../src/cmdline.c:54
 msgid ""
-"--rts_time_after <ms> or -y : for RS-485, time in ms after transmit with rts "
+"--rts_time_after <ms> or -y: for RS-485, time in ms after transmit with rts "
 "on\n"
 msgstr ""
-"--rts_time_after <ms> oder -y : für RS-485: Zeit in Millisekunden mit »rts "
+"--rts_time_after <ms> oder -y: für RS-485: Zeit in Millisekunden mit »rts "
 "on« nach der Übertragung\n"
 
 #: ../src/cmdline.c:55
-msgid "--echo or -e : switch on local echo\n"
+msgid "--echo or -e: switch on local echo\n"
 msgstr "--echo oder -e: Lokales Echo anschalten\n"
 
 #: ../src/cmdline.c:56
@@ -161,7 +161,7 @@ msgstr "Fehler beim Öffnen der Datei\n"
 
 #: ../src/files.c:110
 #, c-format
-msgid "%s : transfer in progress..."
+msgid "%s: transfer in progress..."
 msgstr "%s: Übertragung im Gang ..."
 
 #: ../src/files.c:128
@@ -333,7 +333,7 @@ msgid "Resume"
 msgstr "_Wieder beginnen"
 
 #: ../src/interface.c:567
-msgid "Hexadecimal data to send (separator : ';' or space) : "
+msgid "Hexadecimal data to send (separator: ';' or space): "
 msgstr "Zu sendende hexadezimale Daten (getrennt durch Strichpunkt oder Leerzeichen):"
 
 #: ../src/interface.c:736
@@ -376,7 +376,7 @@ msgstr "Fehlschlag beim Logging\n"
 
 #: ../src/macros.c:144
 #, c-format
-msgid "Macro \"%s\" sent !"
+msgid "Macro \"%s\" sent!"
 msgstr "Makro »%s« gesendet!"
 
 #: ../src/macros.c:275
@@ -389,7 +389,7 @@ msgid ""
 "be entered, but also special chars, like \\n, \\t, \\r, etc. You can also "
 "enter hexadecimal data preceded by a '\\'. The hexadecimal data should not "
 "begin with a letter (eg. use \\0FF and not \\FF)\n"
-"Examples :\n"
+"Examples:\n"
 "\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n"
 "\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"
 msgstr ""

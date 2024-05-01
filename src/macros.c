@@ -141,7 +141,7 @@ static void shortcut_callback(gpointer *number)
 		}
 	}
 
-	str = g_strdup_printf(_("Macro \"%s\" sent !"), macros[(long)number].shortcut);
+	str = g_strdup_printf(_("Macro \"%s\" sent!"), macros[(long)number].shortcut);
 	Put_temp_message(str, 800);
 	g_free(str);
 }
@@ -429,7 +429,7 @@ static gboolean Help_screen(GtkWidget *button, gpointer pointer)
 	                                GTK_DIALOG_DESTROY_WITH_PARENT,
 	                                GTK_MESSAGE_INFO,
 	                                GTK_BUTTONS_CLOSE,
-	                                _("The \"action\" field of a macro is the data to be sent on the port. Text can be entered, but also special chars, like \\n, \\t, \\r, etc. You can also enter hexadecimal data preceded by a '\\'. The hexadecimal data should not begin with a letter (eg. use \\0FF and not \\FF)\nExamples :\n\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"));
+	                                _("The \"action\" field of a macro is the data to be sent on the port. Text can be entered, but also special chars, like \\n, \\t, \\r, etc. You can also enter hexadecimal data preceded by a '\\'. The hexadecimal data should not begin with a letter (eg. use \\0FF and not \\FF)\nExamples:\n\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"));
 
 	gtk_dialog_run(GTK_DIALOG (Dialog));
 	gtk_widget_destroy(Dialog);

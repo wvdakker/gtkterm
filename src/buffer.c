@@ -169,7 +169,7 @@ void put_chars(const char *chars, unsigned int size, gboolean crlf_auto, gboolea
 
 	if(buffer == NULL)
 	{
-		i18n_printf(_("ERROR : Buffer is not initialized !\n"));
+		i18n_printf(_("ERROR: Buffer is not initialized!\n"));
 		return;
 	}
 

@@ -14,3 +14,5 @@ src/macros.c
 src/parsecfg.c
 src/serial.c
 src/term_config.c
+src/search.c
+src/user_signals.c
