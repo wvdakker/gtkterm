@@ -19,7 +19,7 @@ msgstr ""
 "Language: nl_NL\n"
 
 #: ../src/buffer.c:164
-msgid "ERROR : Buffer is not initialized !\n"
+msgid "ERROR: Buffer is not initialized!\n"
 msgstr "Fout: Buffer is niet geinitialiseerd\n"
 
 #: ../src/cmdline.c:37
@@ -44,8 +44,8 @@ msgstr ""
 "Dit programma is vrijgegeven  onder de  GPL V.2 licentie\n"
 
 #: ../src/cmdline.c:40
-msgid "\t ** Use at your own risks ! **\n"
-msgstr "\t ** Gebruik op eigen risico ! **\n"
+msgid "\t ** Use at your own risks! **\n"
+msgstr "\t ** Gebruik op eigen risico! **\n"
 
 #: ../src/cmdline.c:41
 msgid ""
@@ -56,75 +56,75 @@ msgstr ""
 "Command line opties\n"
 
 #: ../src/cmdline.c:42
-msgid "--help or -h : this help screen\n"
-msgstr "--help of -h : dit help scherm\n"
+msgid "--help or -h: this help screen\n"
+msgstr "--help of -h: dit help scherm\n"
 
 #: ../src/cmdline.c:43
-msgid "--config <configuration> or -c : load configuration\n"
-msgstr "--config <configuratie> of -c : te laden configuratie\n"
+msgid "--config <configuration> or -c: load configuration\n"
+msgstr "--config <configuratie> of -c: te laden configuratie\n"
 
 #: ../src/cmdline.c:44
-msgid "--port <device> or -p : serial port device (default /dev/ttyS0)\n"
+msgid "--port <device> or -p: serial port device (default /dev/ttyS0)\n"
 msgstr ""
-"--port <apparaat> of -p : seriele poort apparaat (standaard /dev/ttyS0)\n"
+"--port <apparaat> of -p: seriele poort apparaat (standaard /dev/ttyS0)\n"
 
 #: ../src/cmdline.c:45
-msgid "--speed <speed> or -s : serial port speed (default 9600)\n"
-msgstr "--speed <snelheid> of -s : seriele poort snelheid (standaard 9600)\n"
+msgid "--speed <speed> or -s: serial port speed (default 9600)\n"
+msgstr "--speed <snelheid> of -s: seriele poort snelheid (standaard 9600)\n"
 
 #: ../src/cmdline.c:46
-msgid "--bits <bits> or -b : number of bits (default 8)\n"
-msgstr "--bits <bits> of -b : aantal bits (standaard 8)\n"
+msgid "--bits <bits> or -b: number of bits (default 8)\n"
+msgstr "--bits <bits> of -b: aantal bits (standaard 8)\n"
 
 #: ../src/cmdline.c:47
-msgid "--stopbits <stopbits> or -t : number of stopbits (default 1)\n"
-msgstr "--stopbits <stopbits> of -t : aantal stopbits (standaard 1)\n"
+msgid "--stopbits <stopbits> or -t: number of stopbits (default 1)\n"
+msgstr "--stopbits <stopbits> of -t: aantal stopbits (standaard 1)\n"
 
 #: ../src/cmdline.c:48
-msgid "--parity <odd | even> or -a : parity (default none)\n"
-msgstr "--parity <odd | even> of -a : partiteit (standaard none)\n"
+msgid "--parity <odd | even> or -a: parity (default none)\n"
+msgstr "--parity <odd | even> of -a: partiteit (standaard none)\n"
 
 #: ../src/cmdline.c:49
-msgid "--flow <Xon | RTS | RS-485> or -w : flow control (default none)\n"
-msgstr "--flow <Xon | RTS | RS-485> of -w : flow controle (standaard none)\n"
+msgid "--flow <Xon | RTS | RS485> or -w: flow control (default none)\n"
+msgstr "--flow <Xon | RTS | RS485> of -w: flow controle (standaard none)\n"
 
 #: ../src/cmdline.c:50
-msgid "--delay <ms> or -d : end of line delay in ms (default none)\n"
-msgstr "--delay <ms> of -d : einde regel vertraging in ms (default none)\n"
+msgid "--delay <ms> or -d: end of line delay in ms (default none)\n"
+msgstr "--delay <ms> of -d: einde regel vertraging in ms (default none)\n"
 
 #: ../src/cmdline.c:51
 msgid ""
-"--char <char> or -r : wait for a special char at end of line (default none)\n"
+"--char <char> or -r: wait for a special char at end of line (default none)\n"
 msgstr ""
-"--char <char> of -r : wachten op speciaal teken aan einde van de regel "
+"--char <char> of -r: wachten op speciaal teken aan einde van de regel "
 "(standaard none)\n"
 
 #: ../src/cmdline.c:52
-msgid "--file <filename> or -f : default file to send (default none)\n"
+msgid "--file <filename> or -f: default file to send (default none)\n"
 msgstr ""
-"--file <bestandsnaam> of -f : standaard bestand om te versturen (standaard "
+"--file <bestandsnaam> of -f: standaard bestand om te versturen (standaard "
 "none)\n"
 
 #: ../src/cmdline.c:53
 msgid ""
-"--rts_time_before <ms> or -x : for RS-485, time in ms before transmit with "
+"--rts_time_before <ms> or -x: for RS-485, time in ms before transmit with "
 "rts on\n"
 msgstr ""
-"--rts_time_before <ms> of -x : voor de  RS-485, tijd in ms voordat met RTS "
+"--rts_time_before <ms> of -x: voor de  RS-485, tijd in ms voordat met RTS "
 "aan wordt verzonden\n"
 
 #: ../src/cmdline.c:54
 msgid ""
-"--rts_time_after <ms> or -y : for RS-485, time in ms after transmit with rts "
+"--rts_time_after <ms> or -y: for RS-485, time in ms after transmit with rts "
 "on\n"
 msgstr ""
-"--rts_time_after <ms> of -x : voor de  RS-485, tijd in ms nadat met RTS aan "
+"--rts_time_after <ms> of -x: voor de  RS-485, tijd in ms nadat met RTS aan "
 "wordt verzonden\n"
 "\n"
 
 #: ../src/cmdline.c:55
-msgid "--echo or -e : switch on local echo\n"
-msgstr "--echo of -e :  schakel  locale echo aan\n"
+msgid "--echo or -e: switch on local echo\n"
+msgstr "--echo of -e:  schakel  locale echo aan\n"
 
 #: ../src/cmdline.c:56
 msgid ""
@@ -157,8 +157,8 @@ msgstr "Fout bij openen bestand\n"
 
 #: ../src/files.c:110
 #, c-format
-msgid "%s : transfer in progress..."
-msgstr "%s : overdracht vindt plaats..."
+msgid "%s: transfer in progress..."
+msgstr "%s: overdracht vindt plaats..."
 
 #: ../src/files.c:128
 msgid "Cancel"
@@ -328,8 +328,8 @@ msgid "Resume"
 msgstr "Hervatten"
 
 #: ../src/interface.c:567
-msgid "Hexadecimal data to send (separator : ';' or space) : "
-msgstr "Te verzenden hexadecimale data (scheidingsteken : ';' or spatie) : "
+msgid "Hexadecimal data to send (separator: ';' or space): "
+msgstr "Te verzenden hexadecimale data (scheidingsteken: ';' or spatie): "
 
 #: ../src/interface.c:736
 msgid ""
@@ -370,8 +370,8 @@ msgstr "Kan data niet loggen\n"
 
 #: ../src/macros.c:144
 #, c-format
-msgid "Macro \"%s\" sent !"
-msgstr "Macro \"%s\" verstuurd !"
+msgid "Macro \"%s\" sent!"
+msgstr "Macro \"%s\" verstuurd!"
 
 #: ../src/macros.c:275
 msgid "Shortcut"
@@ -383,7 +383,7 @@ msgid ""
 "be entered, but also special chars, like \\n, \\t, \\r, etc. You can also "
 "enter hexadecimal data preceded by a '\\'. The hexadecimal data should not "
 "begin with a letter (eg. use \\0FF and not \\FF)\n"
-"Examples :\n"
+"Examples:\n"
 "\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n"
 "\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"
 msgstr ""

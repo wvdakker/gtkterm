@@ -17,11 +17,11 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; \tplural=n%10==1 && n%100!=11 ? 0 : \tn%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; \tplural=n%10==1 && n%100!=11 ? 0: \tn%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1: 2;\n"
 
 #: ../src/buffer.c:164
-msgid "ERROR : Buffer is not initialized !\n"
+msgid "ERROR: Buffer is not initialized!\n"
 msgstr "ОШИБКА: буфер не инициализирован!\n"
 
 #: ../src/cmdline.c:37
@@ -47,7 +47,7 @@ msgstr ""
 "Эта программа выпущена под лицензией GPL v.2\n"
 
 #: ../src/cmdline.c:40
-msgid "\t ** Use at your own risks ! **\n"
+msgid "\t ** Use at your own risks! **\n"
 msgstr "\t ** Используйте на свой риск! **\n"
 
 #: ../src/cmdline.c:41
@@ -59,72 +59,72 @@ msgstr ""
 "Параметры командной строки:\n"
 
 #: ../src/cmdline.c:42
-msgid "--help or -h : this help screen\n"
+msgid "--help or -h: this help screen\n"
 msgstr "--help или -h: это сообщение помощи\n"
 
 #: ../src/cmdline.c:43
-msgid "--config <configuration> or -c : load configuration\n"
+msgid "--config <configuration> or -c: load configuration\n"
 msgstr "--config <настройка> или -c: загрузка настройки\n"
 
 #: ../src/cmdline.c:44
-msgid "--port <device> or -p : serial port device (default /dev/ttyS0)\n"
+msgid "--port <device> or -p: serial port device (default /dev/ttyS0)\n"
 msgstr ""
 "--port <устройство> или -p: устройство последовательного порта\n"
 "                            (по умолчанию /dev/ttyS0)\n"
 
 #: ../src/cmdline.c:45
-msgid "--speed <speed> or -s : serial port speed (default 9600)\n"
+msgid "--speed <speed> or -s: serial port speed (default 9600)\n"
 msgstr ""
 "--speed <скорость> или -s: скорость последовательного порта\n"
 "                           (по умолчанию 9600)\n"
 
 #: ../src/cmdline.c:46
-msgid "--bits <bits> or -b : number of bits (default 8)\n"
+msgid "--bits <bits> or -b: number of bits (default 8)\n"
 msgstr "--bits <биты> или -b: количество бит (по умолчанию 8)\n"
 
 #: ../src/cmdline.c:47
-msgid "--stopbits <stopbits> or -t : number of stopbits (default 1)\n"
+msgid "--stopbits <stopbits> or -t: number of stopbits (default 1)\n"
 msgstr "--stopbits <стоп-бит> или -t: количество стоп-битов (по умолчанию 1)\n"
 
 #: ../src/cmdline.c:48
-msgid "--parity <odd | even> or -a : parity (default none)\n"
+msgid "--parity <odd | even> or -a: parity (default none)\n"
 msgstr "--parity <odd | even> или -a: проверка чётности (по умолчанию none)\n"
 
 #: ../src/cmdline.c:49
 #, fuzzy
-msgid "--flow <Xon | RTS | RS-485> or -w : flow control (default none)\n"
-msgstr "--flow <Xon | CTS> или -w: управление потоком (по умолчанию none)\n"
+msgid "--flow <Xon | RTS | RS485> or -w: flow control (default none)\n"
+msgstr "--flow <Xon | CTS | RS485> или -w: управление потоком (по умолчанию none)\n"
 
 #: ../src/cmdline.c:50
-msgid "--delay <ms> or -d : end of line delay in ms (default none)\n"
+msgid "--delay <ms> or -d: end of line delay in ms (default none)\n"
 msgstr "--delay <мс> или -d: задержка конца строки, мс (по умолчанию нет)\n"
 
 #: ../src/cmdline.c:51
 msgid ""
-"--char <char> or -r : wait for a special char at end of line (default none)\n"
+"--char <char> or -r: wait for a special char at end of line (default none)\n"
 msgstr ""
 "--char <символ> или -r: ожидать специальный символ в конце строки\n"
 "                        (по умолчанию нет)\n"
 
 #: ../src/cmdline.c:52
-msgid "--file <filename> or -f : default file to send (default none)\n"
+msgid "--file <filename> or -f: default file to send (default none)\n"
 msgstr ""
 "--file <имя_файла> или -f: задать имя файла для отправки (по умолчанию нет)\n"
 
 #: ../src/cmdline.c:53
 msgid ""
-"--rts_time_before <ms> or -x : for RS-485, time in ms before transmit with "
+"--rts_time_before <ms> or -x: for RS-485, time in ms before transmit with "
 "rts on\n"
 msgstr ""
 
 #: ../src/cmdline.c:54
 msgid ""
-"--rts_time_after <ms> or -y : for RS-485, time in ms after transmit with rts "
+"--rts_time_after <ms> or -y: for RS-485, time in ms after transmit with rts "
 "on\n"
 msgstr ""
 
 #: ../src/cmdline.c:55
-msgid "--echo or -e : switch on local echo\n"
+msgid "--echo or -e: switch on local echo\n"
 msgstr "--echo или -e: включить локальный вывод\n"
 
 #: ../src/cmdline.c:56
@@ -154,7 +154,7 @@ msgstr "Ошибка открытия файла\n"
 
 #: ../src/files.c:110
 #, c-format
-msgid "%s : transfer in progress..."
+msgid "%s: transfer in progress..."
 msgstr "%s: выполняется передача..."
 
 #: ../src/files.c:128
@@ -344,7 +344,7 @@ msgid "Resume"
 msgstr ""
 
 #: ../src/interface.c:567
-msgid "Hexadecimal data to send (separator : ';' or space) : "
+msgid "Hexadecimal data to send (separator: ';' or space): "
 msgstr "Шестнадцатеричные данные для отправки (разделитель: ';' или пробел): "
 
 #: ../src/interface.c:736
@@ -387,7 +387,7 @@ msgstr ""
 
 #: ../src/macros.c:144
 #, c-format
-msgid "Macro \"%s\" sent !"
+msgid "Macro \"%s\" sent!"
 msgstr "Макрос \"%s\" отправлен!"
 
 #: ../src/macros.c:275
@@ -400,7 +400,7 @@ msgid ""
 "be entered, but also special chars, like \\n, \\t, \\r, etc. You can also "
 "enter hexadecimal data preceded by a '\\'. The hexadecimal data should not "
 "begin with a letter (eg. use \\0FF and not \\FF)\n"
-"Examples :\n"
+"Examples:\n"
 "\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n"
 "\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"
 msgstr ""

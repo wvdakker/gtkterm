@@ -20,8 +20,8 @@ msgstr ""
 "X-Poedit-SourceCharset: iso-8859-2\n"
 
 #: ../src/buffer.c:164
-msgid "ERROR : Buffer is not initialized !\n"
-msgstr "HIBA: inicializálatlan buffer !\n"
+msgid "ERROR: Buffer is not initialized!\n"
+msgstr "HIBA: inicializálatlan buffer!\n"
 
 #: ../src/cmdline.c:37
 #, c-format
@@ -46,7 +46,7 @@ msgstr ""
 "A program GPL V.2 alatt terjeszthető\n"
 
 #: ../src/cmdline.c:40
-msgid "\t ** Use at your own risks ! **\n"
+msgid "\t ** Use at your own risks! **\n"
 msgstr "\t ** Csak saját felelősségedre használd! **\n"
 
 #: ../src/cmdline.c:41
@@ -58,74 +58,74 @@ msgstr ""
 "Parancssori opciók\n"
 
 #: ../src/cmdline.c:42
-msgid "--help or -h : this help screen\n"
-msgstr "--help vagy -h : súgó megjelenítése\n"
+msgid "--help or -h: this help screen\n"
+msgstr "--help vagy -h: súgó megjelenítése\n"
 
 #: ../src/cmdline.c:43
-msgid "--config <configuration> or -c : load configuration\n"
-msgstr "--config <konfiguráció> vagy -c : konfiguráció betöltése\n"
+msgid "--config <configuration> or -c: load configuration\n"
+msgstr "--config <konfiguráció> vagy -c: konfiguráció betöltése\n"
 
 #: ../src/cmdline.c:44
-msgid "--port <device> or -p : serial port device (default /dev/ttyS0)\n"
-msgstr "--port <eszköz> vagy -p : soros port (alapértelmezett /dev/ttyS0)\n"
+msgid "--port <device> or -p: serial port device (default /dev/ttyS0)\n"
+msgstr "--port <eszköz> vagy -p: soros port (alapértelmezett /dev/ttyS0)\n"
 
 #: ../src/cmdline.c:45
-msgid "--speed <speed> or -s : serial port speed (default 9600)\n"
+msgid "--speed <speed> or -s: serial port speed (default 9600)\n"
 msgstr ""
-"--speed <sebesség> vagy -s : soros port sebesség (alapértelmezett 9600)\n"
+"--speed <sebesség> vagy -s: soros port sebesség (alapértelmezett 9600)\n"
 
 #: ../src/cmdline.c:46
-msgid "--bits <bits> or -b : number of bits (default 8)\n"
-msgstr "--bits <bitek száma> vagy -b : bitek száma (alapértelmezett 8)\n"
+msgid "--bits <bits> or -b: number of bits (default 8)\n"
+msgstr "--bits <bitek száma> vagy -b: bitek száma (alapértelmezett 8)\n"
 
 #: ../src/cmdline.c:47
-msgid "--stopbits <stopbits> or -t : number of stopbits (default 1)\n"
-msgstr "--stopbits <stopbit> vagy -t : stop bitek száma (alapértelmezett 1)\n"
+msgid "--stopbits <stopbits> or -t: number of stopbits (default 1)\n"
+msgstr "--stopbits <stopbit> vagy -t: stop bitek száma (alapértelmezett 1)\n"
 
 #: ../src/cmdline.c:48
-msgid "--parity <odd | even> or -a : parity (default none)\n"
+msgid "--parity <odd | even> or -a: parity (default none)\n"
 msgstr ""
-"--parity <odd(páratlan) | even(páros)> vagy -a : paritás (alapértelmezett "
+"--parity <odd(páratlan) | even(páros)> vagy -a: paritás (alapértelmezett "
 "none)\n"
 
 #: ../src/cmdline.c:49
 #, fuzzy
-msgid "--flow <Xon | RTS | RS-485> or -w : flow control (default none)\n"
-msgstr "--flow <Xon | CTS> vagy -w : folyamatvezérlés(nincs alapértelmezés)\n"
+msgid "--flow <Xon | RTS | RS485> or -w: flow control (default none)\n"
+msgstr "--flow <Xon | CTS | RS485> vagy -w: folyamatvezérlés(nincs alapértelmezés)\n"
 
 #: ../src/cmdline.c:50
-msgid "--delay <ms> or -d : end of line delay in ms (default none)\n"
+msgid "--delay <ms> or -d: end of line delay in ms (default none)\n"
 msgstr ""
-"--delay <tizedmásodperc> vagy -d : sorvége késleltetés (nincs "
+"--delay <tizedmásodperc> vagy -d: sorvége késleltetés (nincs "
 "alapértelmezés)\n"
 
 #: ../src/cmdline.c:51
 msgid ""
-"--char <char> or -r : wait for a special char at end of line (default none)\n"
+"--char <char> or -r: wait for a special char at end of line (default none)\n"
 msgstr ""
-"--char <karakter> vagy -r : speciális karakterre várakozás a sor végén "
+"--char <karakter> vagy -r: speciális karakterre várakozás a sor végén "
 "(nincs alapértelmezés)\n"
 
 #: ../src/cmdline.c:52
-msgid "--file <filename> or -f : default file to send (default none)\n"
+msgid "--file <filename> or -f: default file to send (default none)\n"
 msgstr ""
-"--file <fájlnév> vagy -f : megadott fájlt küld (nincs alapértelmezés)\n"
+"--file <fájlnév> vagy -f: megadott fájlt küld (nincs alapértelmezés)\n"
 
 #: ../src/cmdline.c:53
 msgid ""
-"--rts_time_before <ms> or -x : for RS-485, time in ms before transmit with "
+"--rts_time_before <ms> or -x: for RS-485, time in ms before transmit with "
 "rts on\n"
 msgstr ""
 
 #: ../src/cmdline.c:54
 msgid ""
-"--rts_time_after <ms> or -y : for RS-485, time in ms after transmit with rts "
+"--rts_time_after <ms> or -y: for RS-485, time in ms after transmit with rts "
 "on\n"
 msgstr ""
 
 #: ../src/cmdline.c:55
-msgid "--echo or -e : switch on local echo\n"
-msgstr "--echo vagy -e : helyi visszhang bekapcsolása\n"
+msgid "--echo or -e: switch on local echo\n"
+msgstr "--echo vagy -e: helyi visszhang bekapcsolása\n"
 
 #: ../src/cmdline.c:56
 msgid ""
@@ -154,8 +154,8 @@ msgstr "Hiba fájl megnyitásakor\n"
 
 #: ../src/files.c:110
 #, c-format
-msgid "%s : transfer in progress..."
-msgstr "%s : átvitel folyamatban..."
+msgid "%s: transfer in progress..."
+msgstr "%s: átvitel folyamatban..."
 
 #: ../src/files.c:128
 msgid "Cancel"
@@ -164,7 +164,7 @@ msgstr "Mégsem"
 #: ../src/files.c:143
 #, fuzzy, c-format
 msgid "Cannot read file %s: %s\n"
-msgstr "Fájl olvasása sikertelen: %s : %s\n"
+msgstr "Fájl olvasása sikertelen: %s: %s\n"
 
 #: ../src/files.c:178
 #, fuzzy, c-format
@@ -344,8 +344,8 @@ msgid "Resume"
 msgstr ""
 
 #: ../src/interface.c:567
-msgid "Hexadecimal data to send (separator : ';' or space) : "
-msgstr "Hexadecimális adat küldés (elválasztó : ';' vagy szóköz) :"
+msgid "Hexadecimal data to send (separator: ';' or space): "
+msgstr "Hexadecimális adat küldés (elválasztó: ';' vagy szóköz):"
 
 #: ../src/interface.c:736
 msgid ""
@@ -360,7 +360,7 @@ msgstr "Break signál küldve!"
 #: ../src/interface.c:882
 #, fuzzy, c-format
 msgid "0 byte(s) sent!"
-msgstr "\"%s\" : %d bájt(ok) küldve!"
+msgstr "\"%s\": %d bájt(ok) küldve!"
 
 #: ../src/interface.c:896
 msgid "Improper formatted hex input, 0 bytes sent!"
@@ -369,7 +369,7 @@ msgstr ""
 #: ../src/interface.c:907
 #, fuzzy, c-format
 msgid "%d byte(s) sent!"
-msgstr "\"%s\" : %d bájt(ok) küldve!"
+msgstr "\"%s\": %d bájt(ok) küldve!"
 
 #: ../src/logging.c:49
 #, fuzzy, c-format
@@ -387,7 +387,7 @@ msgstr ""
 
 #: ../src/macros.c:144
 #, c-format
-msgid "Macro \"%s\" sent !"
+msgid "Macro \"%s\" sent!"
 msgstr "Makró \"%s\" elküldve!"
 
 #: ../src/macros.c:275
@@ -400,7 +400,7 @@ msgid ""
 "be entered, but also special chars, like \\n, \\t, \\r, etc. You can also "
 "enter hexadecimal data preceded by a '\\'. The hexadecimal data should not "
 "begin with a letter (eg. use \\0FF and not \\FF)\n"
-"Examples :\n"
+"Examples:\n"
 "\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n"
 "\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"
 msgstr ""
@@ -531,7 +531,7 @@ msgstr ""
 #: ../src/serial.c:154
 #, fuzzy, c-format
 msgid "Cannot open %s: %s\n"
-msgstr "Nem lehet megnyitni a %s-t : %s\n"
+msgstr "Nem lehet megnyitni a %s-t: %s\n"
 
 #: ../src/serial.c:167
 #, c-format

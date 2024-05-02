@@ -107,7 +107,7 @@ void send_raw_file(GtkAction *action, gpointer data)
 			GtkWidget *Bouton_annuler, *Box;
 
 			fic_defaut = g_strdup(fileName);
-			msg = g_strdup_printf(_("%s : transfer in progress..."), fileName);
+			msg = g_strdup_printf(_("%s: transfer in progress..."), fileName);
 
 			gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, msg);
 			car_written = 0;

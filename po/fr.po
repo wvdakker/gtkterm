@@ -19,8 +19,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: ../src/buffer.c:164
-msgid "ERROR : Buffer is not initialized !\n"
-msgstr "ERREUR : buffer non initialisé !\n"
+msgid "ERROR: Buffer is not initialized!\n"
+msgstr "ERREUR: buffer non initialisé!\n"
 
 #: ../src/cmdline.c:37
 #, c-format
@@ -44,8 +44,8 @@ msgstr ""
 "Ce programme est distribué selon les termes de la license GPL V.2\n"
 
 #: ../src/cmdline.c:40
-msgid "\t ** Use at your own risks ! **\n"
-msgstr "\t ** Livré sans aucune garantie ! **\n"
+msgid "\t ** Use at your own risks! **\n"
+msgstr "\t ** Livré sans aucune garantie! **\n"
 
 #: ../src/cmdline.c:41
 msgid ""
@@ -56,73 +56,73 @@ msgstr ""
 "Options de la ligne de commande\n"
 
 #: ../src/cmdline.c:42
-msgid "--help or -h : this help screen\n"
-msgstr "--help or -h : cet écran d'aide\n"
+msgid "--help or -h: this help screen\n"
+msgstr "--help or -h: cet écran d'aide\n"
 
 #: ../src/cmdline.c:43
-msgid "--config <configuration> or -c : load configuration\n"
-msgstr "--config <configuration> ou -c : charger une configuration\n"
+msgid "--config <configuration> or -c: load configuration\n"
+msgstr "--config <configuration> ou -c: charger une configuration\n"
 
 #: ../src/cmdline.c:44
-msgid "--port <device> or -p : serial port device (default /dev/ttyS0)\n"
-msgstr "--port <device> ou -p : device du port série (/dev/ttyS0 par défaut)\n"
+msgid "--port <device> or -p: serial port device (default /dev/ttyS0)\n"
+msgstr "--port <device> ou -p: device du port série (/dev/ttyS0 par défaut)\n"
 
 #: ../src/cmdline.c:45
-msgid "--speed <speed> or -s : serial port speed (default 9600)\n"
-msgstr "--speed <speed> ou -s : vitesse du port série (9600 par défaut)\n"
+msgid "--speed <speed> or -s: serial port speed (default 9600)\n"
+msgstr "--speed <speed> ou -s: vitesse du port série (9600 par défaut)\n"
 
 #: ../src/cmdline.c:46
-msgid "--bits <bits> or -b : number of bits (default 8)\n"
-msgstr "--bits <bits> ou -b : nombre de bits (8 par défaut)\n"
+msgid "--bits <bits> or -b: number of bits (default 8)\n"
+msgstr "--bits <bits> ou -b: nombre de bits (8 par défaut)\n"
 
 #: ../src/cmdline.c:47
-msgid "--stopbits <stopbits> or -t : number of stopbits (default 1)\n"
-msgstr "--stopbits <stopbits> ou -t : nombre de bits de stop (1 par défaut)\n"
+msgid "--stopbits <stopbits> or -t: number of stopbits (default 1)\n"
+msgstr "--stopbits <stopbits> ou -t: nombre de bits de stop (1 par défaut)\n"
 
 #: ../src/cmdline.c:48
-msgid "--parity <odd | even> or -a : parity (default none)\n"
-msgstr "--parity <odd | even> ou -a : partité (aucune par défaut)\n"
+msgid "--parity <odd | even> or -a: parity (default none)\n"
+msgstr "--parity <odd | even> ou -a: partité (aucune par défaut)\n"
 
 #: ../src/cmdline.c:49
-msgid "--flow <Xon | RTS | RS-485> or -w : flow control (default none)\n"
+msgid "--flow <Xon | RTS | RS485> or -w: flow control (default none)\n"
 msgstr ""
-"--flow <Xon | RTS | RS-485> ou -w : contrôle de flux (aucun par défaut)\n"
+"--flow <Xon | RTS | RS485> ou -w: contrôle de flux (aucun par défaut)\n"
 
 #: ../src/cmdline.c:50
-msgid "--delay <ms> or -d : end of line delay in ms (default none)\n"
-msgstr "--delay <ms> ou -d : délai de fin de ligne en ms (aucun par défaut)\n"
+msgid "--delay <ms> or -d: end of line delay in ms (default none)\n"
+msgstr "--delay <ms> ou -d: délai de fin de ligne en ms (aucun par défaut)\n"
 
 #: ../src/cmdline.c:51
 msgid ""
-"--char <char> or -r : wait for a special char at end of line (default none)\n"
+"--char <char> or -r: wait for a special char at end of line (default none)\n"
 msgstr ""
-"--char <char> ou -r : caractère spécial à attendre en fin de ligne (aucun "
+"--char <char> ou -r: caractère spécial à attendre en fin de ligne (aucun "
 "par défaut)\n"
 
 #: ../src/cmdline.c:52
-msgid "--file <filename> or -f : default file to send (default none)\n"
+msgid "--file <filename> or -f: default file to send (default none)\n"
 msgstr ""
-"--file <filename> ou -f : fichier par défaut à envoyer (aucun par défaut)\n"
+"--file <filename> ou -f: fichier par défaut à envoyer (aucun par défaut)\n"
 
 #: ../src/cmdline.c:53
 msgid ""
-"--rts_time_before <ms> or -x : for RS-485, time in ms before transmit with "
+"--rts_time_before <ms> or -x: for RS-485, time in ms before transmit with "
 "rts on\n"
 msgstr ""
-"--rts_time_before <ms> ou -x : pour RS-485, temps en ms avant transmission "
+"--rts_time_before <ms> ou -x: pour RS-485, temps en ms avant transmission "
 "avec rts activé\n"
 
 #: ../src/cmdline.c:54
 msgid ""
-"--rts_time_after <ms> or -y : for RS-485, time in ms after transmit with rts "
+"--rts_time_after <ms> or -y: for RS-485, time in ms after transmit with rts "
 "on\n"
 msgstr ""
-"--rts_time_after <ms> ou -x : pour RS-485, temps en ms après transmission "
+"--rts_time_after <ms> ou -x: pour RS-485, temps en ms après transmission "
 "avec rts activé\n"
 
 #: ../src/cmdline.c:55
-msgid "--echo or -e : switch on local echo\n"
-msgstr "--echo ou -e : écho local\n"
+msgid "--echo or -e: switch on local echo\n"
+msgstr "--echo ou -e: écho local\n"
 
 #: ../src/cmdline.c:56
 msgid ""
@@ -151,8 +151,8 @@ msgstr "Erreur d'ouverture du fichier\n"
 
 #: ../src/files.c:110
 #, c-format
-msgid "%s : transfer in progress..."
-msgstr "%s : transfert en cours..."
+msgid "%s: transfer in progress..."
+msgstr "%s: transfert en cours..."
 
 #: ../src/files.c:128
 msgid "Cancel"
@@ -161,7 +161,7 @@ msgstr "Annuler"
 #: ../src/files.c:143
 #, c-format
 msgid "Cannot read file %s: %s\n"
-msgstr "Impossible de lire le fichier %s : %s\n"
+msgstr "Impossible de lire le fichier %s: %s\n"
 
 #: ../src/files.c:178
 #, fuzzy, c-format
@@ -185,7 +185,7 @@ msgstr "Erreur de fichier\n"
 #: ../src/files.c:322 ../src/logging.c:68 ../src/logging.c:123
 #, c-format
 msgid "Cannot open file %s: %s\n"
-msgstr "Impossible d'ouvrir le fichier %s : %s\n"
+msgstr "Impossible d'ouvrir le fichier %s: %s\n"
 
 #. Toplevel
 #: ../src/interface.c:145
@@ -256,7 +256,7 @@ msgstr "Dans le fichier..."
 #: ../src/interface.c:173
 #, fuzzy
 msgid "_Port"
-msgstr "_Port :"
+msgstr "_Port:"
 
 #: ../src/interface.c:174
 #, fuzzy
@@ -343,8 +343,8 @@ msgid "Resume"
 msgstr "Reprendre"
 
 #: ../src/interface.c:567
-msgid "Hexadecimal data to send (separator : ';' or space) : "
-msgstr "Donnée hexadécimale à envoyer (séparateur : ';' ou espace) : "
+msgid "Hexadecimal data to send (separator: ';' or space): "
+msgstr "Donnée hexadécimale à envoyer (séparateur: ';' ou espace): "
 
 #: ../src/interface.c:736
 msgid ""
@@ -353,12 +353,12 @@ msgstr "GTKTerm est un simple terminal GTK+ utilisé pour communiquer avec un po
 
 #: ../src/interface.c:776
 msgid "Break signal sent!"
-msgstr "Signal break envoyé !"
+msgstr "Signal break envoyé!"
 
 #: ../src/interface.c:882
 #, c-format
 msgid "0 byte(s) sent!"
-msgstr "0 octet(s) envoyé(s) !"
+msgstr "0 octet(s) envoyé(s)!"
 
 #: ../src/interface.c:896
 msgid "Improper formatted hex input, 0 bytes sent!"
@@ -367,7 +367,7 @@ msgstr "Entré hex mal formaté, 0 octets envoyés"
 #: ../src/interface.c:907
 #, fuzzy, c-format
 msgid "%d byte(s) sent!"
-msgstr "%d octet(s) envoyé(s) !"
+msgstr "%d octet(s) envoyé(s)!"
 
 #: ../src/logging.c:49
 #, c-format
@@ -384,8 +384,8 @@ msgstr "Échec du log des données\n"
 
 #: ../src/macros.c:144
 #, c-format
-msgid "Macro \"%s\" sent !"
-msgstr "Macro \"%s\" envoyée !"
+msgid "Macro \"%s\" sent!"
+msgstr "Macro \"%s\" envoyée!"
 
 #: ../src/macros.c:275
 msgid "Shortcut"
@@ -397,7 +397,7 @@ msgid ""
 "be entered, but also special chars, like \\n, \\t, \\r, etc. You can also "
 "enter hexadecimal data preceded by a '\\'. The hexadecimal data should not "
 "begin with a letter (eg. use \\0FF and not \\FF)\n"
-"Examples :\n"
+"Examples:\n"
 "\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n"
 "\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"
 msgstr ""
@@ -406,7 +406,7 @@ msgstr ""
 "\\r, etc. Vous pouvez aussi entrer un nombre hexadecimal précédé par un "
 "'\\'. La donnée hexadecimale ne doit pas commencer par une lettre (utiliser "
 "\\0FF et pas \\FF par exemple)\n"
-"Exemples :\n"
+"Exemples:\n"
 "\t\"Bonjour\\n\" envoie \"Bonjour\" suivi d'un retour à la ligne (LF)\n"
 "\t\"Bonjour\\0A\" fait la même chose..."
 
@@ -529,7 +529,7 @@ msgstr ""
 #: ../src/serial.c:154
 #, c-format
 msgid "Cannot open %s: %s\n"
-msgstr "Impossible d'ouvrir %s : %s\n"
+msgstr "Impossible d'ouvrir %s: %s\n"
 
 #: ../src/serial.c:167
 #, c-format
@@ -575,7 +575,7 @@ msgid ""
 msgstr ""
 "Aucun périphérique série trouvé !\n"
 "\n"
-"Recherche parmi les périphériques suivants :\n"
+"Recherche parmi les périphériques suivants:\n"
 "/dev/ttyS*\n"
 "/dev/tts/*\n"
 "/dev/ttyUSB*\n"
@@ -593,27 +593,27 @@ msgstr "Port série"
 
 #: ../src/term_config.c:212
 msgid "Port:"
-msgstr "Port :"
+msgstr "Port:"
 
 #: ../src/term_config.c:214
 msgid "Baud Rate:"
-msgstr "Débit baud :"
+msgstr "Débit baud:"
 
 #: ../src/term_config.c:216
 msgid "Parity:"
-msgstr "Parité :"
+msgstr "Parité:"
 
 #: ../src/term_config.c:362
 msgid "Bits:"
-msgstr "Bits :"
+msgstr "Bits:"
 
 #: ../src/term_config.c:364
 msgid "Stopbits:"
-msgstr "Bits de stop :"
+msgstr "Bits de stop:"
 
 #: ../src/term_config.c:366
 msgid "Flow control:"
-msgstr "Contrôle de flux :"
+msgstr "Contrôle de flux:"
 
 #. create an expander widget to hide the 'Advanced features'
 #: ../src/term_config.c:417
@@ -626,11 +626,11 @@ msgstr "Transfert de fichier ASCII"
 
 #: ../src/term_config.c:428
 msgid "End of line delay (milliseconds):"
-msgstr "Délai de fin de ligne (millisecondes) :"
+msgstr "Délai de fin de ligne (millisecondes):"
 
 #: ../src/term_config.c:444
 msgid "Wait for this special character before passing to next line:"
-msgstr "Attendre le caractère suivant avant de passer à la ligne suivante :"
+msgstr "Attendre le caractère suivant avant de passer à la ligne suivante:"
 
 #: ../src/term_config.c:457
 msgid "RS-485 half-duplex parameters (RTS signal used to send)"
@@ -669,7 +669,7 @@ msgstr "Sauvegarde de la configuration"
 
 #: ../src/term_config.c:716
 msgid "Configuration name: "
-msgstr "Nom de la configuration : "
+msgstr "Nom de la configuration: "
 
 #: ../src/term_config.c:750
 msgid ""
@@ -680,11 +680,11 @@ msgstr "Erreur lors de l'enregistrement du fichier de configuration!\n"
 
 #: ../src/term_config.c:770
 msgid "Cannot overwrite section!"
-msgstr "Impossible d'écraser la section !"
+msgstr "Impossible d'écraser la section!"
 
 #: ../src/term_config.c:775
 msgid "Cannot read configuration file!"
-msgstr "Impossible de lire le fichier de configuration !"
+msgstr "Impossible de lire le fichier de configuration!"
 
 #: ../src/term_config.c:785
 #, c-format
@@ -711,7 +711,7 @@ msgstr ""
 
 #: ../src/term_config.c:879
 msgid "Cannot delete section!"
-msgstr "Impossible de supprimer la section !"
+msgstr "Impossible de supprimer la section!"
 
 #: ../src/term_config.c:1060
 #, c-format
@@ -729,8 +729,8 @@ msgid ""
 "Invalid number of stop-bits: %d\n"
 "Falling back to default number of stop-bits number: %d\n"
 msgstr ""
-"Nombre de bits de stop impossible : %d\n"
-"Retour au nombre de bits de stop par défaut : %d\n"
+"Nombre de bits de stop impossible: %d\n"
+"Retour au nombre de bits de stop par défaut: %d\n"
 
 #: ../src/term_config.c:1120
 #, c-format
@@ -738,8 +738,8 @@ msgid ""
 "Invalid number of bits: %d\n"
 "Falling back to default number of bits: %d\n"
 msgstr ""
-"Nombre de bits impossible : %d\n"
-"Retour au nombre de bits par défaut : %d\n"
+"Nombre de bits impossible: %d\n"
+"Retour au nombre de bits par défaut: %d\n"
 
 #: ../src/term_config.c:1128
 #, c-format
@@ -747,8 +747,8 @@ msgid ""
 "Invalid delay: %d ms\n"
 "Falling back to default delay: %d ms\n"
 msgstr ""
-"Délai impossible : %d ms\n"
-"Retour au délai par défaut : %d ms\n"
+"Délai impossible: %d ms\n"
+"Retour au délai par défaut: %d ms\n"
 
 #: ../src/term_config.c:1158
 #, c-format

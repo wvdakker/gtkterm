@@ -615,7 +615,7 @@ void create_main_window(void)
 
 	/* send hex char box (hidden when not in use) */
 	Hex_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	label = gtk_label_new(_("Hexadecimal data to send (separator : ';' or space) : "));
+	label = gtk_label_new(_("Hexadecimal data to send (separator: ';' or space): "));
 	gtk_box_pack_start(GTK_BOX(Hex_Box), label, FALSE, FALSE, 5);
 	hex_send_entry = gtk_entry_new();
 	g_signal_connect(GTK_WIDGET(hex_send_entry), "activate", (GCallback)Send_Hexadecimal, NULL);
