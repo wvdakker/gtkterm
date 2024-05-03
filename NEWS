@@ -1,3 +1,10 @@
+1.3    : Added BR translation and other updates.
+	   Thanks to JuniorPolegato, cweickhmann.
+	 Autoreconnect toggle. Thanks to danielkucera.
+	 Fix missing includes. Thanks to fweimer-rh.
+	 Remove control chars when saving. Thanks to blardyblar.
+	 Many other fixes.
+
 1.2    : Searchbar added
 	 Load/save config from XDG_CONFIG_HOME
 
