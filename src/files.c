@@ -285,7 +285,7 @@ void write_file(const char *data, unsigned int size)
 	fwrite(data, size, 1, Fic);
 }
 
-void write_ascii_file(char *data, unsigned int size)
+void write_ascii_file(const char *data, unsigned int size)
 {
         char *cleanbuff = g_malloc(size);
         int write_pointer=0;
