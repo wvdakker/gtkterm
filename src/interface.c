@@ -105,6 +105,9 @@ GtkWidget *Text;
 GtkTextBuffer *buffer;
 GtkTextIter iter;
 
+GList *hex_history = NULL;  // To store the history of entered texts
+GList *current_hex = NULL;  // Pointer to the current item in history
+
 extern struct configuration_port config;
 
 /* Variables for hexadecimal display */
@@ -142,6 +145,10 @@ void update_copy_sensivity(VteTerminal *terminal, gpointer data);
 void edit_paste_callback(GtkAction *action, gpointer data);
 void edit_find_callback(GtkAction *action);
 void edit_select_all_callback(GtkAction *action, gpointer data);
+
+void set_saved_data(GtkWidget *widget, gboolean direction);
+void update_hex_history(GtkWidget *widget);
+gboolean on_key_press(GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 
 /* Menu */
 const GtkActionEntry menu_entries[] =
@@ -618,6 +625,7 @@ void create_main_window(void)
 	label = gtk_label_new(_("Hexadecimal data to send (separator: ';' or space): "));
 	gtk_box_pack_start(GTK_BOX(Hex_Box), label, FALSE, FALSE, 5);
 	hex_send_entry = gtk_entry_new();
+    g_signal_connect(GTK_WIDGET(hex_send_entry), "key-press-event", G_CALLBACK(on_key_press), NULL);
 	g_signal_connect(GTK_WIDGET(hex_send_entry), "activate", (GCallback)Send_Hexadecimal, NULL);
 	gtk_box_pack_start(GTK_BOX(Hex_Box), hex_send_entry, TRUE, TRUE, 5);
 	gtk_box_pack_start(GTK_BOX(main_vbox), Hex_Box, FALSE, TRUE, 2);
@@ -938,7 +946,7 @@ gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointe
 		gtk_entry_set_text(GTK_ENTRY(widget), "");
 		g_free(message);
 		return FALSE;
-	}
+	}    
 
 	tokens = g_strsplit_set(text, " ;", -1);
 	buff = g_malloc(g_strv_length(tokens));
@@ -959,6 +967,7 @@ gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointe
 	g_free(buff);
 
 	message = g_strdup_printf(_("%d byte(s) sent!"), i);
+    update_hex_history(widget);
 	Put_temp_message(message, 2000);
 	gtk_entry_set_text(GTK_ENTRY(widget), "");
 	g_strfreev(tokens);
@@ -1019,4 +1028,79 @@ void edit_find_callback(GtkAction *action)
 void edit_select_all_callback(GtkAction *action, gpointer data)
 {
 	vte_terminal_select_all(VTE_TERMINAL(display));
+}
+
+// Callback for "key-press-event"
+gboolean on_key_press(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
+    switch (event->keyval) {
+    case GDK_KEY_Up:        
+        set_saved_data(widget, TRUE);  // TRUE for KEY_UP
+        return TRUE;  // Event handled
+    case GDK_KEY_Down:        
+        set_saved_data(widget, FALSE);  // FALSE for KEY_DOWN
+        return TRUE;  // Event handled
+    default:
+        return FALSE;  // Event not handled, propagate further
+    }
+}
+
+// Function to update the hex history when a new text is entered
+void update_hex_history(GtkWidget *widget) {
+    const gchar *text = gtk_entry_get_text(GTK_ENTRY(widget));
+
+    // Only add non-empty texts to history
+    if (g_strcmp0(text, "") == 0) {
+        return;
+    }
+
+    if (!current_hex) {
+        // If current_hex is NULL, add the text to the end of the history
+        hex_history = g_list_append(hex_history, g_strdup(text));
+    } else {
+        const gchar *current_text = (const gchar *)current_hex->data;
+
+        if (g_strcmp0(current_text, text) == 0) {
+            // If the entered text matches the current_hex, move it to the end
+            hex_history = g_list_remove(hex_history, current_hex->data);
+            hex_history = g_list_append(hex_history, g_strdup(current_text));
+        } else {
+            // If the text is different, add it as a new entry
+            hex_history = g_list_append(hex_history, g_strdup(text));
+        }
+    }
+
+    // Reset current_hex to NULL after adding or moving an entry
+    current_hex = NULL;
+}
+
+// Function to get the previous/next item from the history
+void set_saved_data(GtkWidget *widget, gboolean direction) {
+    if (!hex_history) {
+        return;
+    }
+
+    if (direction) {
+        // KEY_UP pressed, go to the previous history item
+        if (!current_hex) {
+            current_hex = g_list_last(hex_history);
+        }
+        else if (current_hex && current_hex->prev) {
+            current_hex = current_hex->prev;
+        }
+        else
+            return;
+        const gchar *prev_text = (const gchar *)current_hex->data;
+        gtk_entry_set_text(GTK_ENTRY(widget), prev_text);  // Set text in entry
+    } else {
+        // KEY_DOWN pressed, go to the next history item
+        if (current_hex && current_hex->next) {
+            current_hex = current_hex->next;
+            const gchar *next_text = (const gchar *)current_hex->data;
+            gtk_entry_set_text(GTK_ENTRY(widget), next_text);  // Set text in entry
+        } else {
+            // If no further history, clear the entry
+            gtk_entry_set_text(GTK_ENTRY(widget), "");
+            current_hex = NULL;  // Reset the pointer
+        }
+    }
 }
