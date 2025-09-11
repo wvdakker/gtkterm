@@ -1510,6 +1510,7 @@ void Config_Terminal(GtkAction *action, gpointer data)
 	// Font Selection Button
 	GtkWidget *cfg_terminal_font;
 	cfg_terminal_font = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_terminal_font"));
+	gtk_font_chooser_set_font(GTK_FONT_CHOOSER(cfg_terminal_font), term_conf.font);
 	g_signal_connect(cfg_terminal_font, "font-set", G_CALLBACK(read_font_button), 0);
 
 	// Scrollback Lines
