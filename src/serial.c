@@ -241,7 +241,15 @@ gboolean Config_port(void)
 		termios_p.c_iflag |= IXON | IXOFF;
 		break;
 	case 2:
+#ifdef CRTSCTS
 		termios_p.c_cflag |= CRTSCTS;
+#endif
+#ifdef CRTS_IFLOW
+		termios_p.c_cflag |= CRTS_IFLOW;
+#endif
+#ifdef CCTS_OFLOW
+		termios_p.c_cflag |= CCTS_OFLOW;
+#endif
 		break;
 	default:
 		termios_p.c_cflag |= CLOCAL;
