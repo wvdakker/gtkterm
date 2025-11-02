@@ -52,6 +52,7 @@
 
 struct termios termios_save;
 int serial_port_fd = -1;
+static unsigned int serial_port_speed;
 
 guint callback_handler_in, callback_handler_err;
 gboolean callback_activated = FALSE;
@@ -144,6 +145,7 @@ gboolean Config_port(void)
 {
 	struct termios termios_p;
 	gchar *msg = NULL;
+	unsigned int speed_margin;
 
 	Close_port();
 
@@ -153,6 +155,17 @@ gboolean Config_port(void)
 	{
 		msg = g_strdup_printf(_("Cannot open %s: %s\n"),
 		                      config.port, strerror_utf8(errno));
+		show_message(msg, MSG_ERR);
+		g_free(msg);
+
+		return FALSE;
+	}
+
+	if (!isatty(serial_port_fd))
+	{
+		Close_port();
+		msg = g_strdup_printf(_("%s is not a valid serial port\n"),
+				      config.port);
 		show_message(msg, MSG_ERR);
 		g_free(msg);
 
@@ -172,75 +185,25 @@ gboolean Config_port(void)
 		}
 	}
 
-	tcgetattr(serial_port_fd, &termios_p);
-	memcpy(&termios_save, &termios_p, sizeof(struct termios));
+	/* Allow 1/3 bit times wrong by the end of the first stop bit
+	   to avoid failing due to rounding. */
+	speed_margin = config.vitesse/(3*(2U+config.bits+!!config.parite));
+	serial_port_speed = set_port_baudrate(config.vitesse, serial_port_fd);
 
-	switch(config.vitesse)
+	/* These comparisons handle integer wraparound correctly. */
+	if (serial_port_speed < config.vitesse - speed_margin ||
+	    serial_port_speed - speed_margin > config.vitesse)
 	{
-	case 300:
-		termios_p.c_cflag = B300;
-		break;
-	case 600:
-		termios_p.c_cflag = B600;
-		break;
-	case 1200:
-		termios_p.c_cflag = B1200;
-		break;
-	case 2400:
-		termios_p.c_cflag = B2400;
-		break;
-	case 4800:
-		termios_p.c_cflag = B4800;
-		break;
-	case 9600:
-		termios_p.c_cflag = B9600;
-		break;
-	case 19200:
-		termios_p.c_cflag = B19200;
-		break;
-	case 38400:
-		termios_p.c_cflag = B38400;
-		break;
-	case 57600:
-		termios_p.c_cflag = B57600;
-		break;
-	case 115200:
-		termios_p.c_cflag = B115200;
-		break;
-	case 230400:
-		termios_p.c_cflag = B230400;
-		break;
-	case 460800:
-		termios_p.c_cflag = B460800;
-		break;
-	case 576000:
-		termios_p.c_cflag = B576000;
-		break;
-	case 921600:
-		termios_p.c_cflag = B921600;
-		break;
-	case 1000000:
-		termios_p.c_cflag = B1000000;
-		break;
-	case 1500000:
-		termios_p.c_cflag = B1500000;
-		break;
-	case 2000000:
-		termios_p.c_cflag = B2000000;
-		break;
-
-	default:
-#ifdef HAVE_LINUX_SERIAL_H
-		set_custom_speed(config.vitesse, serial_port_fd);
-		termios_p.c_cflag |= B38400;
-#else
 		Close_port();
-		msg = g_strdup_printf(_("Arbitrary baud rates not supported"));
+		msg = g_strdup_printf(_("Unable to set baud rate %u"),
+					config.vitesse);
 		show_message(msg, MSG_ERR);
 		g_free(msg);
 		return FALSE;
-#endif
 	}
+
+	tcgetattr(serial_port_fd, &termios_p);
+	memcpy(&termios_save, &termios_p, sizeof(struct termios));
 
 	switch(config.bits)
 	{
@@ -433,28 +396,6 @@ void sendbreak(void)
 		tcsendbreak(serial_port_fd, 0);
 }
 
-#ifdef HAVE_LINUX_SERIAL_H
-gint set_custom_speed(int speed, int port_fd)
-{
-
-	struct serial_struct ser;
-	int arby;
-
-	ioctl(port_fd, TIOCGSERIAL, &ser);
-	ser.custom_divisor = ser.baud_base / speed;
-	if(!(ser.custom_divisor))
-		ser.custom_divisor = 1;
-
-	arby = ser.baud_base / ser.custom_divisor;
-	ser.flags &= ~ASYNC_SPD_MASK;
-	ser.flags |= ASYNC_SPD_CUST;
-
-	ioctl(port_fd, TIOCSSERIAL, &ser);
-
-	return 0;
-}
-#endif
-
 gchar* get_port_string(void)
 {
 	gchar* msg;
@@ -483,9 +424,9 @@ gchar* get_port_string(void)
 		}
 
 		/* "GtkTerm: device  baud-bits-parity-stops"  */
-		msg = g_strdup_printf("%.15s  %d-%d-%c-%d",
+		msg = g_strdup_printf("%.15s  %u-%d-%c-%d",
 		                      config.port,
-		                      config.vitesse,
+		                      serial_port_speed,
 		                      config.bits,
 		                      parity,
 		                      config.stops
