@@ -39,6 +39,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <dirent.h>
 #include <vte/vte.h>
 #include <glib/gi18n.h>
 
@@ -51,18 +53,19 @@
 #include "config.h"
 
 
-#define DEVICE_NUMBERS_TO_CHECK 12
 #define CONFIGURATION_FILENAME ".gtktermrc"
 
-gchar *devices_to_check[] =
+struct device_path {
+	const char *dir;
+	const char *regex;
+};
+
+static const struct device_path device_paths[] =
 {
-	"/dev/ttyS%d",
-	"/dev/tts/%d",
-	"/dev/ttyUSB%d",
-	"/dev/ttyACM%d",
-	"/dev/ttyXRUSB%d",
-	"/dev/usb/tts/%d",
-	NULL
+	{ "/dev", "^tty[A-Z]" },
+	{ "/dev/tts", "^\\d+$" },
+	{ "/dev/usb/tts", "^\\d+$" },
+	{ NULL, NULL }
 };
 
 /* Configuration file variables */
@@ -185,6 +188,78 @@ void ConfigFlags(void)
 	Set_timestamp(config.timestamp);
 }
 
+static int compare_seminum(const void *a, const void *b)
+{
+	const char *sa = a;
+	const char *sb = b;
+	char *ea, *eb;
+	unsigned long na, nb;
+	unsigned char ca, cb;
+	gboolean da, db;
+
+	while ((ca = *sa))
+	{
+		cb = *sb;
+		if (!cb)
+			return 1; /* End of string b but not a */
+
+		/* Are these digits? */
+		da = (unsigned char)(ca - '0') < 10;
+		db = (unsigned char)(cb - '0') < 10;
+
+		if (da) {
+			/* a is digit */
+			if (!db)
+				return -1; /* b is not digit: a first */
+
+			/* Both are numbers */
+			na = strtoul(sa, &ea, 10);
+			nb = strtoul(sb, &eb, 10);
+			if (na != nb)
+				return na < nb ? -1 : 1;
+
+			/* Leading zeroes can cause duplicates, tie breaker */
+			if ((ea - sa) != (eb - sb))
+				return (ea - sa) < (eb - sb) ? -1 : 1;
+
+			sa = ea;
+			sb = eb;
+		} else {
+			/* a is not digit */
+			if (db)
+				return 1; /* b is digit: b first */
+
+			if (ca != cb)
+				return cb - ca;
+
+			sa++;
+			sb++;
+		}
+	}
+
+	/* If string b is also at end, equal, otherwise b > a */
+	return *sb != 0;
+}
+
+static int is_serial_port(const char *path)
+{
+	struct stat st;
+	int fd;
+	int istty;
+
+	if (stat(path, &st) || !S_ISCHR(st.st_mode))
+		return FALSE;
+
+	/* Check to see if it can be opened by this user and is a tty */
+	fd = open(path, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	if (fd < 0)
+		return FALSE;
+
+	istty = isatty(fd);
+	close(fd);
+	return istty;
+}
+
 void Config_Port_Fenetre(GtkAction *action, gpointer data)
 {
 	GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule,
@@ -193,31 +268,62 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	          *content_area, *action_area;
 
 	static GtkWidget *Combos[10];
-	GList *liste = NULL;
-	gchar *chaine = NULL;
-	gchar **dev = NULL;
+	const struct device_path *devp;
+	GPtrArray *ports = g_ptr_array_new();
 	GtkAdjustment *adj;
-	struct stat my_stat;
 	gchar *string;
 	int i;
 	int speed_index;
 
-	for(dev = devices_to_check; *dev != NULL; dev++)
+	for (devp = device_paths; devp->dir; devp++)
 	{
-		for(i = 0; i < DEVICE_NUMBERS_TO_CHECK; i++)
+		DIR *dir;
+		GRegex *regex;
+		struct dirent *de;
+		GError *err = NULL;
+
+		dir = opendir(devp->dir);
+		if (!dir)
+			continue;
+
+		regex = g_regex_new(devp->regex, G_REGEX_DEFAULT,
+				    G_REGEX_MATCH_DEFAULT, &err);
+		if (!regex)
 		{
-			chaine = g_strdup_printf(*dev, i);
-			if(stat(chaine, &my_stat) == 0)
-				liste = g_list_append(liste, chaine);
+			/* Programmer goofed */
+			g_error("regex: %s error: %s\n",
+				devp->regex, err->message);
+			continue;
 		}
+
+		while ((de = readdir(dir)))
+		{
+			char *path;
+
+			if (!g_regex_match(regex, de->d_name, 0, NULL))
+				continue;
+
+			path = g_strdup_printf("%s/%s", devp->dir, de->d_name);
+			if (is_serial_port(path))
+				g_ptr_array_add(ports, path);
+			else
+				g_free(path);
+		}
+
+		closedir(dir);
+		g_regex_unref(regex);
 	}
 
-	if(liste == NULL)
+	if (ports->len)
+	{
+		g_ptr_array_sort_values(ports, compare_seminum);
+	}
+	else
 	{
 		show_message(_("No serial devices found!\n"
 		               "\n"
 		               "Searched the following device path patterns:\n"
-		               "\t/dev/ttyS*\n\t/dev/tts/*\n\t/dev/ttyUSB*\n\t/dev/ttyACM*\n\t/dev/usb/tts/*\n\n"
+		               "\t/dev/tty[A-Z]*\n\t/dev/tts/*\n\t/dev/usb/tts/*\n\n"
 		               "Enter a different device path in the 'Port' box.\n"), MSG_WRN);
 	}
 
@@ -244,10 +350,12 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	// create the devices combo box, and add device strings
 	Combo = gtk_combo_box_text_new_with_entry();
 
-	for(i = 0; i < g_list_length(liste); i++)
+	for(i = 0; i < ports->len; i++)
 	{
-		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), g_list_nth_data(liste, i));
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), ports->pdata[i]);
+		g_free(ports->pdata[i]);
 	}
+	g_ptr_array_free(ports, TRUE);
 
 	// try to restore last selected port, if any
 	if(config.port != NULL && config.port[0] != '\0')
@@ -263,15 +371,6 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
 	}
 
-
-	// clean up devices strings
-	//g_list_free(liste, (GDestroyNotify)g_free); // only available in glib >= 2.28
-	for(i = 0; i < g_list_length(liste); i++)
-	{
-		g_free(g_list_nth_data(liste, i));
-	}
-	g_list_free(liste);
-	g_free(chaine);
 
 	gtk_table_attach(GTK_TABLE(Table), Combo, 0, 1, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
 	Combos[0] = Combo;
