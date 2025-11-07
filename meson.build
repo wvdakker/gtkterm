@@ -28,6 +28,10 @@ if have_serial_h
   conf.set('HAVE_LINUX_SERIAL_H', '1')
 endif
 
+if cc.has_header('sys/sysmacros.h')
+  conf.set('HAVE_SYS_SYSMACROS_H', '1')
+endif
+
 configure_file(output : 'config.h', configuration : conf)
 config = declare_dependency(include_directories : include_directories('.'))
 
