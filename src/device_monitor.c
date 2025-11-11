@@ -22,11 +22,11 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <glib.h>
-#include <serial.h>
 #include <interface.h>
 #include <term_config.h>
 #include <gudev/gudev.h>
 
+#include "serial.h"
 #include "interface.h"
 
 extern struct configuration_port config;

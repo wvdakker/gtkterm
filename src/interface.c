@@ -54,14 +54,13 @@
 /*                                                                     */
 /***********************************************************************/
 
+#include "config.h"
+
 #include <gtk/gtk.h>
-#if defined (__linux__)
-#  include <asm/termios.h>       /* For control signals */
-#endif
-#if defined (__FreeBSD__) || defined (__FreeBSD_kernel__) \
-     || defined (__NetBSD__) || defined (__NetBSD_kernel__) \
-     || defined (__OpenBSD__) || defined (__OpenBSD_kernel__)
-#  include <sys/ttycom.h>        /* For control signals */
+#ifdef HAVE_LINUX_TERMIOS_H
+# include <linux/termios.h>	/* For control signals */
+# define NO_TERMIOS		/* Conflicts with <termios.h> */
+#elif defined (HAVE_SYS_TTYCOM_H)
 #endif
 #include <vte/vte.h>
 #include <stdlib.h>
@@ -79,7 +78,6 @@
 #include "logging.h"
 #include "device_monitor.h"
 
-#include <config.h>
 #include <glib/gprintf.h>
 #include <glib/gi18n.h>
 
