@@ -39,6 +39,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <glob.h>
 #include <vte/vte.h>
 #include <glib/gi18n.h>
 
@@ -50,20 +53,11 @@
 #include "i18n.h"
 #include "config.h"
 
+#ifdef HAVE_SYS_SYSMACROS_H
+#include <sys/sysmacros.h>
+#endif
 
-#define DEVICE_NUMBERS_TO_CHECK 12
 #define CONFIGURATION_FILENAME ".gtktermrc"
-
-gchar *devices_to_check[] =
-{
-	"/dev/ttyS%d",
-	"/dev/tts/%d",
-	"/dev/ttyUSB%d",
-	"/dev/ttyACM%d",
-	"/dev/ttyXRUSB%d",
-	"/dev/usb/tts/%d",
-	NULL
-};
 
 /* Configuration file variables */
 gchar **port;
@@ -185,6 +179,253 @@ void ConfigFlags(void)
 	Set_timestamp(config.timestamp);
 }
 
+/* This list should perhaps be added to the configuration? */
+struct device_path {
+	const char *pat;
+	unsigned long major;
+	unsigned long minor;
+	unsigned long nminors;	/* 0 = no device matching */
+};
+
+static const struct device_path default_device_paths[] =
+{
+	{ "/dev/ttyS*", 0, 0, 0 },
+	{ "/dev/tts/[0-9]*", 0, 0, 0 },
+	{ "/dev/usb/tts/[0-9]*", 0, 0, 0 },
+	{ NULL, 0, 0, 0 }
+};
+
+static inline char *skip_word(char *p)
+{
+	while (*p && !isspace((unsigned char)*p))
+		p++;
+	return p;
+}
+static inline char *skip_space(char *p)
+{
+	while (isspace((unsigned char)*p))
+		p++;
+	return p;
+}
+
+static const struct device_path *get_device_paths(void)
+{
+#ifdef __linux__
+	GArray *array;
+	char line[BUFSIZ];
+	FILE *f = fopen("/proc/tty/drivers", "r");
+	if (!f)
+		return default_device_paths;
+
+	array = g_array_new(TRUE, FALSE, sizeof(struct device_path));
+	while (fgets(line, sizeof line, f))
+	{
+		struct device_path devp;
+		char *path, *p, *pat;
+		struct stat st;
+
+		p = line;
+		p = skip_word(p);
+		if (p == line || !*p)
+			continue;
+
+		*p++ = '\0';
+		p = skip_space(p);
+		if (*p != '/')
+			continue;
+		path = p;
+		p = skip_word(p);
+		if (p == path || !*p)
+			continue;
+
+		*p++ = '\0';
+		devp.major = strtoul(p, &p, 10);
+		if (!isspace((unsigned char)*p))
+			continue;
+
+		devp.minor = strtoul(p, &p, 10);
+		devp.nminors = 1;
+		if (*p == '-')
+			devp.nminors = strtoul(++p, &p, 10) - devp.minor + 1;
+		if (!isspace((unsigned char)*p))
+			continue;
+
+		p = skip_space(p);
+		if (strncmp(p, "serial", 6))
+			continue;
+
+		/* This should be a serial driver */
+		pat = "[0-9]*";
+		if (!stat(path, &st))
+		{
+			if (S_ISDIR(st.st_mode))
+				pat = "/[0-9]*";
+			else if (devp.nminors == 1)
+				pat = "";
+		}
+		devp.pat = g_strdup_printf("%s%s", path, pat);
+		array = g_array_append_vals(array, &devp, 1);
+	}
+
+	fclose(f);
+
+	if (array->len)
+	{
+		const struct device_path *dpp = (void *)array->data;
+		g_array_free(array, FALSE);
+		return dpp;
+	}
+	g_array_unref(array);
+#endif
+	return default_device_paths;
+}
+
+static void free_device_paths(const struct device_path *paths)
+{
+	const struct device_path *dpp;
+
+	if (paths == default_device_paths)
+		return;
+
+	for (dpp = paths; dpp->pat; dpp++)
+		g_free((void *)dpp->pat);
+
+	g_free((void *)paths);
+}
+
+/* Compare strings with digit sequences treated in groups */
+static int compare_seminum(const void *a, const void *b)
+{
+	const char *sa = a;
+	const char *sb = b;
+	char *ea, *eb;
+	unsigned long na, nb;
+	unsigned char ca, cb;
+	gboolean da, db;
+
+	while ((ca = *sa))
+	{
+		cb = *sb;
+		if (!cb)
+			return 1; /* End of string b: a > b */
+
+		/* Are these digits? */
+		da = isdigit(ca);
+		db = isdigit(cb);
+
+		if (da) {
+			/* a is digit */
+			if (!db)
+				return -1; /* b is not digit: a < b */
+
+			/* Both are numbers */
+			na = strtoul(sa, &ea, 10);
+			nb = strtoul(sb, &eb, 10);
+			if (na != nb)
+				return na < nb ? -1 : 1;
+
+			/* Leading zeroes can cause duplicates, tie breaker */
+			if ((ea - sa) != (eb - sb))
+				return (ea - sa) < (eb - sb) ? -1 : 1;
+
+			sa = ea;
+			sb = eb;
+		} else {
+			/* a is not digit */
+			if (db)
+				return 1; /* b is digit: a > b */
+
+			if (ca != cb)
+				return (int)ca - (int)cb;
+
+			sa++;
+			sb++;
+		}
+	}
+
+	/* If string b is also at end, equal, otherwise b > a */
+	return *sb != 0;
+}
+
+static int is_serial_port(const char *path, const struct device_path *dp)
+{
+	struct stat st;
+
+	if (access(path, R_OK|W_OK))
+		return FALSE;	/* Not accessible */
+
+	if (stat(path, &st) || !S_ISCHR(st.st_mode))
+		return FALSE;	/* Not a character device */
+
+	/*
+	 * Unfortunately, just opening a tty messes with DTR and RTS, so
+	 * it isn't possible to perform any probes that require a file
+	 * descriptor!!
+	 *
+	 * This is a kernel API problem and needs to be fixed there...
+	 */
+
+#if defined(major) && defined(minor)
+	/* Match against the device number if possible */
+	if (!dp->nminors)
+		return TRUE;
+
+	if (dp->major != major(st.st_rdev))
+		return FALSE;
+
+	if ((unsigned long)minor(st.st_rdev) - dp->minor >= dp->nminors)
+		return FALSE;
+#endif
+
+	return TRUE;
+}
+
+static GPtrArray *find_serial_ports(const struct device_path *devp)
+{
+	GPtrArray *ports = g_ptr_array_new();
+
+	for (; devp->pat; devp++)
+	{
+		glob_t gl;
+		char **filep;
+
+		memset(&gl, 0, sizeof gl);
+
+		if (glob(devp->pat, GLOB_NOSORT, NULL, &gl))
+			continue;
+
+		for (filep = gl.gl_pathv; *filep; filep++)
+		{
+			if (is_serial_port(*filep, devp))
+				g_ptr_array_add(ports, g_strdup(*filep));
+		}
+	}
+
+	g_ptr_array_sort_values(ports, compare_seminum);
+	return ports;
+}
+
+static gchar *dlist_to_string(const struct device_path *dlist)
+{
+	const struct device_path *dp;
+	gchar *str, *p, *ep;
+	size_t len = 1;		/* Final null */
+
+	for (dp = dlist; dp->pat; dp++)
+		len += strlen(dp->pat) + 2; /* TAB NL */
+
+	str = p = g_malloc(len);
+	ep = str + len - 1;	/* Include space for final newline */
+	for (dp = dlist; dp->pat; dp++)
+	{
+		*p++ = '\t';
+		p += g_strlcpy(p, dp->pat, ep-p);
+		*p++ = '\n';
+	}
+	*p = '\0';
+	return str;
+}
+
 void Config_Port_Fenetre(GtkAction *action, gpointer data)
 {
 	GtkWidget *Table, *Label, *Bouton_OK, *Bouton_annule,
@@ -193,33 +434,31 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	          *content_area, *action_area;
 
 	static GtkWidget *Combos[10];
-	GList *liste = NULL;
-	gchar *chaine = NULL;
-	gchar **dev = NULL;
 	GtkAdjustment *adj;
-	struct stat my_stat;
 	gchar *string;
+	char *prev;
 	int i;
+	const struct device_path *device_paths;
+	GPtrArray *ports;
 	int speed_index;
 
-	for(dev = devices_to_check; *dev != NULL; dev++)
+	device_paths = get_device_paths();
+	ports = find_serial_ports(device_paths);
+
+	if (!ports->len)
 	{
-		for(i = 0; i < DEVICE_NUMBERS_TO_CHECK; i++)
-		{
-			chaine = g_strdup_printf(*dev, i);
-			if(stat(chaine, &my_stat) == 0)
-				liste = g_list_append(liste, chaine);
-		}
+		gchar *patterns = dlist_to_string(device_paths);
+		string = g_strdup_printf(_("No serial devices found!\n"
+					   "\n"
+					   "Searched the following device path patterns:\n"
+					   "%s\n"
+					   "Enter a different device path in the 'Port' box.\n"), patterns);
+		g_free(patterns);
+		show_message(string, MSG_WRN);
+		g_free(string);
 	}
 
-	if(liste == NULL)
-	{
-		show_message(_("No serial devices found!\n"
-		               "\n"
-		               "Searched the following device path patterns:\n"
-		               "\t/dev/ttyS*\n\t/dev/tts/*\n\t/dev/ttyUSB*\n\t/dev/ttyACM*\n\t/dev/usb/tts/*\n\n"
-		               "Enter a different device path in the 'Port' box.\n"), MSG_WRN);
-	}
+	free_device_paths(device_paths);
 
 	Dialogue = gtk_dialog_new();
 	content_area = gtk_dialog_get_content_area(GTK_DIALOG(Dialogue));
@@ -244,10 +483,18 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	// create the devices combo box, and add device strings
 	Combo = gtk_combo_box_text_new_with_entry();
 
-	for(i = 0; i < g_list_length(liste); i++)
+	prev = "";
+	for (i = 0; i < ports->len; i++)
 	{
-		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), g_list_nth_data(liste, i));
+		char *curr = ports->pdata[i];
+		/* Duplicate entries are possible but will be adjacent */
+		if (strcmp(prev, curr))
+			gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), curr);
+		prev = curr;
 	}
+	for (i = 0; i < ports->len; i++)
+		g_free(ports->pdata[i]);
+	g_ptr_array_free(ports, TRUE);
 
 	// try to restore last selected port, if any
 	if(config.port != NULL && config.port[0] != '\0')
@@ -263,15 +510,6 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
 	}
 
-
-	// clean up devices strings
-	//g_list_free(liste, (GDestroyNotify)g_free); // only available in glib >= 2.28
-	for(i = 0; i < g_list_length(liste); i++)
-	{
-		g_free(g_list_nth_data(liste, i));
-	}
-	g_list_free(liste);
-	g_free(chaine);
 
 	gtk_table_attach(GTK_TABLE(Table), Combo, 0, 1, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
 	Combos[0] = Combo;
