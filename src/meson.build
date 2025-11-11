@@ -1,4 +1,14 @@
+prog_sh = find_program('sh')
+baudrates_h = custom_target(
+	    'baudrates.h',
+	    output : 'baudrates.h',
+	    input : 'baudrates.sh',
+	    command : [prog_sh, '@INPUT@', '@OUTPUT@'])
+
 sources = [
+	'baud.c',
+	'baudrates.c',
+	baudrates_h,
 	'buffer.c',
 	'buffer.h',
 	'cmdline.c',

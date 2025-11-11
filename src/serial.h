@@ -12,8 +12,12 @@
 /*                                                                     */
 /***********************************************************************/
 
-#ifndef SERIE_H_
-#define SERIE_H_
+#ifndef SERIAL_H_
+#define SERIAL_H_
+
+#ifndef NO_TERMIOS
+#include <termios.h>
+#endif
 
 extern int serial_port_fd;
 
@@ -27,8 +31,18 @@ void configure_crlfauto(gboolean);
 void configure_autoreconnect_enable(gboolean);
 void configure_esc_clear_screen(gboolean);
 void sendbreak(void);
-gint set_custom_speed(int, int);
+unsigned int set_port_baudrate(unsigned int, int);
 gchar* get_port_string(void);
+
+struct baudrate {
+	unsigned int baud;
+	speed_t speed;
+};
+extern const struct baudrate baudrate_list[];
+extern const int baudrate_count;
+extern const gboolean speed_t_is_sane;
+speed_t find_standard_baudrate(unsigned int);
+unsigned int speed_t_to_baud(speed_t);
 
 #define BUFFER_RECEPTION 8192
 #define BUFFER_EMISSION 4096

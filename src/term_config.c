@@ -200,6 +200,7 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 	struct stat my_stat;
 	gchar *string;
 	int i;
+	int speed_index;
 
 	for(dev = devices_to_check; *dev != NULL; dev++)
 	{
@@ -277,89 +278,35 @@ void Config_Port_Fenetre(GtkAction *action, gpointer data)
 
 	Combo = gtk_combo_box_text_new_with_entry();
 	gtk_entry_set_max_length(GTK_ENTRY(gtk_bin_get_child (GTK_BIN (Combo))), 10);
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "300");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "600");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "1200");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "2400");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "4800");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "9600");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "19200");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "38400");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "57600");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "115200");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "230400");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "460800");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "576000");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "921600");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "1000000");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "1500000");
-	gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), "2000000");
 
-	/* set the current choice to the previous setting */
-	switch(config.vitesse)
+	speed_index = -1;
+	if (!config.vitesse)
+		config.vitesse = DEFAULT_SPEED;
+
+	for(i = 0; i < baudrate_count; i++)
 	{
-	case 300:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 0);
-		break;
-	case 600:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 1);
-		break;
-	case 1200:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 2);
-		break;
-	case 2400:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 3);
-		break;
-	case 4800:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 4);
-		break;
-	case 9600:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 5);
-		break;
-	case 19200:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 6);
-		break;
-	case 38400:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 7);
-		break;
-	case 57600:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 8);
-		break;
-	case 115200:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 9);
-		break;
-	case 230400:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 10);
-		break;
-	case 460800:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 11);
-		break;
-	case 576000:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 12);
-		break;
-	case 921600:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 13);
-		break;
-	case 1000000:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 14);
-		break;
-	case 2000000:
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 15);
-		break;
-	case 0:
-		/* no previous setting, use a default */
-		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), 5);
-	default:
-		/* custom baudrate */
-		string = g_strdup_printf("%d", config.vitesse);
+		if (baudrate_list[i].baud == config.vitesse)
+			speed_index = i;
+
+		string = g_strdup_printf("%u", baudrate_list[i].baud);
+		gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Combo), string);
+		g_free(string);
+	}
+
+	if (speed_index < 0)
+	{
+		/* Custom baud rate */
+		string = g_strdup_printf("%u", config.vitesse);
 		gtk_entry_set_text(GTK_ENTRY(gtk_bin_get_child (GTK_BIN (Combo))), string);
 		g_free(string);
+	} else {
+		gtk_combo_box_set_active(GTK_COMBO_BOX(Combo), speed_index);
 	}
 
 	//validate input text (digits only)
 	g_signal_connect(GTK_ENTRY(gtk_bin_get_child (GTK_BIN (Combo))),
-	                 "insert-text",
-	                 G_CALLBACK(check_text_input), isdigit);
+			 "insert-text",
+			 G_CALLBACK(check_text_input), isdigit);
 
 	gtk_table_attach(GTK_TABLE(Table), Combo, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL | GTK_EXPAND, 5, 5);
 	Combos[1] = Combo;
@@ -1116,28 +1063,11 @@ void Verify_configuration(void)
 {
 	gchar *string = NULL;
 
-	switch(config.vitesse)
+	if (find_standard_baudrate(config.vitesse) == B0)
 	{
-	case 300:
-	case 600:
-	case 1200:
-	case 2400:
-	case 4800:
-	case 9600:
-	case 19200:
-	case 38400:
-	case 57600:
-	case 115200:
-	case 230400:
-	case 460800:
-	case 576000:
-	case 921600:
-	case 1000000:
-	case 2000000:
-		break;
-
-	default:
-		string = g_strdup_printf(_("Baudrate %d may not be supported by all hardware"), config.vitesse);
+		/* Is this really meaningful? Plenty of the whitelisted
+		   rates are not supported on standard hardware... */
+		string = g_strdup_printf(_("Baud rate %u may not be supported by all hardware"), config.vitesse);
 		show_message(string, MSG_ERR);
 		g_free(string);
 	}
