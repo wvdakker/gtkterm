@@ -1,0 +1,782 @@
+# Georgian translation for gtkterm.
+# Copyright (C) 2026 gtkterm's authors.
+# This file is distributed under the same license as the gtkterm package.
+# Ekaterine Papava <papava.e@gtu.ge>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gtkterm\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-05-01 20:11-0300\n"
+"PO-Revision-Date: 2026-02-24 09:16+0100\n"
+"Last-Translator: Ekaterine Papava <papava.e@gtu.ge>\n"
+"Language-Team: Georgian <(nothing)>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.8\n"
+
+#: src/buffer.c:172
+msgid "ERROR: Buffer is not initialized!\n"
+msgstr "შეცდომა: ბუფერი ინიციალიზებული არაა!\n"
+
+#: src/cmdline.c:37
+#, c-format
+msgid ""
+"\n"
+"GTKTerm version %s\n"
+msgstr ""
+"\n"
+"GTKTerm-ის ვერსია %s\n"
+
+#: src/cmdline.c:38
+msgid "\t (c) Julien Schmitt\n"
+msgstr "\t (c) Julien Schmitt\n"
+
+#: src/cmdline.c:39
+msgid ""
+"\n"
+"This program is released under the terms of the GPL V.2\n"
+msgstr ""
+"\n"
+"ეს პროგრამა ვრცელდება ლიცენზიით GPL v2.\n"
+
+#: src/cmdline.c:40
+msgid "\t ** Use at your own risks! **\n"
+msgstr "\t ** მისი გამოყენებით რისკი თქვენზეა! **\n"
+
+#: src/cmdline.c:41
+msgid ""
+"\n"
+"Command line options\n"
+msgstr ""
+"\n"
+"ბრძანების სტრიქონის პარამეტრები\n"
+
+#: src/cmdline.c:42
+msgid "--help or -h: this help screen\n"
+msgstr "--help ან -h: ეს დახმარების ეკრანი\n"
+
+#: src/cmdline.c:43
+msgid "--config <configuration> or -c: load configuration\n"
+msgstr "--config <configuration> ან -c: კონფიგურაციის ჩატვირთვა\n"
+
+#: src/cmdline.c:44
+msgid "--port <device> or -p: serial port device (default /dev/ttyS0)\n"
+msgstr ""
+"--port <მოწყობილობა> ან -p: სერიული პორტის მოწყობილობა (ნაგულისხმევი /dev/"
+"ttyS0)\n"
+
+#: src/cmdline.c:45
+msgid "--speed <speed> or -s: serial port speed (default 9600)\n"
+msgstr "--speed <სიჩქარე> ან -s: სერიული პორტის სიჩქარე (ნაგულისხმევი 9600)\n"
+
+#: src/cmdline.c:46
+msgid "--bits <bits> or -b: number of bits (default 8)\n"
+msgstr "--bits <ბიტები> ან -b: ბიტების რაოდენობა (ნაგულისხმევი 8)\n"
+
+#: src/cmdline.c:47
+msgid "--stopbits <stopbits> or -t: number of stopbits (default 1)\n"
+msgstr ""
+"--stopbits <სტოპბიტები> ან -t: სტოპბიტების რაოდენობა (ნაგულისხმევია 1)\n"
+
+#: src/cmdline.c:48
+msgid "--parity <odd | even> or -a: parity (default none)\n"
+msgstr "--parity <ლუწი | კენტი> ან -a: ტოლობა (ნაგულისხმევი: არცერთი)\n"
+
+#: src/cmdline.c:49
+msgid "--flow <Xon | RTS | RS485> or -w: flow control (default none)\n"
+msgstr ""
+"--flow <Xon | RTS | RS485> ან -w: დინების კონტროლი (ნაგულისხმევია: არცერთი)\n"
+
+#: src/cmdline.c:50
+msgid "--delay <ms> or -d: end of line delay in ms (default none)\n"
+msgstr ""
+"--delay <მწმ> ან -d: ხაზის დასრულების დაყოვნება მწმ-ში (ნაგულისხმევი: "
+"არცერთი)\n"
+
+#: src/cmdline.c:51
+msgid ""
+"--char <char> or -r: wait for a special char at end of line (default none)\n"
+msgstr ""
+"--char <char> ან -r: სპეციალური სიმბოლოს დალოდება ხაზის ბოლოში "
+"(ნაგულისხმევი: არცერთი)\n"
+
+#: src/cmdline.c:52
+msgid "--file <filename> or -f: default file to send (default none)\n"
+msgstr ""
+"--file <ფაილისსახელი> ან -f: ნაგულისხმევი ფაილი გასაგზავნად (ნაგულისხმევი: "
+"არცერთი)\n"
+
+#: src/cmdline.c:53
+msgid ""
+"--rts_time_before <ms> or -x: for RS-485, time in ms before transmit with "
+"rts on\n"
+msgstr ""
+"--rts_time_before <მწმ> ან -x: RS-485-ის დრო მწმ-ში გადაცემამდე, როცა rts "
+"ჩართულია\n"
+
+#: src/cmdline.c:54
+msgid ""
+"--rts_time_after <ms> or -y: for RS-485, time in ms after transmit with rts "
+"on\n"
+msgstr ""
+"--rts_time_after <მწმ> ან -y: RS-485-ის დრო მწმ-ში გადაცემის შემდეგ, როცა "
+"rts ჩართულია\n"
+
+#: src/cmdline.c:55
+msgid "--echo or -e: switch on local echo\n"
+msgstr "--echo ან -e: ლოკალური ექოს ჩართვა\n"
+
+#: src/cmdline.c:56
+msgid ""
+"--disable-port-lock or -L: does not lock serial port. Allows to send to "
+"serial port from different terminals\n"
+msgstr ""
+"--disable-port-lock ან -L: სერიული პორტი არ დაიბლოკება. საშუალებას გაძლევთ, "
+"სერიულ პორტზე მონაცემები სხვადასხვა ტერმინალიდან გაგზავნოთ\n"
+
+#: src/cmdline.c:57
+msgid ""
+"                      Note: incoming data are displayed randomly on only one "
+"terminal\n"
+msgstr ""
+"                      შენიშვნა: შემომავალი მონაცემები შემთხვევით, მხოლოდ, "
+"ერთ ტერმინალზეა ნაჩვენები\n"
+
+#: src/cmdline.c:167
+msgid "Undefined command line option\n"
+msgstr "უცნობი ბრძანების სტრიქონის პარამეტრი\n"
+
+#: src/files.c:77
+msgid "Send RAW File"
+msgstr "RAW ფაილის გაგზავნა"
+
+#: src/files.c:96
+msgid "Error opening file\n"
+msgstr "ფაილის გახსნის შეცდომა\n"
+
+#: src/files.c:110
+#, c-format
+msgid "%s: transfer in progress..."
+msgstr "%s: მიმდინარეობს გადაცემა..."
+
+#: src/files.c:128 src/term_config.c:513
+msgid "Cancel"
+msgstr "გაუქმება"
+
+#: src/files.c:143
+#, c-format
+msgid "Cannot read file %s: %s\n"
+msgstr "წაკითხვის შეცდომა ფაილისთვის %s: %s\n"
+
+#: src/files.c:178
+msgid "Error sending file\n"
+msgstr "ფაილის გაგზავნის შეცდომა\n"
+
+#: src/files.c:206
+#, c-format
+msgid "Error sending file: %s\n"
+msgstr "ფაილის გაგზავნის შეცდომა: %s\n"
+
+#: src/files.c:311
+msgid "Save RAW File"
+msgstr "RAW ფაილის გაგზავნა"
+
+#: src/files.c:330 src/files.c:381
+msgid "File error\n"
+msgstr "ფაილის შეცდომა\n"
+
+#: src/files.c:341 src/files.c:392 src/logging.c:68 src/logging.c:123
+#, c-format
+msgid "Cannot open file %s: %s\n"
+msgstr "ვერ გავხსენი ფაილი `%s': %s\n"
+
+#: src/files.c:362
+msgid "Save ASCII File"
+msgstr "ASCII ფაილის შენახვა"
+
+#. Toplevel
+#: src/interface.c:150
+msgid "_File"
+msgstr "_ფაილი"
+
+#: src/interface.c:151
+msgid "_Edit"
+msgstr "_ჩასწორება"
+
+#: src/interface.c:152
+msgid "_Log"
+msgstr "ჟურნა_ლი"
+
+#: src/interface.c:153
+msgid "_Configuration"
+msgstr "_მორგება"
+
+#: src/interface.c:154
+msgid "Control _signals"
+msgstr "კონტროლის _სიგნალები"
+
+#: src/interface.c:155
+msgid "_View"
+msgstr "_ხედი"
+
+#: src/interface.c:156
+msgid "Hexadecimal _chars"
+msgstr "თექვსმეტობითი სიმ_ბოლოები"
+
+#: src/interface.c:157
+msgid "_Help"
+msgstr "_დახმარება"
+
+#: src/interface.c:161
+msgid "_Clear screen"
+msgstr "ეკრა_ნის გასუფთავება"
+
+#: src/interface.c:162
+msgid "_Clear scrollback"
+msgstr "გადახვევის გასუ_ფთავება"
+
+#: src/interface.c:163
+msgid "Send _RAW file"
+msgstr "_RAW ფაილის გაგზავნა"
+
+#: src/interface.c:164
+msgid "_Save RAW file"
+msgstr "RAW ფაილი_ს შენახვა"
+
+#: src/interface.c:165
+msgid "Save _ASCII file"
+msgstr "ASCII ფ_აილის შენახვა"
+
+#. Log Menu
+#: src/interface.c:174
+msgid "To file..."
+msgstr "ფაილში..."
+
+#. Confuguration Menu
+#: src/interface.c:180
+msgid "_Port"
+msgstr "_პორტი"
+
+#: src/interface.c:181
+msgid "_Main window"
+msgstr "_მთავარი ფანჯარა"
+
+#: src/interface.c:182
+msgid "_Macros"
+msgstr "_მაკროები"
+
+#: src/interface.c:183
+msgid "_Load configuration"
+msgstr "კონფიგურაციის _ჩატვირთვა"
+
+#: src/interface.c:184
+msgid "_Save configuration"
+msgstr "კონფიგურაციი_ს შენახვა"
+
+#: src/interface.c:185
+msgid "_Delete configuration"
+msgstr "კონფიგურაციის _წაშლა"
+
+#. Signals Menu
+#: src/interface.c:188
+msgid "Send break"
+msgstr "შეწყვეტის გაგზავნა"
+
+#: src/interface.c:189
+msgid "_Open Port"
+msgstr "პ_ორტის გახსნა"
+
+#: src/interface.c:190
+msgid "_Close Port"
+msgstr "_პორტის დახურვა"
+
+#: src/interface.c:191
+msgid "Toggle DTR"
+msgstr "DTR-ის გადართვა"
+
+#: src/interface.c:192
+msgid "Toggle RTS"
+msgstr "RTS-ის გადართვა"
+
+#. Configuration Menu
+#: src/interface.c:201
+msgid "Local _echo"
+msgstr "ლოკალური _ექო"
+
+#: src/interface.c:202
+msgid "Autoreconnect"
+msgstr "ავტომატურად თავიდან დაკავშირება"
+
+#: src/interface.c:203
+msgid "_CR LF auto"
+msgstr "_CR LF ავტო"
+
+#: src/interface.c:204
+msgid "ESC clear scree_n"
+msgstr "ESC ეკრა_ნის გასუფთავება"
+
+#: src/interface.c:205
+msgid "Timestamp"
+msgstr "დროის შტამპი"
+
+#. View Menu
+#: src/interface.c:208
+msgid "Show _index"
+msgstr "_ინდექსის ჩვენება"
+
+#: src/interface.c:209
+msgid "_Send hexadecimal data"
+msgstr "თექვსმეტობითი მონაცემები_ს გაგზავნა"
+
+#: src/interface.c:214
+msgid "_ASCII"
+msgstr "_ASCII"
+
+#: src/interface.c:215
+msgid "_Hexadecimal"
+msgstr "თ_ექვსმეტობითი"
+
+#: src/interface.c:470
+msgid "Resume"
+msgstr "გაგრძელება"
+
+#: src/interface.c:618
+msgid "Hexadecimal data to send (separator: ';' or space): "
+msgstr "თექვსმეტობითი მონაცემები გასაგზავნად (გამყოფი: ';', ან ჰარე): "
+
+#: src/interface.c:778
+msgid ""
+"GTKTerm is a simple GTK+ terminal used to communicate with the serial port."
+msgstr "GTKTerm მარტივი GTK+-ის ტერმინალია სერიულ პორტთან კომუნიკაციისთვის."
+
+#: src/interface.c:830
+msgid "Break signal sent!"
+msgstr "გაგზავნილია შეწყვეტის სიგნალი!"
+
+#: src/interface.c:936
+msgid "0 byte(s) sent!"
+msgstr "გაგზავნილია 0 ბაიტი!"
+
+#: src/interface.c:950
+msgid "Improper formatted hex input, 0 bytes sent!"
+msgstr "არასწორად დაფორმატებული თექვსმეტობითი შეყვანა. გაგზავნილია 0 ბაიტი!"
+
+#: src/interface.c:961
+#, c-format
+msgid "%d byte(s) sent!"
+msgstr "გაგზავნილია %d ბაიტი!"
+
+#: src/logging.c:49
+msgid "Filename error\n"
+msgstr "ფაილის სახელის შეცდომა\n"
+
+#: src/logging.c:88
+msgid "Log file selection"
+msgstr "ჟურნალის ფაილის არჩევანი"
+
+#: src/logging.c:184
+msgid "Failed to log data\n"
+msgstr "მონაცემების ჟურნალში ჩაწერა ჩავარდა\n"
+
+#: src/macros.c:144
+#, c-format
+msgid "Macro \"%s\" sent!"
+msgstr "მაკრო \"%s\" გაიგზავნა!"
+
+#: src/macros.c:275
+msgid "Shortcut"
+msgstr "მალსახმობი"
+
+#: src/macros.c:432
+msgid ""
+"The \"action\" field of a macro is the data to be sent on the port. Text can "
+"be entered, but also special chars, like \\n, \\t, \\r, etc. You can also "
+"enter hexadecimal data preceded by a '\\'. The hexadecimal data should not "
+"begin with a letter (eg. use \\0FF and not \\FF)\n"
+"Examples:\n"
+"\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n"
+"\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"
+msgstr ""
+"მაკროს ველი \"ქმედება\" წარმოადგენს მონაცემებს, რომლებიც პორტზე უნდა "
+"გაიგზავნოს. შეგიძლიათ შეიყვანოთ არა მხოლოდ ტექსტი, არამედ სპეციალური "
+"სიმბოლოებიც \\n, \\t, \\r და ა.შ. ასევე შეგიძლიათ, შეიყვანოთ თექვსმეტობითი "
+"მონაცემები, რომლებიც '\\'-ით იწყება. თექვსმეტობითი მონაცემები ასოთი არ უნდა "
+"იწყებოდეს (ანუ გამოიყენეთ \\0FF, მაგრამ არა \\FF)\n"
+"მაგ:\n"
+"\t\"Hello\"\\n გააგზავნის სიტყვას \"Hello\", რომელსაც ხაზის გადატანა "
+"მოჰყვება\n"
+"\t\"Hello\"\\0A გააკეთებს იგივეს, ოღონდ ხაზის გადატანა თექვსმეტობითშია "
+"მითითებული"
+
+#: src/macros.c:452
+msgid "Configure Macros"
+msgstr "მაკროების მორგება"
+
+#: src/macros.c:489
+msgid "_Add"
+msgstr "დ_ამატება"
+
+#: src/macros.c:493
+msgid "_Delete"
+msgstr "_წაშლა"
+
+#: src/macros.c:497
+msgid "_Capture Shortcut"
+msgstr "მალსა_ხმობის მორგება"
+
+#: src/parsecfg.c:355
+#, c-format
+msgid "Cannot open configuration file `%s'.\n"
+msgstr "გახსნის შეცდომა კონფიგურაციის ფაილისთვის `%s'.\n"
+
+#: src/parsecfg.c:358
+#, c-format
+msgid "Cannot create configuration file `%s'.\n"
+msgstr "შექმნის შეცდომა კონფიგურაციის ფაილისთვის `%s'.\n"
+
+#: src/parsecfg.c:361
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Syntax error\n"
+msgstr ""
+"%s(%d): %s\n"
+"სინტაქსის შეცდომა\n"
+
+#: src/parsecfg.c:364
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Unrecognized parameter\n"
+msgstr ""
+"%s(%d): %s\n"
+"უცნობი პარამეტრი\n"
+
+#: src/parsecfg.c:367
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Internal error\n"
+msgstr ""
+"%s(%d): %s\n"
+"შიდა შეცდომა\n"
+
+#: src/parsecfg.c:370
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Invalid number\n"
+msgstr ""
+"%s(%d): %s\n"
+"არასწორი რიცხვი\n"
+
+#: src/parsecfg.c:373
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Out of range\n"
+msgstr ""
+"%s(%d): %s\n"
+"შუალედს გარეტაა\n"
+
+#: src/parsecfg.c:376
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Cannot allocate memory.\n"
+msgstr ""
+"%s(%d): %s\n"
+"მეხსირების გამოყოფის შეცდომა.\n"
+
+#: src/parsecfg.c:379
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"It must be specified TRUE or FALSE.\n"
+msgstr ""
+"%s(%d): %s\n"
+"უნდა იყოს მითითებული ან TRUE, ან FALSE.\n"
+
+#: src/parsecfg.c:382
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"The section name is already used.\n"
+msgstr ""
+"%s(%d): %s\n"
+"სექციის სახელი უკვე გამოიყენება.\n"
+
+#: src/parsecfg.c:385
+#, c-format
+msgid ""
+"%s(%d)\n"
+"There is no closing bracket.\n"
+msgstr ""
+"%s(%d)\n"
+"დამხურავი ფრჩხილის გარეშე.\n"
+
+#: src/parsecfg.c:390
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Unexplained error\n"
+msgstr ""
+"%s(%d): %s\n"
+"აუხსნელი შეცდომა\n"
+
+#: src/serial.c:154
+#, c-format
+msgid "Cannot open %s: %s\n"
+msgstr "გახსნის შეცდომა: %s: %s\n"
+
+#: src/serial.c:167
+msgid ""
+"Cannot lock port! The serial port may currently be in use by another "
+"program.\n"
+msgstr ""
+"პორტის დაბლოკვა შეუძლებელია! შეიძლება, სერიულ პორტს სხვა პროგრამა იყენებს.\n"
+
+#: src/serial.c:238
+msgid "Arbitrary baud rates not supported"
+msgstr "შემთხვევითი ბოდური სიჩქარეები მხარდაჭერილი არაა"
+
+#: src/serial.c:365
+msgid "Control signals read set signals"
+msgstr "წაკითხულია მმართველი სიგნალი სიგნალების დაყენება"
+
+#: src/serial.c:377
+msgid "DTR write"
+msgstr "DTR ჩაწერილია"
+
+#: src/serial.c:387
+msgid "RTS write"
+msgstr "RTS ჩაწერილია"
+
+#: src/serial.c:411
+msgid "Control signals read lis_sig"
+msgstr "მიღებულია საკონტროლო სიგნალი lis_sig"
+
+#: src/serial.c:465
+msgid "No open port"
+msgstr "ღია პორტის გარეშე"
+
+#: src/term_config.c:216
+msgid ""
+"No serial devices found!\n"
+"\n"
+"Searched the following device path patterns:\n"
+"\t/dev/ttyS*\n"
+"\t/dev/tts/*\n"
+"\t/dev/ttyUSB*\n"
+"\t/dev/ttyACM*\n"
+"\t/dev/usb/tts/*\n"
+"\n"
+"Enter a different device path in the 'Port' box.\n"
+msgstr ""
+"სერიული მოწყობილობები აღმოჩენილი არაა\n"
+"\n"
+"მოიძებნა შემდეგი მოწყობილობის ბილიკის ნიმუშები:\n"
+"\t/dev/ttyS*\n"
+"\t/dev/tts/*\n"
+"\t/dev/ttyUSB*\n"
+"\t/dev/ttyACM*\n"
+"\t/dev/usb/tts/*\n"
+"\n"
+"შეიყვანეთ სხვა მოწყობილობის ბილიკი ველში 'პორტი'.\n"
+
+#: src/term_config.c:226
+msgid "Configuration"
+msgstr "მორგება"
+
+#: src/term_config.c:230
+msgid "Serial port"
+msgstr "სერიული პორტი"
+
+#: src/term_config.c:236
+msgid "Port:"
+msgstr "პორტი:"
+
+#: src/term_config.c:238
+msgid "Baud Rate:"
+msgstr "ბოდების სიჩქარე:"
+
+#: src/term_config.c:240
+msgid "Parity:"
+msgstr "პარიტეტი:"
+
+#: src/term_config.c:387
+msgid "Bits:"
+msgstr "ბიტი:"
+
+#: src/term_config.c:389
+msgid "Stopbits:"
+msgstr "სტოპბიტები:"
+
+#: src/term_config.c:391
+msgid "Flow control:"
+msgstr "დინების კონტროლი:"
+
+#. create an expander widget to hide the 'Advanced features'
+#: src/term_config.c:442
+msgid "Advanced Configuration Options"
+msgstr "დამატებითი პარამეტრები"
+
+#: src/term_config.c:447
+msgid "ASCII file transfer"
+msgstr "ASCII ფაილის გაგზავნა"
+
+#: src/term_config.c:453
+msgid "End of line delay (milliseconds):"
+msgstr "ხაზის დასრულების დაყოვნება (მწმ):"
+
+#: src/term_config.c:469
+msgid "Wait for this special character before passing to next line:"
+msgstr "ამ სპეციალური სიმბოლოს ლოდინი შემდეგ ხაზზე გადასვლამდე:"
+
+#: src/term_config.c:482
+msgid "RS-485 half-duplex parameters (RTS signal used to send)"
+msgstr ""
+"RS-485-ის ნახევარდუპლექსის პარამეტრები (გასაგზავნად გამოიყენება RTS-ის "
+"სიგნალი)"
+
+#: src/term_config.c:489
+msgid "Time with RTS 'on' before transmit (milliseconds):"
+msgstr "დრო ჩართული RTS-ით გაგზავნამდე (მწმ):"
+
+#: src/term_config.c:491
+msgid "Time with RTS 'on' after transmit (milliseconds):"
+msgstr "დრო ჩართული RTS-ით გაგზავნის შემდეგ (მწმ):"
+
+#: src/term_config.c:509
+msgid "OK"
+msgstr "დიახ"
+
+#: src/term_config.c:616
+msgid "Load configuration"
+msgstr "კონფიგურაციის ჩატვირთვა"
+
+#: src/term_config.c:626
+msgid "Delete configuration"
+msgstr "კონფიგურაციის წაშლა"
+
+#: src/term_config.c:656 src/term_config.c:921
+msgid ""
+"Cannot read configuration file!\n"
+"Config file may contain invalid parameter.\n"
+msgstr ""
+"კონფიგურაციის ფაილის წაკითხვა შეუძლებელია!\n"
+"კონფიგურაციის ფაილი, შეიძლება, არასწორ პარამეტრს შეიცავდეს.\n"
+
+#: src/term_config.c:662
+msgid "Configurations"
+msgstr "კონფიგურაციები"
+
+#: src/term_config.c:729
+msgid "Save configuration"
+msgstr "კონფიგურაციი შენახვა"
+
+#: src/term_config.c:741
+msgid "Configuration name: "
+msgstr "კონფიგურაციის სახელი: "
+
+#: src/term_config.c:775
+msgid ""
+"Cannot save configuration file!\n"
+"Config file may contain invalid parameter.\n"
+msgstr ""
+"კონფიგურაციის ფაილის შენახვა შეუძლებელია!\n"
+"კონფიგურაციის ფაილი, შეიძლება, არასწორ პარამეტრს შეიცავდეს.\n"
+
+#: src/term_config.c:795
+msgid "Cannot overwrite section!"
+msgstr "სექციის თავზე გადაწერა შეუძლებელია!"
+
+#: src/term_config.c:800
+msgid "Cannot read configuration file!"
+msgstr "კონფიგურაციის ფაილის წაკითხვა შეუძლებელია!"
+
+#: src/term_config.c:810
+#, c-format
+msgid "Configuration [%s] saved\n"
+msgstr "კონფიგურაცია [%s] შენახულია\n"
+
+#: src/term_config.c:829
+msgid ""
+"Cannot write configuration file!\n"
+"Config file may contain invalid parameter.\n"
+msgstr ""
+"კონფიგურაციის ფაილის ჩაწერა შეუძლებელია!\n"
+"კონფიგურაციის ფაილი, შეიძლება, არასწორ პარამეტრს შეიცავდეს.\n"
+
+#: src/term_config.c:844
+#, c-format
+msgid ""
+"<b>Section [%s] already exists.</b>\n"
+"\n"
+"Do you want to overwrite it ?"
+msgstr ""
+"<b>სექცია [%s] უკვე არსებობს.</b>\n"
+"\n"
+"გნებავთ მისი თავზე გადაწერა ?"
+
+#: src/term_config.c:904
+msgid "Cannot delete section!"
+msgstr "სექციის წაშლა შეუძლებელია!"
+
+#: src/term_config.c:1095
+#, c-format
+msgid "No section \"%s\" in configuration file\n"
+msgstr "კონფიგურაციის ფაილში სექცია \"%s\" არ არსებობს\n"
+
+#: src/term_config.c:1140
+#, c-format
+msgid "Baudrate %d may not be supported by all hardware"
+msgstr "ბოდური სიჩქარე %d შეიძლება, ყველა აპარატურის მიერ მხარდაჭერილი არ იყოს"
+
+#: src/term_config.c:1147
+#, c-format
+msgid ""
+"Invalid number of stop-bits: %d\n"
+"Falling back to default number of stop-bits number: %d\n"
+msgstr ""
+"სტოპბიტების არასწორი რაოდენობა: %d\n"
+"გადავერთვები სტოპბიტების ნაგულისხმევ რაოდენობაზე: %d\n"
+
+#: src/term_config.c:1155
+#, c-format
+msgid ""
+"Invalid number of bits: %d\n"
+"Falling back to default number of bits: %d\n"
+msgstr ""
+"ბიტების არასწორი რაოდენობა: %d\n"
+"გადავერთვები ბიტების ნაგულისხმევ რაოდენობაზე: %d\n"
+
+#: src/term_config.c:1163
+#, c-format
+msgid ""
+"Invalid delay: %d ms\n"
+"Falling back to default delay: %d ms\n"
+msgstr ""
+"არასწორი დაყოვნება: %d მწმ\n"
+"გადავერთვები ნაგულისხმევ დაყოვნებაზე: %d მწმ\n"
+
+#: src/term_config.c:1193
+#, c-format
+msgid ""
+"Configuration file (%s) with\n"
+"[default] configuration has been created.\n"
+msgstr ""
+"შეიქმნა კონფიგურაციის ფაილი (%s)\n"
+"[ნაგულისხმევი] კონფიგურაციით.\n"
+
+#: src/term_config.c:1467
+#, c-format
+msgid "Cannot find section %s\n"
+msgstr "ვერ ვიპოვე სექცია %s\n"
+
+#: src/term_config.c:1507
+msgid "Main Window"
+msgstr "მთავარი ფანჯარა"
