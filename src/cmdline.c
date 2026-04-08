@@ -17,15 +17,15 @@
 /*                                                                     */
 /***********************************************************************/
 
-#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
 
 #include "term_config.h"
+#include "config_file.h"
+#include "cmdline.h"
 #include "files.h"
 #include "auto_config.h"
-#include "i18n.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
@@ -34,31 +34,31 @@ extern struct configuration_port config;
 
 void display_help(void)
 {
-	i18n_printf(_("\nGTKTerm version %s\n"), VERSION);
-	i18n_printf(_("\t (c) Julien Schmitt\n"));
-	i18n_printf(_("\nThis program is released under the terms of the GPL V.2\n"));
-	i18n_printf(_("\t ** Use at your own risks! **\n"));
-	i18n_printf(_("\nCommand line options\n"));
-	i18n_printf(_("--help or -h: this help screen\n"));
-	i18n_printf(_("--config <configuration> or -c: load configuration\n"));
-	i18n_printf(_("--port <device> or -p: serial port device (default /dev/ttyS0)\n"));
-	i18n_printf(_("--speed <speed> or -s: serial port speed (default 9600)\n"));
-	i18n_printf(_("--bits <bits> or -b: number of bits (default 8)\n"));
-	i18n_printf(_("--stopbits <stopbits> or -t: number of stopbits (default 1)\n"));
-	i18n_printf(_("--parity <odd | even> or -a: parity (default none)\n"));
-	i18n_printf(_("--flow <Xon | RTS | RS485> or -w: flow control (default none)\n"));
-	i18n_printf(_("--delay <ms> or -d: end of line delay in ms (default none)\n"));
-	i18n_printf(_("--char <char> or -r: wait for a special char at end of line (default none)\n"));
-	i18n_printf(_("--file <filename> or -f: default file to send (default none)\n"));
-	i18n_printf(_("--rts_time_before <ms> or -x: for RS-485, time in ms before transmit with rts on\n"));
-	i18n_printf(_("--rts_time_after <ms> or -y: for RS-485, time in ms after transmit with rts on\n"));
-	i18n_printf(_("--echo or -e: switch on local echo\n"));
-	i18n_printf(_("--disable-port-lock or -L: does not lock serial port. Allows to send to serial port from different terminals\n"));
-	i18n_printf(_("                      Note: incoming data are displayed randomly on only one terminal\n"));
-	i18n_printf("\n");
+	g_print(_("\nGTKTerm version %s\n"), VERSION);
+	g_print(_("\t (c) Julien Schmitt\n"));
+	g_print(_("\nThis program is released under the terms of the GPL V.2\n"));
+	g_print(_("\t ** Use at your own risks! **\n"));
+	g_print(_("\nCommand line options\n"));
+	g_print(_("--help or -h: this help screen\n"));
+	g_print(_("--config <configuration> or -c: load configuration\n"));
+	g_print(_("--port <device> or -p: serial port device (default /dev/ttyS0)\n"));
+	g_print(_("--speed <speed> or -s: serial port speed (default 9600)\n"));
+	g_print(_("--bits <bits> or -b: number of bits (default 8)\n"));
+	g_print(_("--stopbits <stopbits> or -t: number of stopbits (default 1)\n"));
+	g_print(_("--parity <odd | even> or -a: parity (default none)\n"));
+	g_print(_("--flow <Xon | RTS | RS485> or -w: flow control (default none)\n"));
+	g_print(_("--delay <ms> or -d: end of line delay in ms (default none)\n"));
+	g_print(_("--char <char> or -r: wait for a special char at end of line (default none)\n"));
+	g_print(_("--file <filename> or -f: default file to send (default none)\n"));
+	g_print(_("--rts_time_before <ms> or -x: for RS-485, time in ms before transmit with rts on\n"));
+	g_print(_("--rts_time_after <ms> or -y: for RS-485, time in ms after transmit with rts on\n"));
+	g_print(_("--echo or -e: switch on local echo\n"));
+	g_print(_("--disable-port-lock or -L: does not lock serial port. Allows to send to serial port from different terminals\n"));
+	g_print(_("                      Note: incoming data are displayed randomly on only one terminal\n"));
+	g_print("\n");
 }
 
-int read_command_line(int argc, char **argv, gchar *configuration_to_read)
+int read_command_line(int argc, char **argv)
 {
 	int c;
 	int option_index = 0;
@@ -164,7 +164,7 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 			return -1;
 
 		default:
-			i18n_printf(_("Undefined command line option\n"));
+			g_print(_("Undefined command line option\n"));
 			return -1;
 		}
 	}

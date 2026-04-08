@@ -4,15 +4,11 @@
 # Package source files
 src/buffer.c
 src/cmdline.c
-src/device_monitor.c
+src/config_file.c
 src/files.c
-src/gtkterm.c
-src/i18n.c
 src/interface.c
 src/logging.c
 src/macros.c
-src/parsecfg.c
+src/port_list.c
 src/serial.c
 src/term_config.c
-src/search.c
-src/user_signals.c

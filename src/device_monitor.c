@@ -13,22 +13,14 @@
 /***********************************************************************/
 
 #include <device_monitor.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
 #include <stdbool.h>
-#include <unistd.h>
-#include <locale.h>
 #include <string.h>
 #include <gtk/gtk.h>
-#include <glib.h>
-#include <gio/gio.h>
-#include <interface.h>
-#include <term_config.h>
 #include <gudev/gudev.h>
 
 #include "serial.h"
 #include "interface.h"
+#include "term_config.h"
 
 extern struct configuration_port config;
 
@@ -37,6 +29,7 @@ extern struct configuration_port config;
 static gboolean suspended_while_open = FALSE;
 
 static GUdevClient *udev_client = NULL;
+static GDBusConnection *system_bus = NULL;
 
 static inline void device_monitor_status(const bool connected)
 {
@@ -95,9 +88,13 @@ static void on_prepare_for_sleep(GDBusConnection *connection,
 		 * re-enumerated yet; the udev "add" event will fire later and
 		 * device_monitor_status() will reconnect because suspended_while_open
 		 * is still set. */
-		if (suspended_while_open && udev_client != NULL &&
-		    g_udev_client_query_by_device_file(udev_client, config.port) != NULL)
-			device_monitor_status(true);
+		if (suspended_while_open && udev_client != NULL) {
+			GUdevDevice *dev = g_udev_client_query_by_device_file(udev_client, config.port);
+			if (dev != NULL) {
+				g_object_unref(dev);
+				device_monitor_status(true);
+			}
+		}
 	}
 }
 
@@ -109,10 +106,12 @@ extern void device_monitor_start(void)
 	/* Initial check */
 	udev_client = g_udev_client_new(subsystems);
 
-	if (g_udev_client_query_by_device_file(udev_client, config.port) == NULL) {
+	GUdevDevice *dev = g_udev_client_query_by_device_file(udev_client, config.port);
+	if (dev == NULL) {
 		device_monitor_status(false);
 	} else {
 		device_monitor_status(true);
+		g_object_unref(dev);
 	}
 
 	/* Monitor device */
@@ -121,7 +120,7 @@ extern void device_monitor_start(void)
 
 	/* Subscribe to logind PrepareForSleep to disconnect on suspend and
 	 * reconnect on resume. */
-	GDBusConnection *system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, NULL);
+	system_bus = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, NULL);
 	if (system_bus != NULL) {
 		g_dbus_connection_signal_subscribe(system_bus,
 		                                   "org.freedesktop.login1",
@@ -133,5 +132,17 @@ extern void device_monitor_start(void)
 		                                   on_prepare_for_sleep,
 		                                   NULL,
 		                                   NULL);
+	}
+}
+
+void device_monitor_stop(void)
+{
+	if (udev_client != NULL) {
+		g_object_unref(udev_client);
+		udev_client = NULL;
+	}
+	if (system_bus != NULL) {
+		g_object_unref(system_bus);
+		system_bus = NULL;
 	}
 }

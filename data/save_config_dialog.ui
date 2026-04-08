@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.10"/>
+
+  <object class="GtkWindow" id="save_config_window">
+    <property name="title" translatable="yes">Save configuration</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="destroy-with-parent">True</property>
+    <child>
+      <object class="GtkShortcutController">
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+
+        <!-- Name row -->
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">horizontal</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">Configuration name: </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="save_config_entry">
+                <property name="text">default</property>
+                <property name="hexpand">True</property>
+                <signal name="insert-text" handler="check_text_input_alnum"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkSeparator">
+            <property name="orientation">horizontal</property>
+          </object>
+        </child>
+
+        <!-- Button row -->
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">horizontal</property>
+            <property name="halign">end</property>
+            <property name="spacing">6</property>
+            <property name="margin-top">5</property>
+            <property name="margin-bottom">5</property>
+            <property name="margin-end">5</property>
+            <child>
+              <object class="GtkButton" id="save_config_cancel">
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="gtk_window_destroy" object="save_config_window" swapped="yes"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="save_config_ok">
+                <property name="label" translatable="yes">_OK</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="on_save_ok_clicked" object="save_config_entry"/>
+                <signal name="clicked" handler="gtk_window_destroy" object="save_config_window" swapped="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+  </object>
+
+</interface>

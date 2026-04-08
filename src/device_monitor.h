@@ -16,5 +16,6 @@
 #define DEV_MON_H_
 
 extern void device_monitor_start(void);
+extern void device_monitor_stop(void);
 
 #endif

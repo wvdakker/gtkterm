@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.10"/>
+
+  <!-- Adjustments for spin buttons -->
+  <object class="GtkAdjustment" id="delay_adj">
+    <property name="lower">0</property>
+    <property name="upper">500</property>
+    <property name="step-increment">10</property>
+    <property name="page-increment">20</property>
+  </object>
+  <object class="GtkAdjustment" id="rts_before_adj">
+    <property name="lower">0</property>
+    <property name="upper">500</property>
+    <property name="step-increment">10</property>
+    <property name="page-increment">20</property>
+  </object>
+  <object class="GtkAdjustment" id="rts_after_adj">
+    <property name="lower">0</property>
+    <property name="upper">500</property>
+    <property name="step-increment">10</property>
+    <property name="page-increment">20</property>
+  </object>
+
+  <object class="GtkWindow" id="port_config_window">
+    <property name="title" translatable="yes">Configuration</property>
+    <property name="resizable">False</property>
+    <property name="width-request">580</property>
+    <property name="modal">True</property>
+    <child>
+      <object class="GtkShortcutController">
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="port_config_vbox">
+        <property name="orientation">vertical</property>
+        <property name="margin-start">5</property>
+        <property name="margin-end">5</property>
+        <property name="margin-top">5</property>
+        <property name="margin-bottom">5</property>
+
+        <!-- ====== Serial port frame ====== -->
+        <child>
+          <object class="GtkFrame">
+            <property name="label" translatable="yes">Serial port</property>
+            <property name="margin-bottom">5</property>
+            <child>
+              <!-- Grid: port/baud dropdowns attached in C at (col=0,row=1) and (col=1,row=1) -->
+              <object class="GtkGrid" id="port_serial_grid">
+                <property name="row-spacing">5</property>
+                <property name="column-spacing">5</property>
+                <property name="margin-start">5</property>
+                <property name="margin-end">5</property>
+                <property name="margin-top">5</property>
+                <property name="margin-bottom">5</property>
+
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Port:</property>
+                  <layout>
+                    <property name="column">0</property>
+                    <property name="row">0</property>
+                  </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Baud Rate:</property>
+                  <layout>
+                    <property name="column">1</property>
+                    <property name="row">0</property>
+                  </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Parity:</property>
+                  <layout>
+                    <property name="column">2</property>
+                    <property name="row">0</property>
+                  </layout>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkDropDown" id="port_port_dd">
+                    <property name="enable-search">True</property>
+                    <property name="hexpand">True</property>
+                    <signal name="notify::selected-item" handler="on_port_dd_changed"/>
+                  <layout>
+                    <property name="column">0</property>
+                    <property name="row">1</property>
+                  </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkDropDown" id="port_baud_dd">
+                    <property name="enable-search">True</property>
+                    <property name="hexpand">True</property>
+                    <signal name="notify::selected-item" handler="on_baud_dd_changed"/>
+                  <layout>
+                    <property name="column">1</property>
+                    <property name="row">1</property>
+                  </layout>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkDropDown" id="port_parity_dd">
+                    <property name="hexpand">True</property>
+                    <property name="model">
+                      <object class="GtkStringList">
+                        <items>
+                          <item translatable="no">none</item>
+                          <item translatable="no">odd</item>
+                          <item translatable="no">even</item>
+                        </items>
+                      </object>
+                    </property>
+                  <layout>
+                    <property name="column">2</property>
+                    <property name="row">1</property>
+                  </layout>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Bits:</property>
+                  <layout>
+                    <property name="column">0</property>
+                    <property name="row">2</property>
+                  </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Stopbits:</property>
+                  <layout>
+                    <property name="column">1</property>
+                    <property name="row">2</property>
+                  </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Flow control:</property>
+                  <layout>
+                    <property name="column">2</property>
+                    <property name="row">2</property>
+                  </layout>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkDropDown" id="port_bits_dd">
+                    <property name="hexpand">True</property>
+                    <property name="model">
+                      <object class="GtkStringList">
+                        <items>
+                          <item translatable="no">5</item>
+                          <item translatable="no">6</item>
+                          <item translatable="no">7</item>
+                          <item translatable="no">8</item>
+                        </items>
+                      </object>
+                    </property>
+                  <layout>
+                    <property name="column">0</property>
+                    <property name="row">3</property>
+                  </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkDropDown" id="port_stopbits_dd">
+                    <property name="hexpand">True</property>
+                    <property name="model">
+                      <object class="GtkStringList">
+                        <items>
+                          <item translatable="no">1</item>
+                          <item translatable="no">2</item>
+                        </items>
+                      </object>
+                    </property>
+                  <layout>
+                    <property name="column">1</property>
+                    <property name="row">3</property>
+                  </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkDropDown" id="port_flow_dd">
+                    <property name="hexpand">True</property>
+                    <property name="model">
+                      <object class="GtkStringList">
+                        <items>
+                          <item translatable="no">none</item>
+                          <item translatable="no">RTS/CTS</item>
+                          <item translatable="no">Xon/Xoff</item>
+                          <item translatable="no">RS485-HalfDuplex(RTS)</item>
+                        </items>
+                      </object>
+                    </property>
+                  <layout>
+                    <property name="column">2</property>
+                    <property name="row">3</property>
+                  </layout>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <!-- ====== Advanced expander ====== -->
+        <child>
+          <object class="GtkExpander" id="port_expander">
+            <property name="label" translatable="yes">Advanced Configuration Options</property>
+            <property name="use-underline">True</property>
+            <child>
+              <object class="GtkBox" id="port_expander_vbox">
+                <property name="orientation">vertical</property>
+
+                <!-- Custom port / baud rate -->
+                <child>
+                  <object class="GtkFrame">
+                    <property name="label" translatable="yes">Custom port / baud rate</property>
+                    <child>
+                      <object class="GtkGrid">
+                        <property name="row-spacing">5</property>
+                        <property name="column-spacing">5</property>
+                        <property name="margin-start">5</property>
+                        <property name="margin-end">5</property>
+                        <property name="margin-top">5</property>
+                        <property name="margin-bottom">5</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Custom port:</property>
+                            <property name="xalign">0</property>
+                          <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                          </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="port_custom_port_entry">
+                            <property name="hexpand">True</property>
+                          <layout>
+                            <property name="column">1</property>
+                            <property name="row">0</property>
+                          </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Custom baud rate:</property>
+                            <property name="xalign">0</property>
+                          <layout>
+                            <property name="column">0</property>
+                            <property name="row">1</property>
+                          </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="port_custom_baud_entry">
+                            <property name="max-length">10</property>
+                            <property name="hexpand">True</property>
+                            <signal name="insert-text" handler="check_baud_input"/>
+                          <layout>
+                            <property name="column">1</property>
+                            <property name="row">1</property>
+                          </layout>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <!-- ASCII file transfer -->
+                <child>
+                  <object class="GtkFrame">
+                    <property name="label" translatable="yes">ASCII file transfer</property>
+                    <child>
+                      <object class="GtkGrid">
+                        <property name="row-spacing">5</property>
+                        <property name="column-spacing">5</property>
+                        <property name="margin-start">5</property>
+                        <property name="margin-end">5</property>
+                        <property name="margin-top">5</property>
+                        <property name="margin-bottom">5</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">End of line delay (milliseconds):</property>
+                          <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                          </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="port_delay_spin">
+                            <property name="adjustment">delay_adj</property>
+                            <property name="numeric">True</property>
+                            <property name="hexpand">True</property>
+                          <layout>
+                            <property name="column">1</property>
+                            <property name="row">0</property>
+                          </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="port_wait_char_check">
+                            <property name="label" translatable="yes">Wait for this special character before passing to next line:</property>
+                            <property name="hexpand">True</property>
+                            <signal name="toggled" handler="Grise_Degrise"/>
+                          <layout>
+                            <property name="column">0</property>
+                            <property name="row">1</property>
+                          </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="port_wait_char_entry">
+                            <property name="max-length">1</property>
+                            <property name="sensitive">False</property>
+                            <property name="hexpand">True</property>
+                          <layout>
+                            <property name="column">1</property>
+                            <property name="row">1</property>
+                          </layout>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <!-- RS-485 parameters -->
+                <child>
+                  <object class="GtkFrame">
+                    <property name="label" translatable="yes">RS-485 half-duplex parameters (RTS signal used to send)</property>
+                    <child>
+                      <object class="GtkGrid">
+                        <property name="row-spacing">5</property>
+                        <property name="column-spacing">5</property>
+                        <property name="margin-start">5</property>
+                        <property name="margin-end">5</property>
+                        <property name="margin-top">5</property>
+                        <property name="margin-bottom">5</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Time with RTS 'on' before transmit (milliseconds):</property>
+                          <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                          </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Time with RTS 'on' after transmit (milliseconds):</property>
+                          <layout>
+                            <property name="column">0</property>
+                            <property name="row">1</property>
+                          </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="port_rts_before_spin">
+                            <property name="adjustment">rts_before_adj</property>
+                            <property name="numeric">True</property>
+                            <property name="hexpand">True</property>
+                          <layout>
+                            <property name="column">1</property>
+                            <property name="row">0</property>
+                          </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="port_rts_after_spin">
+                            <property name="adjustment">rts_after_adj</property>
+                            <property name="numeric">True</property>
+                            <property name="hexpand">True</property>
+                          <layout>
+                            <property name="column">1</property>
+                            <property name="row">1</property>
+                          </layout>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <!-- Separator + button row -->
+        <child>
+          <object class="GtkSeparator">
+            <property name="orientation">horizontal</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">horizontal</property>
+            <property name="halign">end</property>
+            <property name="spacing">6</property>
+            <property name="margin-top">5</property>
+            <property name="margin-bottom">5</property>
+            <property name="margin-end">5</property>
+            <child>
+              <object class="GtkButton" id="port_cancel_btn">
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="gtk_window_destroy" swapped="yes" object="port_config_window"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="port_ok_btn">
+                <property name="label" translatable="yes">_OK</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="on_port_ok_clicked"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+  </object>
+
+</interface>

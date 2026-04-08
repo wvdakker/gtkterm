@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.10"/>
+  <object class="GtkSearchBar" id="search_bar">
+    <property name="show-close-button">True</property>
+    <child>
+      <object class="GtkBox" id="search_box">
+        <property name="orientation">horizontal</property>
+        <style>
+          <class name="linked"/>
+        </style>
+        <child>
+          <object class="GtkSearchEntry" id="search_entry">
+            <property name="hexpand">True</property>
+            <signal name="changed" handler="entry_changed_callback"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="search_prev_button">
+            <property name="icon-name">go-up-symbolic</property>
+            <property name="sensitive">False</property>
+            <signal name="clicked" handler="search_direction_cb"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="search_next_button">
+            <property name="icon-name">go-down-symbolic</property>
+            <property name="sensitive">False</property>
+            <signal name="clicked" handler="search_direction_cb"/>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

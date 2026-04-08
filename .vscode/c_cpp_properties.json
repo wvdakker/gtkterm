@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "compileCommands": [
+                "${workspaceFolder}/build/compile_commands.json"
+            ],
+            "includePath": [
+                "${default}",
+                "/usr/include/gtk-4.0"
+            ]
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.10"/>
+
+  <!-- ============================================================
+       Menu models
+       ============================================================ -->
+
+  <menu id="menubar">
+
+    <!-- File -->
+    <submenu>
+      <attribute name="label" translatable="yes">_File</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Clear screen</attribute>
+          <attribute name="action">app.clear-screen</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Clear scrollback</attribute>
+          <attribute name="action">app.clear-scrollback</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Send _RAW file</attribute>
+          <attribute name="action">app.send-raw-file</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Save RAW file</attribute>
+          <attribute name="action">app.save-raw-file</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Save _ASCII file</attribute>
+          <attribute name="action">app.save-ascii-file</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Quit</attribute>
+          <attribute name="action">app.file-exit</attribute>
+        </item>
+      </section>
+    </submenu>
+
+    <!-- Edit -->
+    <submenu>
+      <attribute name="label" translatable="yes">_Edit</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Copy</attribute>
+          <attribute name="action">app.edit-copy</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Paste</attribute>
+          <attribute name="action">app.edit-paste</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Find</attribute>
+          <attribute name="action">app.edit-find</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Select _All</attribute>
+          <attribute name="action">app.edit-select-all</attribute>
+        </item>
+      </section>
+    </submenu>
+
+    <!-- Log -->
+    <submenu>
+      <attribute name="label" translatable="yes">_Log</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">To _file...</attribute>
+          <attribute name="action">app.log-to-file</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Pause/Resume</attribute>
+          <attribute name="action">app.log-pause-resume</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Stop</attribute>
+          <attribute name="action">app.log-stop</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Clear</attribute>
+          <attribute name="action">app.log-clear</attribute>
+        </item>
+      </section>
+    </submenu>
+
+    <!-- Configuration -->
+    <submenu>
+      <attribute name="label" translatable="yes">_Configuration</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Port</attribute>
+          <attribute name="action">app.config-port</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Main window</attribute>
+          <attribute name="action">app.config-terminal</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Local _echo</attribute>
+          <attribute name="action">app.local-echo</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Autoreconnect</attribute>
+          <attribute name="action">app.autoreconnect</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_CR LF auto</attribute>
+          <attribute name="action">app.crlfauto</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">ESC clear scree_n</attribute>
+          <attribute name="action">app.esc-clear-screen</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Timestamp</attribute>
+          <attribute name="action">app.timestamp</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Macros</attribute>
+          <attribute name="action">app.macros</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Load configuration</attribute>
+          <attribute name="action">app.select-config</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Save configuration</attribute>
+          <attribute name="action">app.save-config</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Delete configuration</attribute>
+          <attribute name="action">app.delete-config</attribute>
+        </item>
+      </section>
+    </submenu>
+
+    <!-- Control signals -->
+    <submenu>
+      <attribute name="label" translatable="yes">Control _signals</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Send break</attribute>
+          <attribute name="action">app.signals-send-break</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Open Port</attribute>
+          <attribute name="action">app.signals-open-port</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Close Port</attribute>
+          <attribute name="action">app.signals-close-port</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Toggle DTR</attribute>
+          <attribute name="action">app.signals-dtr</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Toggle RTS</attribute>
+          <attribute name="action">app.signals-rts</attribute>
+        </item>
+      </section>
+    </submenu>
+
+    <!-- View -->
+    <submenu>
+      <attribute name="label" translatable="yes">_View</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_ASCII</attribute>
+          <attribute name="action">app.view-mode</attribute>
+          <attribute name="target">ascii</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Hexadecimal</attribute>
+          <attribute name="action">app.view-mode</attribute>
+          <attribute name="target">hex</attribute>
+        </item>
+      </section>
+      <section>
+        <submenu>
+          <attribute name="label" translatable="yes">Hexadecimal _chars</attribute>
+          <attribute name="action">app.hex-chars-submenu</attribute>
+          <item>
+            <attribute name="label">8</attribute>
+            <attribute name="action">app.hex-chars</attribute>
+            <attribute name="target">8</attribute>
+          </item>
+          <item>
+            <attribute name="label">10</attribute>
+            <attribute name="action">app.hex-chars</attribute>
+            <attribute name="target">10</attribute>
+          </item>
+          <item>
+            <attribute name="label">16</attribute>
+            <attribute name="action">app.hex-chars</attribute>
+            <attribute name="target">16</attribute>
+          </item>
+          <item>
+            <attribute name="label">24</attribute>
+            <attribute name="action">app.hex-chars</attribute>
+            <attribute name="target">24</attribute>
+          </item>
+          <item>
+            <attribute name="label">32</attribute>
+            <attribute name="action">app.hex-chars</attribute>
+            <attribute name="target">32</attribute>
+          </item>
+        </submenu>
+        <item>
+          <attribute name="label" translatable="yes">Show _index</attribute>
+          <attribute name="action">app.view-index</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Send hexadecimal data</attribute>
+          <attribute name="action">app.view-send-hex</attribute>
+        </item>
+      </section>
+    </submenu>
+
+    <!-- Help -->
+    <submenu>
+      <attribute name="label" translatable="yes">_Help</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_About</attribute>
+          <attribute name="action">app.help-about</attribute>
+        </item>
+      </section>
+    </submenu>
+
+  </menu>
+
+  <!-- Right-click popup -->
+  <menu id="popup_model">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Copy</attribute>
+        <attribute name="action">app.edit-copy</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Paste</attribute>
+        <attribute name="action">app.edit-paste</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Find</attribute>
+        <attribute name="action">app.edit-find</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Select _All</attribute>
+        <attribute name="action">app.edit-select-all</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <!-- Right-click popup menu -->
+  <object class="GtkPopoverMenu" id="popup_menu">
+    <property name="menu-model">popup_model</property>
+    <property name="has-arrow">False</property>
+  </object>
+
+  <!-- ============================================================
+       Main application window
+       ============================================================ -->
+
+  <object class="GtkApplicationWindow" id="main_window">
+    <property name="default-width">750</property>
+    <property name="default-height">550</property>
+    <property name="icon-name">gtkterm</property>
+    <child>
+      <object class="GtkBox" id="main_vbox">
+        <property name="orientation">vertical</property>
+
+        <!-- Menu bar -->
+        <child>
+          <object class="GtkPopoverMenuBar" id="menubar_widget">
+            <property name="menu-model">menubar</property>
+          </object>
+        </child>
+
+        <!-- Placeholder for the dynamically-created search bar -->
+        <child>
+          <object class="GtkBox" id="search_bar_placeholder">
+            <property name="orientation">vertical</property>
+          </object>
+        </child>
+
+        <!-- Scrolled window; VTE terminal is set as its child in C -->
+        <child>
+          <object class="GtkScrolledWindow" id="scrolled_window">
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+            <property name="hscrollbar-policy">automatic</property>
+            <property name="vscrollbar-policy">automatic</property>
+          </object>
+        </child>
+
+        <!-- Hex send bar (hidden by default) -->
+        <child>
+          <object class="GtkBox" id="hex_box">
+            <property name="orientation">horizontal</property>
+            <property name="visible">False</property>
+            <property name="margin-start">5</property>
+            <property name="margin-end">5</property>
+            <property name="margin-bottom">2</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">Hexadecimal data to send (separator: ';' or space): </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="hex_send_entry">
+                <property name="hexpand">True</property>
+                <signal name="activate" handler="Send_Hexadecimal"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <!-- Separator -->
+        <child>
+          <object class="GtkSeparator">
+            <property name="orientation">horizontal</property>
+          </object>
+        </child>
+
+        <!-- Status bar + serial signal labels -->
+        <child>
+          <object class="GtkBox" id="status_hbox">
+            <property name="orientation">horizontal</property>
+            <property name="margin-top">4</property>
+            <property name="margin-bottom">4</property>
+            <child>
+              <object class="GtkLabel" id="status_bar">
+                <property name="hexpand">True</property>
+                <property name="xalign">0</property>
+                <property name="margin-start">4</property>
+              </object>
+            </child>
+            <!-- Labels ordered left→right to match show_control_signals() expectations:
+                 signals[5]=DTR, [4]=RTS, [3]=CTS, [2]=CD, [1]=DSR, [0]=RI -->
+            <child>
+              <object class="GtkLabel" id="signal_dtr">
+                <property name="label">DTR</property>
+                <property name="sensitive">False</property>
+                <property name="margin-start">5</property>
+                <property name="margin-end">5</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="signal_rts">
+                <property name="label">RTS</property>
+                <property name="sensitive">False</property>
+                <property name="margin-start">5</property>
+                <property name="margin-end">5</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="signal_cts">
+                <property name="label">CTS</property>
+                <property name="sensitive">False</property>
+                <property name="margin-start">5</property>
+                <property name="margin-end">5</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="signal_cd">
+                <property name="label">CD</property>
+                <property name="sensitive">False</property>
+                <property name="margin-start">5</property>
+                <property name="margin-end">5</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="signal_dsr">
+                <property name="label">DSR</property>
+                <property name="sensitive">False</property>
+                <property name="margin-start">5</property>
+                <property name="margin-end">5</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="signal_ri">
+                <property name="label">RI</property>
+                <property name="sensitive">False</property>
+                <property name="margin-start">5</property>
+                <property name="margin-end">5</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+  </object>
+
+</interface>

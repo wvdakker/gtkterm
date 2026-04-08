@@ -6,14 +6,14 @@ project(
 )
 
 # Find dependencies
-gtk_deps = dependency('gtk+-3.0', version : '>= 3.0.0')
-vte_deps = dependency('vte-2.91', version : '>= 0.28.0')
+gtk_deps = dependency('gtk4', version : '>= 4.10.0')
+vte_deps = dependency('vte-2.91-gtk4', version : '>= 0.70.0')
 gudev_deps = dependency('gudev-1.0', version: '>= 230')
 
 # Find install paths
 prefix = get_option('prefix')
-datadir = join_paths(prefix, get_option('datadir'))
-localedir = join_paths(prefix, get_option('localedir'))
+datadir = prefix / get_option('datadir')
+localedir = prefix / get_option('localedir')
 
 # Needed on some platforms for <termios.h>
 add_project_arguments('-D_GNU_SOURCE=1',

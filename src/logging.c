@@ -16,13 +16,8 @@
 
 #include <gtk/gtk.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
-#include <glib.h>
 
 #include "interface.h"
 #include "serial.h"
@@ -46,9 +41,7 @@ static gint OpenLogFile(gchar *filename)
 	// open file and start logging
 	if(!filename || (strcmp(filename, "") == 0))
 	{
-		str = g_strdup_printf(_("Filename error\n"));
-		show_message(str, MSG_ERR);
-		g_free(str);
+		show_message(_("Filename error\n"), MSG_ERR);
 		g_free(filename);
 		return FALSE;
 	}
@@ -80,35 +73,47 @@ static gint OpenLogFile(gchar *filename)
 	return FALSE;
 }
 
-void logging_start(GtkAction *action, gpointer data)
+static void on_log_file_response(GObject *source, GAsyncResult *result, gpointer data)
 {
-	GtkWidget *file_select;
-	gint retval;
+	GtkFileDialog *dialog = GTK_FILE_DIALOG(source);
+	GError *error = NULL;
+	GFile *file = gtk_file_dialog_save_finish(dialog, result, &error);
 
-	file_select = gtk_file_chooser_dialog_new(_("Log file selection"), GTK_WINDOW(Fenetre),
-	              GTK_FILE_CHOOSER_ACTION_SAVE,
-	              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	              GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
-	gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(file_select), TRUE);
-
-	if(logfile_default != NULL)
+	if (!file)
 	{
-		gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(file_select), logfile_default);
+		g_clear_error(&error);
+		toggle_logging_sensitivity(Logging);
+		toggle_logging_pause_resume(Logging);
+		return;
 	}
 
-	retval = gtk_dialog_run(GTK_DIALOG(file_select));
-	if(retval == GTK_RESPONSE_OK)
-	{
-		OpenLogFile(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(file_select)));
-	}
-
-	gtk_widget_destroy(file_select);
+	gchar *filename = g_file_get_path(file);
+	g_object_unref(file);
+	OpenLogFile(filename);
 
 	toggle_logging_sensitivity(Logging);
 	toggle_logging_pause_resume(Logging);
 }
 
-void logging_clear(void)
+void logging_start(GSimpleAction *action, GVariant *param, gpointer data)
+{
+	GtkFileDialog *dialog = gtk_file_dialog_new();
+	gtk_file_dialog_set_title(dialog, _("Log to file"));
+	gtk_file_dialog_set_modal(dialog, TRUE);
+
+	if (logfile_default != NULL)
+	{
+		GFile *f = g_file_new_for_path(logfile_default);
+		gtk_file_dialog_set_initial_file(dialog, f);
+		g_object_unref(f);
+	}
+
+	gtk_file_dialog_save(dialog, GTK_WINDOW(Fenetre), NULL,
+	                     on_log_file_response, NULL);
+	g_object_unref(dialog);
+}
+
+void logging_clear(GSimpleAction *action, GVariant *param, gpointer data)
 {
 	if(LoggingFile == NULL)
 	{
@@ -127,24 +132,17 @@ void logging_clear(void)
 	}
 }
 
-void logging_pause_resume(void)
+void logging_pause_resume(GSimpleAction *action, GVariant *param, gpointer data)
 {
 	if(LoggingFile == NULL)
 	{
 		return;
 	}
-	if(Logging == TRUE)
-	{
-		Logging = FALSE;
-	}
-	else
-	{
-		Logging = TRUE;
-	}
+	Logging = !Logging;
 	toggle_logging_pause_resume(Logging);
 }
 
-void logging_stop(void)
+void logging_stop(GSimpleAction *action, GVariant *param, gpointer data)
 {
 	if(LoggingFile == NULL)
 	{
@@ -161,7 +159,7 @@ void logging_stop(void)
 	toggle_logging_pause_resume(Logging);
 }
 
-void log_chars(gchar *chars, guint size)
+void log_chars(const gchar *chars, guint size)
 {
 	guint writeAttempts = 0;
 	guint bytesWritten = 0;
@@ -174,12 +172,10 @@ void log_chars(gchar *chars, guint size)
 
 	while (bytesWritten < size)
 	{
-		if (writeAttempts < MAX_WRITE_ATTEMPTS)
-		{
-			bytesWritten += fwrite(&chars[bytesWritten], 1,
-			                       size-bytesWritten, LoggingFile);
-		}
-		else
+		guint prev = bytesWritten;
+		bytesWritten += (guint)fwrite(&chars[bytesWritten], 1,
+		                       size-bytesWritten, LoggingFile);
+		if (bytesWritten == prev && ++writeAttempts >= MAX_WRITE_ATTEMPTS)
 		{
 			show_message(_("Failed to log data\n"), MSG_ERR);
 			return;

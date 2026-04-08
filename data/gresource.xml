@@ -2,6 +2,18 @@
 <gresources>
 	<gresource prefix="/org/gtk/gtkterm">
 		<file compressed="true">config_terminal_dialog.ui</file>
-		<file compressed="true">gtkterm_64x64.png</file>
+		<file compressed="true">main_window.ui</file>
+		<file compressed="true">macros_dialog.ui</file>
+		<file compressed="true">save_config_dialog.ui</file>
+		<file compressed="true">select_config_dialog.ui</file>
+		<file compressed="true">file_transfer_dialog.ui</file>
+		<file compressed="true">port_config_dialog.ui</file>
+		<file compressed="true">search_bar.ui</file>
+	</gresource>
+	<gresource prefix="/org/gtk/gtkterm/icons/64x64/apps">
+		<file alias="gtkterm.png">gtkterm_64x64.png</file>
+	</gresource>
+	<gresource prefix="/org/gtk/gtkterm/icons/256x256/apps">
+		<file alias="gtkterm.png">gtkterm_256x256.png</file>
 	</gresource>
 </gresources>

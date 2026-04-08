@@ -11,9 +11,9 @@
 /*                                                                     */
 /***********************************************************************/
 
-#ifndef _USER_SIGNALS
-#define _USER_SIGNALS
+#ifndef USER_SIGNALS_H
+#define USER_SIGNALS_H
 
 void user_signals_catch(void);
 
-#endif
+#endif /* USER_SIGNALS_H */

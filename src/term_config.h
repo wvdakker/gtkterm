@@ -15,23 +15,14 @@
 #ifndef TERM_CONFIG_H_
 #define TERM_CONFIG_H_
 
-void config_file_init(void);
+#include <gtk/gtk.h>
+
 void ConfigFlags(void);
-void Config_Port_Fenetre(GtkAction *action, gpointer data);
-gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos);
-void Config_Terminal(GtkAction *action, gpointer data);
-void select_config_callback(GtkAction *action, gpointer data);
-void save_config_callback(GtkAction *action, gpointer data);
-void delete_config_callback(GtkAction *action, gpointer data);
-void Verify_configuration(void);
-gint Load_configuration_from_file(gchar *);
-gint Check_configuration_file(void);
 void check_text_input(GtkEditable *editable,
                       gchar       *new_text,
                       gint         new_text_length,
                       gint        *position,
                       gpointer     user_data);
-void clear_scrollback(void);
 
 struct configuration_port
 {
@@ -62,7 +53,7 @@ typedef struct
 	gboolean visual_bell;
 	GdkRGBA foreground_color;
 	GdkRGBA background_color;
-	gchar *font;
+	PangoFontDescription *font_desc;
 } display_config_t;
 
 

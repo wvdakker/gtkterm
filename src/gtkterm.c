@@ -17,42 +17,48 @@
 /***********************************************************************/
 
 #include <gtk/gtk.h>
-#include <gdk/gdk.h>
-#include <stdlib.h>
 
 #include "interface.h"
 #include "serial.h"
 #include "term_config.h"
 #include "cmdline.h"
-#include "parsecfg.h"
 #include "buffer.h"
 #include "macros.h"
 #include "auto_config.h"
+#include "config_file.h"
 #include "device_monitor.h"
 #include "user_signals.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
 
-int main(int argc, char *argv[])
+typedef struct {
+	int argc;
+	char **argv;
+} AppData;
+
+static void on_shutdown(GtkApplication *app, gpointer user_data)
 {
+	delete_buffer();
+	Close_port();
+	device_monitor_stop();
+	config_file_free();
+}
+
+static void activate(GtkApplication *app, gpointer user_data)
+{
+	AppData *data = user_data;
 	gchar *message;
-
-	config_file_init();
-	bindtextdomain(PACKAGE, LOCALEDIR);
-	bind_textdomain_codeset(PACKAGE, "UTF-8");
-	textdomain(PACKAGE);
-
-	gtk_init(&argc, &argv);
 
 	create_buffer();
 
-	create_main_window();
+	create_main_window(app);
 
-	if(read_command_line(argc, argv) < 0)
+	if(read_command_line(data->argc, data->argv) < 0)
 	{
 		delete_buffer();
-		exit(1);
+		g_application_quit(G_APPLICATION(app));
+		return;
 	}
 
 	Config_port();
@@ -63,19 +69,31 @@ int main(int argc, char *argv[])
 	Set_status_message(message);
 	g_free(message);
 
-	add_shortcuts();
-
 	set_view(ASCII_VIEW);
 
 	device_monitor_start();
 
 	user_signals_catch();
+}
 
-	gtk_main();
+int main(int argc, char *argv[])
+{
+	AppData data = {argc, argv};
+	GtkApplication *app;
+	int status;
 
-	delete_buffer();
+	config_file_init();
+	bindtextdomain(PACKAGE, LOCALEDIR);
+	bind_textdomain_codeset(PACKAGE, "UTF-8");
+	textdomain(PACKAGE);
 
-	Close_port();
+	app = gtk_application_new("org.gtk.gtkterm", G_APPLICATION_DEFAULT_FLAGS);
+	g_application_set_resource_base_path(G_APPLICATION(app), "/org/gtk/gtkterm");
+	g_signal_connect(app, "activate", G_CALLBACK(activate), &data);
+	g_signal_connect(app, "shutdown", G_CALLBACK(on_shutdown), NULL);
 
-	return 0;
+	status = g_application_run(G_APPLICATION(app), 0, NULL);
+	g_object_unref(app);
+
+	return status;
 }

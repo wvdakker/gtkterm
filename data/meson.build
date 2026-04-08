@@ -11,10 +11,7 @@ desktop_file_configured = configure_file(
 	input: 'gtkterm.desktop.in',
 	output: 'gtkterm.desktop',
 	configuration: desktop_config,
-	install_dir: join_paths(
-		datadir,
-		'applications',
-	)
+	install_dir: datadir / 'applications',
 )
 
 desktop_file_validate = find_program('desktop-file-validate', required: false)
@@ -30,28 +27,22 @@ endif
 
 # Icon
 install_data('gtkterm_256x256.png',
-	install_dir: join_paths(datadir, 'icons', 'hicolor', '256x256', 'apps'),
+	install_dir: datadir / 'icons' / 'hicolor' / '256x256' / 'apps',
 	rename : 'gtkterm.png'
 )
 
 install_data('gtkterm_128x128.png',
-	install_dir: join_paths(datadir, 'icons', 'hicolor', '128x128', 'apps'),
+	install_dir: datadir / 'icons' / 'hicolor' / '128x128' / 'apps',
 	rename : 'gtkterm.png'
 )
 
 install_data('gtkterm_64x64.png',
-	install_dir: join_paths(datadir, 'icons', 'hicolor', '64x64', 'apps'),
+	install_dir: datadir / 'icons' / 'hicolor' / '64x64' / 'apps',
 	rename : 'gtkterm.png'
 )
 
 install_data('gtkterm_48x48.png',
-	install_dir: join_paths(datadir, 'icons', 'hicolor', '48x48', 'apps'),
-	rename : 'gtkterm.png'
-)
-
-
-install_data('gtkterm_48x48.png',
-	install_dir: join_paths(datadir, 'icons', 'hicolor', '48x48', 'apps'),
+	install_dir: datadir / 'icons' / 'hicolor' / '48x48' / 'apps',
 	rename : 'gtkterm.png'
 )
 

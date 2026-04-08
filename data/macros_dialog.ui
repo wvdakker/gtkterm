@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.10"/>
+
+  <object class="GtkWindow" id="macros_window">
+    <property name="title" translatable="yes">Configure Macros</property>
+    <signal name="close-request" handler="on_macros_close_request"/>
+    <property name="destroy-with-parent">True</property>
+    <property name="default-width">300</property>
+    <property name="default-height">400</property>
+    <property name="margin-start">8</property>
+    <property name="margin-end">8</property>
+    <property name="margin-top">8</property>
+    <property name="margin-bottom">8</property>
+    <child>
+      <object class="GtkShortcutController">
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="macros_vbox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">8</property>
+
+        <!-- Column headers -->
+        <child>
+          <object class="GtkBox" id="macros_header_box">
+            <property name="orientation">horizontal</property>
+            <property name="spacing">8</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">6</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">Shortcut</property>
+                <property name="width-request">150</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">Action</property>
+                <property name="hexpand">True</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <!-- Scrolled window containing the listbox -->
+        <child>
+          <object class="GtkScrolledWindow" id="macros_sw">
+            <property name="vexpand">True</property>
+            <property name="hscrollbar-policy">never</property>
+            <property name="vscrollbar-policy">automatic</property>
+            <child>
+              <object class="GtkListBox" id="macros_listbox">
+                <property name="selection-mode">single</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <!-- Add / Delete / Capture row -->
+        <child>
+          <object class="GtkBox" id="macros_btn_box1">
+            <property name="orientation">horizontal</property>
+            <property name="spacing">4</property>
+            <property name="homogeneous">True</property>
+            <child>
+              <object class="GtkButton" id="macros_add_btn">
+                <property name="label" translatable="yes">_Add</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="Add_shortcut" object="macros_listbox"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="macros_delete_btn">
+                <property name="label" translatable="yes">_Delete</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="Delete_shortcut" object="macros_listbox"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="macros_capture_btn">
+                <property name="label" translatable="yes">_Capture Shortcut</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="Capture_shortcut" object="macros_listbox"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkSeparator">
+            <property name="orientation">horizontal</property>
+          </object>
+        </child>
+
+        <!-- Help / OK / Cancel row -->
+        <child>
+          <object class="GtkBox" id="macros_btn_box2">
+            <property name="orientation">horizontal</property>
+            <property name="spacing">4</property>
+            <property name="homogeneous">True</property>
+            <child>
+              <object class="GtkButton" id="macros_help_btn">
+                <property name="label" translatable="yes">_Help</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="Help_screen" object="macros_window"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="macros_ok_btn">
+                <property name="label" translatable="yes">_OK</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="Save_shortcuts" object="macros_listbox"/>
+                <signal name="clicked" handler="gtk_window_close" object="macros_window" swapped="yes"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="macros_cancel_btn">
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="gtk_window_close" object="macros_window" swapped="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+  </object>
+
+</interface>

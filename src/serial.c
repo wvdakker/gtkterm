@@ -19,7 +19,6 @@
 /*                                                                     */
 /***********************************************************************/
 
-#include <gtk/gtk.h>
 #include <glib.h>
 #include <termios.h>
 #include <fcntl.h>
@@ -27,20 +26,14 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/file.h>
-#include <signal.h>
 #include <string.h>
-#include <errno.h>
-#include <pwd.h>
 
 #include "term_config.h"
 #include "serial.h"
 #include "interface.h"
 #include "files.h"
 #include "buffer.h"
-#include "i18n.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
@@ -59,11 +52,11 @@ gboolean callback_activated = FALSE;
 
 extern struct configuration_port config;
 
-gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
+static gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
 {
-	gint bytes_read;
+	ssize_t bytes_read;
 	static gchar c[BUFFER_RECEPTION];
-	guint i;
+	ssize_t i;
 
 	bytes_read = BUFFER_RECEPTION;
 
@@ -72,7 +65,7 @@ gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
 		bytes_read = read(serial_port_fd, c, BUFFER_RECEPTION);
 		if(bytes_read > 0)
 		{
-			put_chars(c, bytes_read, config.crlfauto, config.esc_clear_screen);
+			put_chars(c, (size_t)bytes_read, config.crlfauto, config.esc_clear_screen);
 
 			if(config.car != -1 && waiting_for_char == TRUE)
 			{
@@ -99,7 +92,7 @@ gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
 	return TRUE;
 }
 
-gboolean io_err(GIOChannel* src, GIOCondition cond, gpointer data)
+static gboolean io_err(GIOChannel* src, GIOCondition cond, gpointer data)
 {
 	Close_port();
 	return TRUE;
@@ -107,7 +100,7 @@ gboolean io_err(GIOChannel* src, GIOCondition cond, gpointer data)
 
 int Send_chars(char *string, int length)
 {
-	int bytes_written = 0;
+	ssize_t bytes_written = 0;
 
 	if(serial_port_fd == -1)
 		return 0;
@@ -122,10 +115,10 @@ int Send_chars(char *string, int length)
 		/* set RTS (start to send) */
 		Set_signals( 1 );
 		if( config.rs485_rts_time_before_transmit>0 )
-			usleep(config.rs485_rts_time_before_transmit*1000);
+			usleep((unsigned int)(config.rs485_rts_time_before_transmit*1000));
 	}
 
-	bytes_written = write(serial_port_fd, string, length);
+	bytes_written = write(serial_port_fd, string, (size_t)length);
 
 	/* RS485 half-duplex mode ? */
 	if( config.flux==3 )
@@ -133,12 +126,12 @@ int Send_chars(char *string, int length)
 		/* wait all chars are send */
 		tcdrain( serial_port_fd );
 		if( config.rs485_rts_time_after_transmit>0 )
-			usleep(config.rs485_rts_time_after_transmit*1000);
+			usleep((unsigned int)(config.rs485_rts_time_after_transmit*1000));
 		/* reset RTS (end of send, now receiving back) */
 		Set_signals( 1 );
 	}
 
-	return bytes_written;
+	return (int)bytes_written;
 }
 
 gboolean Config_port(void)
@@ -154,7 +147,7 @@ gboolean Config_port(void)
 	if(serial_port_fd == -1)
 	{
 		msg = g_strdup_printf(_("Cannot open %s: %s\n"),
-		                      config.port, strerror_utf8(errno));
+		                      config.port, g_strerror(errno));
 		show_message(msg, MSG_ERR);
 		g_free(msg);
 
@@ -177,9 +170,7 @@ gboolean Config_port(void)
 	    if(flock(serial_port_fd, LOCK_EX | LOCK_NB) == -1)
 	    {
 		Close_port();
-		msg = g_strdup_printf(_("Cannot lock port! The serial port may currently be in use by another program.\n"));
-		show_message(msg, MSG_ERR);
-		g_free(msg);
+		show_message(_("Cannot lock port! The serial port may currently be in use by another program.\n"), MSG_ERR);
 
 		return FALSE;
 		}
@@ -187,7 +178,7 @@ gboolean Config_port(void)
 
 	/* Allow 1/3 bit times wrong by the end of the first stop bit
 	   to avoid failing due to rounding. */
-	speed_margin = config.vitesse/(3*(2U+config.bits+!!config.parite));
+	speed_margin = config.vitesse/(3U*(2U+(unsigned int)config.bits+(!!config.parite ? 1U : 0U)));
 	serial_port_speed = set_port_baudrate(config.vitesse, serial_port_fd);
 
 	/* These comparisons handle integer wraparound correctly. */
@@ -218,6 +209,8 @@ gboolean Config_port(void)
 		break;
 	case 8:
 		termios_p.c_cflag |= CS8;
+		break;
+	default:
 		break;
 	}
 	switch(config.parite)
@@ -263,17 +256,18 @@ gboolean Config_port(void)
 	tcflush(serial_port_fd, TCOFLUSH);
 	tcflush(serial_port_fd, TCIFLUSH);
 
-	callback_handler_in = g_io_add_watch_full(g_io_channel_unix_new(serial_port_fd),
-	                      10,
-	                      G_IO_IN,
-	                      (GIOFunc)Lis_port,
-	                      NULL, NULL);
-
-	callback_handler_err = g_io_add_watch_full(g_io_channel_unix_new(serial_port_fd),
-	                       10,
-	                       G_IO_ERR,
-	                       (GIOFunc)io_err,
-	                       NULL, NULL);
+	{
+		GIOChannel *ch_in = g_io_channel_unix_new(serial_port_fd);
+		callback_handler_in = g_io_add_watch_full(ch_in, 10, G_IO_IN,
+		                      (GIOFunc)Lis_port, NULL, NULL);
+		g_io_channel_unref(ch_in);
+	}
+	{
+		GIOChannel *ch_err = g_io_channel_unix_new(serial_port_fd);
+		callback_handler_err = g_io_add_watch_full(ch_err, 10, G_IO_ERR,
+		                       (GIOFunc)io_err, NULL, NULL);
+		g_io_channel_unref(ch_err);
+	}
 
 	callback_activated = TRUE;
 
@@ -333,7 +327,7 @@ void Set_signals(guint param)
 
 	if(ioctl(serial_port_fd, TIOCMGET, &stat_) == -1)
 	{
-		i18n_perror(_("Control signals read set signals"));
+		g_printerr("%s: %s\n", _("Control signals read set signals"), g_strerror(errno));
 		return;
 	}
 
@@ -345,7 +339,7 @@ void Set_signals(guint param)
 		else
 			stat_ |= TIOCM_DTR;
 		if(ioctl(serial_port_fd, TIOCMSET, &stat_) == -1)
-			i18n_perror(_("DTR write"));
+			g_printerr("%s: %s\n", _("DTR write"), g_strerror(errno));
 	}
 	/* RTS */
 	else if(param == 1)
@@ -355,7 +349,7 @@ void Set_signals(guint param)
 		else
 			stat_ |= TIOCM_RTS;
 		if(ioctl(serial_port_fd, TIOCMSET, &stat_) == -1)
-			i18n_perror(_("RTS write"));
+			g_printerr("%s: %s\n", _("RTS write"), g_strerror(errno));
 	}
 }
 
@@ -379,7 +373,7 @@ int lis_sig(void)
 			/* Thanks to Elie De Brauwer on ubuntu launchpad */
 			if (errno != EINVAL)
 			{
-				i18n_perror(_("Control signals read lis_sig"));
+				g_printerr("%s: %s\n", _("Control signals read lis_sig"), g_strerror(errno));
 				Close_port();
 			}
 

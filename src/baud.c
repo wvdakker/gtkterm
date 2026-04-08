@@ -17,11 +17,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <errno.h>
-#include <glib.h>
 
 #include <config.h>
 
@@ -91,7 +87,7 @@ unsigned int set_port_baudrate(unsigned int baud, int port_fd)
 
 #include "serial.h"
 
-int set_port_baudrate(unsigned int baud, int port_fd)
+unsigned int set_port_baudrate(unsigned int baud, int port_fd)
 {
 	struct termios tio;
 	speed_t speed;

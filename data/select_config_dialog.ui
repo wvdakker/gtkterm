@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.10"/>
+
+  <!-- Selection model — C code sets the GtkStringList model at runtime -->
+  <object class="GtkSingleSelection" id="select_config_selection">
+    <property name="autoselect">True</property>
+  </object>
+
+  <object class="GtkWindow" id="select_config_window">
+    <property name="width-request">200</property>
+    <property name="height-request">200</property>
+    <property name="resizable">True</property>
+    <property name="modal">True</property>
+    <property name="destroy-with-parent">True</property>
+    <child>
+      <object class="GtkShortcutController">
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">0</property>
+
+        <!-- "Configurations" label -->
+        <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="yes">Configurations</property>
+            <property name="use-markup">False</property>
+            <attributes>
+              <attribute name="style" value="italic"/>
+            </attributes>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkSeparator">
+            <property name="orientation">horizontal</property>
+          </object>
+        </child>
+
+        <!-- Scrolled list with item template and selection model wired here -->
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="vexpand">True</property>
+            <property name="hscrollbar-policy">automatic</property>
+            <property name="vscrollbar-policy">automatic</property>
+            <child>
+              <object class="GtkListView" id="select_config_list">
+                <property name="hexpand">True</property>
+                <property name="model">select_config_selection</property>
+                <property name="factory">
+                  <object class="GtkBuilderListItemFactory">
+                    <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <property name="hexpand">True</property>
+        <binding name="label">
+          <lookup name="string" type="GtkStringObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+      </object>
+    </property>
+  </template>
+</interface>
+                    ]]></property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkSeparator">
+            <property name="orientation">horizontal</property>
+          </object>
+        </child>
+
+        <!-- Button row at the bottom -->
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">horizontal</property>
+            <property name="halign">end</property>
+            <property name="spacing">6</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+            <property name="margin-end">6</property>
+            <child>
+              <object class="GtkButton" id="select_config_cancel">
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="gtk_window_destroy" object="select_config_window" swapped="yes"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="select_config_ok">
+                <property name="label" translatable="yes">_OK</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="on_ok_clicked" object="select_config_selection"/>
+                <signal name="clicked" handler="gtk_window_destroy" object="select_config_window" swapped="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+  </object>
+
+</interface>

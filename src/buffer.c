@@ -18,10 +18,10 @@
 /***********************************************************************/
 
 #include <glib.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "buffer.h"
-#include "i18n.h"
 #include "serial.h"
 
 #include <config.h>
@@ -41,7 +41,7 @@ char overlapped;
 extern guint virt_col_pos;
 
 
-void (*write_func)(const char *, unsigned int) = NULL;
+void (*write_func)(const char *, size_t) = NULL;
 void (*clear_func)(void) = NULL;
 
 void create_buffer(void)
@@ -63,30 +63,25 @@ void delete_buffer(void)
 
 //assumes that buffer always has space for timestamp (TIMESTAMP_SIZE)
 //buffer points to location where timestamp will be inserted
-unsigned int insert_timestamp(char *buffer)
+static unsigned int insert_timestamp(char *buf_out)
 {
   unsigned int size = 0;
 
 	if(timestamp_on)
 	{
-		char buf[TIMESTAMP_SIZE];
 		struct timespec ts;
-		int d,h,m,s,x;
+		struct tm tm;
 		timespec_get(&ts, TIME_UTC);
-		d = (ts.tv_sec / (3600 * 24));
-		h = (ts.tv_sec / 3600) % 24;
-		m = (ts.tv_sec / 60 ) % 60;
-		s = ts.tv_sec % 60;
-		x = ts.tv_nsec / 1000000;
-		snprintf(buf, TIMESTAMP_SIZE - 1, "[%d.%02uh.%02um.%02us.%03u] "
-				, d, h, m, s, x );
-		strcpy(buffer, buf);
-		size = strlen(buf);
+		localtime_r(&ts.tv_sec, &tm);
+		size = (unsigned int)snprintf(buf_out, TIMESTAMP_SIZE,
+		    "[%d.%02dh.%02dm.%02ds.%03ld] ",
+		    tm.tm_yday, tm.tm_hour, tm.tm_min, tm.tm_sec,
+		    ts.tv_nsec / 1000000L);
 	}
   return size;
 }
 
-void put_chars(const char *chars, unsigned int size, gboolean crlf_auto, gboolean esc_clear_screen)
+void put_chars(const char *chars, size_t size, gboolean crlf_auto, gboolean esc_clear_screen)
 {
 	// buffer must still be valid after cr conversion or adding timestamp
 	// only pointer is copied below
@@ -98,7 +93,7 @@ void put_chars(const char *chars, unsigned int size, gboolean crlf_auto, gboolea
 	{
 		int i, out_size = 0;
 
-		for (i=0; i<size; i++)
+		for (i=0; i<(int)size; i++)
 		{
 			if(esc_clear_screen && chars[i] == '\x1b')
 			{
@@ -169,7 +164,7 @@ void put_chars(const char *chars, unsigned int size, gboolean crlf_auto, gboolea
 
 	if(buffer == NULL)
 	{
-		i18n_printf(_("ERROR: Buffer is not initialized!\n"));
+		g_print(_("ERROR: Buffer is not initialized!\n"));
 		return;
 	}
 
@@ -187,7 +182,7 @@ void put_chars(const char *chars, unsigned int size, gboolean crlf_auto, gboolea
 	{
 		memcpy(current_buffer, characters, BUFFER_SIZE - pointer);
 		chars = characters + BUFFER_SIZE - pointer;
-		pointer = size - (BUFFER_SIZE - pointer);
+		pointer = (unsigned int)(size - (BUFFER_SIZE - pointer));
 		memcpy(buffer, chars, pointer);
 		current_buffer = buffer + pointer;
 		overlapped = 1;
@@ -217,9 +212,9 @@ void write_buffer(void)
 	}
 }
 
-void write_buffer_with_func(void (*func)(const char *, unsigned int))
+void write_buffer_with_func(void (*func)(const char *, size_t))
 {
-	void (*write_func_backup)(const char *, unsigned int);
+	void (*write_func_backup)(const char *, size_t);
 
 	write_func_backup = write_func;
 	write_func = func;
@@ -254,12 +249,12 @@ void unset_clear_func(void (*func)(void))
 	clear_func = NULL;
 }
 
-void set_display_func(void (*func)(const char *, unsigned int))
+void set_display_func(void (*func)(const char *, size_t))
 {
 	write_func = func;
 }
 
-void unset_display_func(void (*func)(const char *, unsigned int))
+void unset_display_func(void (*func)(const char *, size_t))
 {
 	write_func = NULL;
 }

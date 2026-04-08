@@ -15,6 +15,7 @@
 #ifndef SERIAL_H_
 #define SERIAL_H_
 
+#include <glib.h>
 #ifndef NO_TERMIOS
 #include <termios.h>
 #endif
@@ -39,9 +40,10 @@ struct baudrate {
 	speed_t speed;
 };
 extern const struct baudrate baudrate_list[];
-extern const int baudrate_count;
+extern const size_t baudrate_count;
 extern const gboolean speed_t_is_sane;
 speed_t find_standard_baudrate(unsigned int);
+int     baudrate_find_index(unsigned int);
 unsigned int speed_t_to_baud(speed_t);
 
 #define BUFFER_RECEPTION 8192

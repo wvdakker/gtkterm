@@ -15,9 +15,9 @@
 #ifndef FICHIER_H_
 #define FICHIER_H_
 
-void send_raw_file(GtkAction *action, gpointer data);
-void save_raw_file(GtkAction *action, gpointer data);
-void save_ascii_file(GtkAction *action, gpointer data);
+void send_raw_file(GSimpleAction *action, GVariant *param, gpointer data);
+void save_raw_file(GSimpleAction *action, GVariant *param, gpointer data);
+void save_ascii_file(GSimpleAction *action, GVariant *param, gpointer data);
 void add_input(void);
 
 extern gboolean waiting_for_char;

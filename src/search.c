@@ -9,6 +9,7 @@
 /*   Purpose                                                           */
 /*      Search text from the VTE                                       */
 /*   Written by Tomi Lähteenmäki - lihis@lihis.net                     */
+/*   Ported to GTK4                                                    */
 /*                                                                     */
 /***********************************************************************/
 
@@ -20,11 +21,8 @@
 
 static GtkWindow *parentWindow;
 static VteTerminal *term;
-static GtkWidget *box;
 static GtkWidget *searchBar;
-static GtkWidget *prevImage;
 static GtkWidget *prevButton;
-static GtkWidget *nextImage;
 static GtkWidget *nextButton;
 static VteRegex *regex;
 static GtkWidget *entry;
@@ -35,7 +33,10 @@ typedef enum
 	FIND_NEXT
 } FindDirection;
 
-void entry_changed_callback()
+/* Forward declarations */
+void search_direction_cb(GtkButton *btn, gpointer unused);
+
+static void entry_changed_callback(void)
 {
 	gboolean sensitive = FALSE;
 
@@ -45,37 +46,31 @@ void entry_changed_callback()
 		regex = NULL;
 	}
 
-	if (gtk_entry_get_text_length(GTK_ENTRY(entry)))
+	if (gtk_editable_get_text(GTK_EDITABLE(entry))[0] != '\0')
 		sensitive = TRUE;
 
 	gtk_widget_set_sensitive(prevButton, sensitive);
 	gtk_widget_set_sensitive(nextButton, sensitive);
 }
 
-void search_callback(GtkWidget *widget, gpointer data)
+static void search_callback(GtkWidget *widget, gpointer data)
 {
-	(void)widget;
 	FindDirection direction = (FindDirection)GPOINTER_TO_UINT(data);
 
 	if (regex == NULL)
 	{
-		const gchar *pattern = gtk_entry_get_text(GTK_ENTRY(entry));
+		const gchar *pattern = gtk_editable_get_text(GTK_EDITABLE(entry));
 		GError *error = NULL;
 		regex = vte_regex_new_for_search(pattern,
-										 strlen(pattern),
-										 PCRE2_MULTILINE | PCRE2_CASELESS,
-										 &error);
+		                                 (gssize)strlen(pattern),
+		                                 PCRE2_MULTILINE | PCRE2_CASELESS,
+		                                 &error);
 		if (regex == NULL)
 		{
-			GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
-			GtkWidget *dialog = gtk_message_dialog_new(parentWindow,
-													   flags,
-													   GTK_MESSAGE_ERROR,
-													   GTK_BUTTONS_OK,
-													   error->message,
-													   NULL);
-			gtk_dialog_run(GTK_DIALOG(dialog));
-			gtk_widget_destroy(dialog);
+		GtkAlertDialog *dialog = gtk_alert_dialog_new("%s", error->message);
+		gtk_alert_dialog_set_modal(dialog, TRUE);
+		gtk_alert_dialog_show(dialog, GTK_WINDOW(parentWindow));
+		g_object_unref(dialog);
 			g_error_free(error);
 			return;
 		}
@@ -89,36 +84,28 @@ void search_callback(GtkWidget *widget, gpointer data)
 		vte_terminal_search_find_next(term);
 }
 
-static gboolean entry_key_press_event_callback(GtkEntry *entry, GdkEventKey *event, GtkWidget *searchBar)
+static gboolean entry_key_press_cb(GtkEventControllerKey *ctrl,
+                                   guint keyval, guint keycode,
+                                   GdkModifierType state, gpointer user_data)
 {
 	guint mask = gtk_accelerator_get_default_mod_mask();
 	gboolean handled = FALSE;
 
-	/*
-	 * Additional search keybindings
-	 * Escape key: Close search toolbar
-	 * Shift + Enter: Go to previous search result
-	 */
-	if ((event->state & mask) == 0)
+	if ((state & mask) == 0)
 	{
-		handled = TRUE;
-		switch (event->keyval)
+		if (keyval == GDK_KEY_Escape)
 		{
-		case GDK_KEY_Escape:
 			search_bar_hide(searchBar);
-			break;
-		default:
-			handled = FALSE;
-			break;
+			handled = TRUE;
 		}
 	}
-	else if ((event->state & mask) == GDK_SHIFT_MASK &&
-			 (event->keyval == GDK_KEY_Return ||
-			  event->keyval == GDK_KEY_KP_Enter ||
-			  event->keyval == GDK_KEY_ISO_Enter))
+	else if ((state & mask) == GDK_SHIFT_MASK &&
+	         (keyval == GDK_KEY_Return ||
+	          keyval == GDK_KEY_KP_Enter ||
+	          keyval == GDK_KEY_ISO_Enter))
 	{
-		handled = TRUE;
 		search_callback(NULL, GUINT_TO_POINTER(FIND_PREVIOUS));
+		handled = TRUE;
 	}
 
 	return handled;
@@ -131,54 +118,51 @@ GtkWidget *search_bar_new(GtkWindow *parent, VteTerminal *terminal)
 	regex = NULL;
 	vte_terminal_search_set_wrap_around(term, TRUE);
 
-	searchBar = gtk_search_bar_new();
-	gtk_search_bar_connect_entry(GTK_SEARCH_BAR(searchBar), GTK_ENTRY(entry));
-	gtk_search_bar_set_search_mode(GTK_SEARCH_BAR(searchBar), FALSE);
-	gtk_search_bar_set_show_close_button(GTK_SEARCH_BAR(searchBar), TRUE);
+	GtkBuilderCScope *scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
+	gtk_builder_cscope_add_callback_symbols(scope,
+	    "entry_changed_callback", G_CALLBACK(entry_changed_callback),
+	    "search_direction_cb",    G_CALLBACK(search_direction_cb),
+	    NULL);
+	GtkBuilder *builder = gtk_builder_new();
+	gtk_builder_set_scope(builder, GTK_BUILDER_SCOPE(scope));
+	g_object_unref(scope);
+	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/search_bar.ui", NULL);
 
-	box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	gtk_style_context_add_class(gtk_widget_get_style_context(box), "linked");
-	gtk_container_add(GTK_CONTAINER(searchBar), box);
+	searchBar   = GTK_WIDGET(gtk_builder_get_object(builder, "search_bar"));
+	entry       = GTK_WIDGET(gtk_builder_get_object(builder, "search_entry"));
+	prevButton  = GTK_WIDGET(gtk_builder_get_object(builder, "search_prev_button"));
+	nextButton  = GTK_WIDGET(gtk_builder_get_object(builder, "search_next_button"));
 
-	entry = gtk_search_entry_new();
-	gtk_entry_set_width_chars(GTK_ENTRY(entry), 30);
-	gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
-	g_signal_connect(entry, "changed", G_CALLBACK(entry_changed_callback), NULL);
-	g_signal_connect(entry, "key-press-event", G_CALLBACK(entry_key_press_event_callback), searchBar);
+	GtkEventController *key_ctrl = gtk_event_controller_key_new();
+	g_signal_connect(key_ctrl, "key-pressed",
+	                 G_CALLBACK(entry_key_press_cb), NULL);
+	gtk_widget_add_controller(entry, key_ctrl);
 
-	prevImage = gtk_image_new_from_icon_name("go-up-symbolic", GTK_ICON_SIZE_MENU);
-	prevButton = gtk_button_new();
-	gtk_button_set_image(GTK_BUTTON(prevButton), prevImage);
-	gtk_box_pack_start(GTK_BOX(box), prevButton, FALSE, FALSE, 0);
-	g_signal_connect(G_OBJECT(prevButton), "clicked", G_CALLBACK(search_callback), GUINT_TO_POINTER(FIND_PREVIOUS));
-	gtk_widget_set_sensitive(prevButton, FALSE);
+	gtk_search_bar_connect_entry(GTK_SEARCH_BAR(searchBar), GTK_EDITABLE(entry));
 
-	nextImage = gtk_image_new_from_icon_name("go-down-symbolic", GTK_ICON_SIZE_MENU);
-	nextButton = gtk_button_new();
-	gtk_button_set_image(GTK_BUTTON(nextButton), nextImage);
-	gtk_box_pack_start(GTK_BOX(box), nextButton, FALSE, FALSE, 0);
-	g_signal_connect(G_OBJECT(nextButton), "clicked", G_CALLBACK(search_callback), GUINT_TO_POINTER(FIND_NEXT));
-	gtk_widget_set_sensitive(nextButton, FALSE);
+	g_object_ref(searchBar);
+	g_object_unref(builder);
 
 	return searchBar;
 }
 
+void search_direction_cb(GtkButton *btn, gpointer unused)
+{
+	const char *id = gtk_buildable_get_buildable_id(GTK_BUILDABLE(btn));
+	FindDirection dir = g_str_has_suffix(id, "prev_button") ? FIND_PREVIOUS : FIND_NEXT;
+	search_callback(NULL, GUINT_TO_POINTER(dir));
+}
+
 void search_bar_show(GtkWidget *self)
 {
-	gtk_widget_show(self);
+	gtk_widget_set_visible(self, TRUE);
 	gtk_search_bar_set_search_mode(GTK_SEARCH_BAR(searchBar), TRUE);
-
 	gtk_widget_grab_focus(entry);
-
-	/* Set Enter key to "press" next button by default */
-	gtk_widget_set_can_default(nextButton, TRUE);
-	gtk_widget_grab_default(nextButton);
-	gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
 }
 
 void search_bar_hide(GtkWidget *self)
 {
-	gtk_widget_hide(self);
+	gtk_widget_set_visible(self, FALSE);
 	vte_terminal_search_set_regex(term, NULL, 0);
 	gtk_search_bar_set_search_mode(GTK_SEARCH_BAR(searchBar), FALSE);
 

@@ -14,8 +14,6 @@
 
 #include <stddef.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <termios.h>
 #include <glib.h>
 
@@ -28,28 +26,31 @@ const struct baudrate baudrate_list[] = {
 	{ 0, B0 }
 };
 
-const int baudrate_count =
-	sizeof(baudrate_list) / sizeof(baudrate_list[0]) - 1;
-
+const size_t baudrate_count =
+     sizeof(baudrate_list) / sizeof(baudrate_list[0]) - 1;
 const gboolean speed_t_is_sane = SPEED_T_IS_SANE;
+
+static int cmp_baud(const void *key, const void *elem)
+{
+	unsigned int k = *(const unsigned int *)key;
+	unsigned int e = ((const struct baudrate *)elem)->baud;
+	return k < e ? -1 : k > e ? 1 : 0;
+}
 
 speed_t find_standard_baudrate(unsigned int baud)
 {
-	size_t l = 0;
-	size_t r = baudrate_count;
+	const struct baudrate *p = bsearch(&baud, baudrate_list, baudrate_count,
+	                                   sizeof baudrate_list[0], cmp_baud);
+	return p ? p->speed : B0;
+}
 
-	while (l < r)
-	{
-		size_t i = (l+r) >> 1;
-		if (baudrate_list[i].baud < baud)
-			l = i+1;
-		else if (baudrate_list[i].baud > baud)
-			r = i;
-		else
-			return baudrate_list[i].speed;
-	}
 
-	return B0;
+/* Return 0-based index of baud in baudrate_list[], or -1 if not found. */
+int baudrate_find_index(unsigned int baud)
+{
+	const struct baudrate *p = bsearch(&baud, baudrate_list, baudrate_count,
+	                                   sizeof baudrate_list[0], cmp_baud);
+	return p ? (int)(p - baudrate_list) : -1;
 }
 
 unsigned int speed_t_to_baud(speed_t speed)

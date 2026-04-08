@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* fichier.c                                                           */
+/* files.c (fichier.c)                                                 */
 /* ---------                                                           */
 /*           GTKTerm Software                                          */
 /*                      (c) Julien Schmitt                             */
@@ -8,16 +8,7 @@
 /*                                                                     */
 /*   Purpose                                                           */
 /*      Raw / text file transfer management                            */
-/*                                                                     */
-/*   ChangeLog                                                         */
-/*   (All changes by Julien Schmitt except when explicitly written)    */
-/*                                                                     */
-/*      - 0.99.5 : changed all calls to strerror() by strerror_utf8()  */
-/*      - 0.99.4 : added auto CR LF function by Sebastien              */
-/*                 modified ecriture() to use send_serial()            */
-/*      - 0.99.2 : Internationalization                                */
-/*      - 0.98.4 : modified to use new buffer                          */
-/*      - 0.98 : file transfer completely rewritten / optimized        */
+/*      Ported to GTK4                                                 */
 /*                                                                     */
 /***********************************************************************/
 
@@ -25,11 +16,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
-#include <glib.h>
 
 #include "term_config.h"
 #include "interface.h"
@@ -43,7 +31,7 @@
 gint nb_car;
 gint car_written;
 gint current_buffer_position;
-gint bytes_read;
+ssize_t bytes_read;
 GtkAdjustment *adj;
 GtkWidget *ProgressBar;
 gint Fichier;
@@ -57,171 +45,178 @@ gchar *str = NULL;
 FILE *Fic;
 
 /* Local functions prototype */
-gint Envoie_fichier(GtkFileChooser *FS);
-gint Sauve_fichier(GtkFileChooser *FS);
-gint close_all(void);
-void ecriture(gpointer data, gint source);
+static gboolean ecriture(GIOChannel *src, GIOCondition cond, gpointer data);
 gboolean timer(gpointer pointer);
 gboolean idle(gpointer pointer);
 void remove_input(void);
 void add_input(void);
-void write_file(const char *, unsigned int);
+void write_file(const char *, size_t);
+gint close_all(void);
 
 extern struct configuration_port config;
 
 
-void send_raw_file(GtkAction *action, gpointer data)
+/* ---- Send RAW file ---- */
+
+static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer data)
 {
-	GtkWidget *file_select;
+	GtkFileDialog *dialog = GTK_FILE_DIALOG(source);
+	GError *error = NULL;
+	GFile *file = gtk_file_dialog_open_finish(dialog, result, &error);
 
-	file_select = gtk_file_chooser_dialog_new(_("Send RAW File"),
-	              GTK_WINDOW(Fenetre),
-	              GTK_FILE_CHOOSER_ACTION_OPEN,
-	              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	              GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
-	              NULL);
-
-	if(fic_defaut != NULL)
-		gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(file_select), fic_defaut);
-
-	if(gtk_dialog_run(GTK_DIALOG(file_select)) == GTK_RESPONSE_ACCEPT)
+	if (!file)
 	{
-		gchar *fileName;
-		gchar *msg;
+		if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+			show_message(_("Error opening file\n"), MSG_ERR);
+		g_clear_error(&error);
+		return;
+	}
 
-		fileName = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(file_select));
+	gchar *fileName = g_file_get_path(file);
+	g_object_unref(file);
 
-		if(!g_file_test(fileName, G_FILE_TEST_IS_REGULAR))
+	{
+		if (!fileName)
+			return;
+
+		if (!g_file_test(fileName, G_FILE_TEST_IS_REGULAR))
 		{
-			msg = g_strdup_printf(_("Error opening file\n"));
-			show_message(msg, MSG_ERR);
-			g_free(msg);
+			show_message(_("Error opening file\n"), MSG_ERR);
 			g_free(fileName);
-			gtk_widget_destroy(file_select);
 			return;
 		}
 
 		Fichier = open(fileName, O_RDONLY);
-		if(Fichier != -1)
+		if (Fichier != -1)
 		{
-			GtkWidget *Bouton_annuler, *Box;
-
 			fic_defaut = g_strdup(fileName);
-			msg = g_strdup_printf(_("%s: transfer in progress..."), fileName);
+			gchar *msg = g_strdup_printf(_("%s: transfer in progress..."), fileName);
 
-			gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, msg);
+			gtk_label_set_text(GTK_LABEL(StatusBar), msg);
 			car_written = 0;
 			current_buffer_position = 0;
 			bytes_read = 0;
 			nb_car = lseek(Fichier, 0L, SEEK_END);
 			lseek(Fichier, 0L, SEEK_SET);
 
-			Window = gtk_dialog_new();
-			gtk_window_set_title(GTK_WINDOW(Window), msg);
-			g_free(msg);
-			Box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-			gtk_container_add(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(Window))), Box);
-			ProgressBar = gtk_progress_bar_new();
+			{
+				GtkBuilder *builder = gtk_builder_new_from_resource("/org/gtk/gtkterm/file_transfer_dialog.ui");
+				GtkWidget *cancel_btn;
 
-			gtk_box_pack_start(GTK_BOX(Box), ProgressBar, FALSE, FALSE, 5);
+				Window      = GTK_WIDGET(gtk_builder_get_object(builder, "file_transfer_window"));
+				ProgressBar = GTK_WIDGET(gtk_builder_get_object(builder, "file_transfer_progress"));
+				cancel_btn  = GTK_WIDGET(gtk_builder_get_object(builder, "file_transfer_cancel"));
 
-			Bouton_annuler = gtk_button_new_with_label(_("Cancel"));
-			g_signal_connect(GTK_WIDGET(Bouton_annuler), "clicked", G_CALLBACK(close_all), NULL);
+				gtk_window_set_title(GTK_WINDOW(Window), msg);			g_free(msg);
+				g_signal_connect_swapped(cancel_btn, "clicked",
+				                         G_CALLBACK(close_all), NULL);
+				g_signal_connect(GTK_WIDGET(Window), "close-request",
+				                 G_CALLBACK(close_all), NULL);
 
-			gtk_container_add(GTK_CONTAINER(gtk_dialog_get_action_area(GTK_DIALOG(Window))), Bouton_annuler);
-
-			g_signal_connect(GTK_WIDGET(Window), "delete_event", G_CALLBACK(close_all), NULL);
-
-			gtk_window_set_default_size(GTK_WINDOW(Window), 250, 100);
-			gtk_window_set_modal(GTK_WINDOW(Window), TRUE);
-			gtk_widget_show_all(Window);
+				gtk_window_set_modal(GTK_WINDOW(Window), TRUE);					g_object_unref(builder);				gtk_window_present(GTK_WINDOW(Window));
+			}
 
 			add_input();
 		}
 		else
 		{
-			msg = g_strdup_printf(_("Cannot read file %s: %s\n"), fileName, strerror(errno));
+			gchar *msg = g_strdup_printf(_("Cannot read file %s: %s\n"),
+			                             fileName, strerror(errno));
 			show_message(msg, MSG_ERR);
 			g_free(msg);
 		}
 		g_free(fileName);
 	}
-	gtk_widget_destroy(file_select);
 }
 
-void ecriture(gpointer data, gint source)
+void send_raw_file(GSimpleAction *action, GVariant *param, gpointer data)
+{
+	GtkFileDialog *dialog = gtk_file_dialog_new();
+	gtk_file_dialog_set_title(dialog, _("Send RAW File"));
+	gtk_file_dialog_set_modal(dialog, TRUE);
+
+	if (fic_defaut != NULL)
+	{
+		GFile *f = g_file_new_for_path(fic_defaut);
+		gtk_file_dialog_set_initial_file(dialog, f);
+		g_object_unref(f);
+	}
+
+	gtk_file_dialog_open(dialog, GTK_WINDOW(Fenetre), NULL,
+	                     on_send_raw_response, NULL);
+	g_object_unref(dialog);
+}
+
+static gboolean ecriture(GIOChannel *src, GIOCondition cond, gpointer data)
 {
 	static gchar buffer[BUFFER_EMISSION];
 	static gchar *current_buffer;
 	static gint bytes_to_write;
-	gint bytes_written;
+	ssize_t bytes_written;
 	gchar *car;
 
-	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar), (gfloat)car_written/(gfloat)nb_car );
+	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar),
+	                              (gfloat)car_written / (gfloat)nb_car);
 
-	if(car_written < nb_car)
+	if (car_written < nb_car)
 	{
-		/* Read the file only if buffer totally sent or if buffer empty */
-		if(current_buffer_position == bytes_read)
+		if (current_buffer_position == bytes_read)
 		{
 			bytes_read = read(Fichier, buffer, BUFFER_EMISSION);
-
 			current_buffer_position = 0;
 			current_buffer = buffer;
-			bytes_to_write = bytes_read;
+			bytes_to_write = (gint)bytes_read;
 		}
 
-		if(current_buffer == NULL)
+		if (current_buffer == NULL)
 		{
-			/* something went wrong... */
 			g_free(str);
 			str = g_strdup_printf(_("Error sending file\n"));
 			show_message(str, MSG_ERR);
 			close_all();
-			return;
+			return G_SOURCE_REMOVE;
 		}
 
 		car = current_buffer;
 
-		if(config.delai != 0 || config.car != -1)
+		if (config.delai != 0 || config.car != -1)
 		{
-			/* search for next LF */
 			bytes_to_write = current_buffer_position;
-			while(*car != LINE_FEED && bytes_to_write < bytes_read)
+			while (*car != LINE_FEED && bytes_to_write < bytes_read)
 			{
 				car++;
 				bytes_to_write++;
 			}
-			if(*car == LINE_FEED)
+			if (*car == LINE_FEED)
 				bytes_to_write++;
 		}
 
-		/* write to serial port */
-		bytes_written = send_serial(current_buffer, bytes_to_write - current_buffer_position);
+		bytes_written = send_serial(current_buffer,
+		                            bytes_to_write - current_buffer_position);
 
-		if(bytes_written == -1)
+		if (bytes_written == -1)
 		{
-			/* Problem while writing, stop file transfer */
 			g_free(str);
 			str = g_strdup_printf(_("Error sending file: %s\n"), strerror(errno));
 			show_message(str, MSG_ERR);
 			close_all();
-			return;
+			return G_SOURCE_REMOVE;
 		}
 
-		car_written += bytes_written;
-		current_buffer_position += bytes_written;
+		car_written += (gint)bytes_written;
+		current_buffer_position += (gint)bytes_written;
 		current_buffer += bytes_written;
 
-		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar), (gfloat)car_written/(gfloat)nb_car );
+		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar),
+		                              (gfloat)car_written / (gfloat)nb_car);
 
-		if(config.delai != 0 && *car == LINE_FEED)
+		if (config.delai != 0 && *car == LINE_FEED)
 		{
 			remove_input();
 			g_timeout_add(config.delai, (GSourceFunc)timer, NULL);
 			waiting_for_timer = TRUE;
 		}
-		else if(config.car != -1 && *car == LINE_FEED)
+		else if (config.car != -1 && *car == LINE_FEED)
 		{
 			remove_input();
 			waiting_for_char = TRUE;
@@ -230,14 +225,13 @@ void ecriture(gpointer data, gint source)
 	else
 	{
 		close_all();
-		return;
 	}
-	return;
+	return G_SOURCE_CONTINUE;
 }
 
 gboolean timer(gpointer pointer)
 {
-	if(waiting_for_timer == TRUE)
+	if (waiting_for_timer == TRUE)
 	{
 		add_input();
 		waiting_for_timer = FALSE;
@@ -247,21 +241,21 @@ gboolean timer(gpointer pointer)
 
 void add_input(void)
 {
-	if(input_running == FALSE)
+	if (input_running == FALSE)
 	{
 		input_running = TRUE;
-		callback_handler = g_io_add_watch_full(g_io_channel_unix_new(serial_port_fd),
-		                                       10,
-		                                       G_IO_OUT,
-		                                       (GIOFunc)ecriture,
-		                                       NULL, NULL);
-
+		callback_handler = g_io_add_watch_full(
+			g_io_channel_unix_new(serial_port_fd),
+			10,
+			G_IO_OUT,
+			ecriture,
+			NULL, NULL);
 	}
 }
 
 void remove_input(void)
 {
-	if(input_running == TRUE)
+	if (input_running == TRUE)
 	{
 		g_source_remove(callback_handler);
 		input_running = FALSE;
@@ -273,136 +267,137 @@ gint close_all(void)
 	remove_input();
 	waiting_for_char = FALSE;
 	waiting_for_timer = FALSE;
-	gtk_statusbar_pop(GTK_STATUSBAR(StatusBar), id);
+	gtk_label_set_text(GTK_LABEL(StatusBar), "");
 	close(Fichier);
-	gtk_widget_destroy(Window);
+	gtk_window_destroy(GTK_WINDOW(Window));
 
 	return FALSE;
 }
 
-void write_file(const char *data, unsigned int size)
+void write_file(const char *data, size_t size)
 {
 	fwrite(data, size, 1, Fic);
 }
 
-void write_ascii_file(const char *data, unsigned int size)
+static void write_ascii_file(const char *data, size_t size)
 {
-        char *cleanbuff = g_malloc(size);
-        int write_pointer=0;
-        int newsize=0;
-        for (int x=0; x<size; ++x)
-        {
-          if (data[x] > 0x1F || data[x]==0x0A || data[x]==0x0D)
-          {
-            cleanbuff[write_pointer++]=data[x];
-            newsize++;
-          }
-        }
-        fwrite(cleanbuff, newsize, 1, Fic);
-        g_free(cleanbuff);
-}
-
-
-
-void save_raw_file(GtkAction *action, gpointer data)
-{
-	GtkWidget *file_select;
-
-	file_select = gtk_file_chooser_dialog_new(_("Save RAW File"),
-	              GTK_WINDOW(Fenetre),
-	              GTK_FILE_CHOOSER_ACTION_SAVE,
-	              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	              GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
-	              NULL);
-	gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(file_select), TRUE);
-
-	if(fic_defaut != NULL)
-		gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(file_select), fic_defaut);
-
-	if(gtk_dialog_run(GTK_DIALOG(file_select)) == GTK_RESPONSE_ACCEPT)
+	char *cleanbuff = g_malloc(size);
+	int newsize = 0;
+	for (size_t x = 0; x < size; ++x)
 	{
-		gchar *fileName;
-		gchar *msg;
-
-		fileName = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(file_select));
-		if ((!fileName || (strcmp(fileName, ""))) == 0)
-		{
-			msg = g_strdup_printf(_("File error\n"));
-			show_message(msg, MSG_ERR);
-			g_free(msg);
-			g_free(fileName);
-			gtk_widget_destroy(file_select);
-			return;
-		}
-
-		Fic = fopen(fileName, "w");
-		if(Fic == NULL)
-		{
-			msg = g_strdup_printf(_("Cannot open file %s: %s\n"), fileName, strerror(errno));
-			show_message(msg, MSG_ERR);
-			g_free(msg);
-		}
-		else
-		{
-			fic_defaut = g_strdup(fileName);
-
-			write_buffer_with_func(write_file);
-
-			fclose(Fic);
-		}
-		g_free(fileName);
+		if (data[x] > 0x1F || data[x] == 0x0A || data[x] == 0x0D)
+			cleanbuff[newsize++] = data[x];
 	}
-	gtk_widget_destroy(file_select);
+	fwrite(cleanbuff, (size_t)newsize, 1, Fic);
+	g_free(cleanbuff);
 }
 
-void save_ascii_file(GtkAction *action, gpointer data)
+
+/* ---- Save RAW file ---- */
+
+static void on_save_raw_response(GObject *source, GAsyncResult *result, gpointer data)
 {
-	GtkWidget *file_select;
+	GtkFileDialog *dialog = GTK_FILE_DIALOG(source);
+	GError *error = NULL;
+	GFile *file = gtk_file_dialog_save_finish(dialog, result, &error);
 
-	file_select = gtk_file_chooser_dialog_new(_("Save ASCII File"),
-	              GTK_WINDOW(Fenetre),
-	              GTK_FILE_CHOOSER_ACTION_SAVE,
-	              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	              GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
-	              NULL);
-	gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(file_select), TRUE);
-
-	if(fic_defaut != NULL)
-		gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(file_select), fic_defaut);
-
-	if(gtk_dialog_run(GTK_DIALOG(file_select)) == GTK_RESPONSE_ACCEPT)
+	if (!file)
 	{
-		gchar *fileName;
-		gchar *msg;
-
-		fileName = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(file_select));
-		if ((!fileName || (strcmp(fileName, ""))) == 0)
-		{
-			msg = g_strdup_printf(_("File error\n"));
-			show_message(msg, MSG_ERR);
-			g_free(msg);
-			g_free(fileName);
-			gtk_widget_destroy(file_select);
-			return;
-		}
-
-		Fic = fopen(fileName, "w");
-		if(Fic == NULL)
-		{
-			msg = g_strdup_printf(_("Cannot open file %s: %s\n"), fileName, strerror(errno));
-			show_message(msg, MSG_ERR);
-			g_free(msg);
-		}
-		else
-		{
-			fic_defaut = g_strdup(fileName);
-
-			write_buffer_with_func(write_ascii_file);
-
-			fclose(Fic);
-		}
-		g_free(fileName);
+		if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+			show_message(_("File error\n"), MSG_ERR);
+		g_clear_error(&error);
+		return;
 	}
-	gtk_widget_destroy(file_select);
+
+	gchar *fileName = g_file_get_path(file);
+	g_object_unref(file);
+
+	Fic = fopen(fileName, "w");
+	if (Fic == NULL)
+	{
+		gchar *msg = g_strdup_printf(_("Cannot open file %s: %s\n"),
+		                             fileName, strerror(errno));
+		show_message(msg, MSG_ERR);
+		g_free(msg);
+	}
+	else
+	{
+		fic_defaut = g_strdup(fileName);
+		write_buffer_with_func(write_file);
+		fclose(Fic);
+	}
+	g_free(fileName);
 }
 
+void save_raw_file(GSimpleAction *action, GVariant *param, gpointer data)
+{
+	GtkFileDialog *dialog = gtk_file_dialog_new();
+	gtk_file_dialog_set_title(dialog, _("Save RAW File"));
+	gtk_file_dialog_set_modal(dialog, TRUE);
+
+	if (fic_defaut != NULL)
+	{
+		GFile *f = g_file_new_for_path(fic_defaut);
+		gtk_file_dialog_set_initial_file(dialog, f);
+		g_object_unref(f);
+	}
+
+	gtk_file_dialog_save(dialog, GTK_WINDOW(Fenetre), NULL,
+	                     on_save_raw_response, NULL);
+	g_object_unref(dialog);
+}
+
+
+/* ---- Save ASCII file ---- */
+
+static void on_save_ascii_response(GObject *source, GAsyncResult *result, gpointer data)
+{
+	GtkFileDialog *dialog = GTK_FILE_DIALOG(source);
+	GError *error = NULL;
+	GFile *file = gtk_file_dialog_save_finish(dialog, result, &error);
+
+	if (!file)
+	{
+		if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+			show_message(_("File error\n"), MSG_ERR);
+		g_clear_error(&error);
+		return;
+	}
+
+	gchar *fileName = g_file_get_path(file);
+	g_object_unref(file);
+
+	Fic = fopen(fileName, "w");
+	if (Fic == NULL)
+	{
+		gchar *msg = g_strdup_printf(_("Cannot open file %s: %s\n"),
+		                             fileName, strerror(errno));
+		show_message(msg, MSG_ERR);
+		g_free(msg);
+	}
+	else
+	{
+		fic_defaut = g_strdup(fileName);
+		write_buffer_with_func(write_ascii_file);
+		fclose(Fic);
+	}
+	g_free(fileName);
+}
+
+void save_ascii_file(GSimpleAction *action, GVariant *param, gpointer data)
+{
+	GtkFileDialog *dialog = gtk_file_dialog_new();
+	gtk_file_dialog_set_title(dialog, _("Save ASCII File"));
+	gtk_file_dialog_set_modal(dialog, TRUE);
+
+	if (fic_defaut != NULL)
+	{
+		GFile *f = g_file_new_for_path(fic_defaut);
+		gtk_file_dialog_set_initial_file(dialog, f);
+		g_object_unref(f);
+	}
+
+	gtk_file_dialog_save(dialog, GTK_WINDOW(Fenetre), NULL,
+	                     on_save_ascii_response, NULL);
+	g_object_unref(dialog);
+}
