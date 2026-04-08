@@ -9,7 +9,7 @@ desktop_config.set('VERSION', meson.project_version())
 
 desktop_file_configured = configure_file(
 	input: 'gtkterm.desktop.in',
-	output: 'gtkterm.desktop',
+	output: 'org.gtk.gtkterm.desktop',
 	configuration: desktop_config,
 	install_dir: datadir / 'applications',
 )

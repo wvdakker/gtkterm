@@ -56,6 +56,12 @@ GtkWidget *Fenetre;
 static GtkWidget *popup_menu;
 static GtkApplication *main_app;
 GtkWidget *display = NULL;
+static gulong got_input_handler_id = 0;
+/* Nesting counter: >0 means the commit handler is blocked.
+ * Incremented by set_view(), decremented by the 50ms unblock timeout.
+ * Using a counter (not a bool) ensures rapid set_view() calls don't
+ * unblock prematurely. */
+static guint pending_reenable = 0;
 
 GList *hex_history = NULL;
 GList *current_hex = NULL;
@@ -363,12 +369,31 @@ void Set_timestamp(gboolean timestamp)
 		                          g_variant_new_boolean(timestamp_on));
 }
 
+static gboolean reenable_commit_cb(gpointer data)
+{
+	if (--pending_reenable == 0 && got_input_handler_id && display)
+		g_signal_handler_unblock(display, got_input_handler_id);
+	return G_SOURCE_REMOVE;
+}
+
 void set_view(guint type)
 {
 	GAction *show_index_action    = g_action_map_lookup_action(G_ACTION_MAP(main_app), "view-index");
 	GAction *hex_chars_action     = g_action_map_lookup_action(G_ACTION_MAP(main_app), "hex-chars");
 	GAction *hex_chars_sub_action = g_action_map_lookup_action(G_ACTION_MAP(main_app), "hex-chars-submenu");
 	GAction *view_mode_action     = g_action_map_lookup_action(G_ACTION_MAP(main_app), "view-mode");
+
+	/* Block the commit→serial path for the duration of the clear+replay.
+	 * vte_terminal_set_input_enabled() does NOT suppress commit emissions
+	 * from data fed via vte_terminal_feed() — VTE still responds to escape
+	 * sequences (DSR, XTGETTCAP, etc.) in the replayed buffer regardless.
+	 * g_signal_handler_block() silences Got_Input at the signal level.
+	 * A 50ms timeout (>> VTE_DISPLAY_TIMEOUT=1ms) guarantees the unblock
+	 * fires after all of VTE's async processing rounds. A counter handles
+	 * rapid back-to-back set_view() calls safely. */
+	if (pending_reenable == 0 && got_input_handler_id && display)
+		g_signal_handler_block(display, got_input_handler_id);
+	pending_reenable++;
 
 	clear_display();
 	set_clear_func(clear_display);
@@ -405,6 +430,8 @@ void set_view(guint type)
 		set_display_func(NULL);
 	}
 	write_buffer();
+
+	g_timeout_add(50, reenable_commit_cb, NULL);
 }
 
 void toggle_logging_pause_resume(gboolean currentlyLogging)
@@ -549,8 +576,8 @@ void create_main_window(GtkApplication *app)
 	                 G_CALLBACK(on_hex_key_pressed), NULL);
 	gtk_widget_add_controller(hex_send_entry, key_ctrl);
 
-	g_signal_connect_after(GTK_WIDGET(display), "commit",
-	                       G_CALLBACK(Got_Input), NULL);
+	got_input_handler_id = g_signal_connect_after(GTK_WIDGET(display), "commit",
+	                                              G_CALLBACK(Got_Input), NULL);
 
 	/* Key controller for macro shortcuts on the main window */
 	GtkEventController *macro_key_ctrl = gtk_event_controller_key_new();
