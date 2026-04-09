@@ -90,7 +90,7 @@ static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer
 		if (Fichier != -1)
 		{
 			fic_defaut = g_strdup(fileName);
-			gchar *msg = g_strdup_printf(_("%s: transfer in progress..."), fileName);
+			g_autofree gchar *msg = g_strdup_printf(_("%s: transfer in progress..."), fileName);
 
 			gtk_label_set_text(GTK_LABEL(StatusBar), msg);
 			car_written = 0;
@@ -107,7 +107,7 @@ static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer
 				ProgressBar = GTK_WIDGET(gtk_builder_get_object(builder, "file_transfer_progress"));
 				cancel_btn  = GTK_WIDGET(gtk_builder_get_object(builder, "file_transfer_cancel"));
 
-				gtk_window_set_title(GTK_WINDOW(Window), msg);			g_free(msg);
+				gtk_window_set_title(GTK_WINDOW(Window), msg);
 				g_signal_connect_swapped(cancel_btn, "clicked",
 				                         G_CALLBACK(close_all), NULL);
 				g_signal_connect(GTK_WIDGET(Window), "close-request",
@@ -120,10 +120,9 @@ static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer
 		}
 		else
 		{
-			gchar *msg = g_strdup_printf(_("Cannot read file %s: %s\n"),
-			                             fileName, strerror(errno));
+			g_autofree gchar *msg = g_strdup_printf(_("Cannot read file %s: %s\n"),
+			                                         fileName, g_strerror(errno));
 			show_message(msg, MSG_ERR);
-			g_free(msg);
 		}
 		g_free(fileName);
 	}
@@ -315,10 +314,9 @@ static void on_save_raw_response(GObject *source, GAsyncResult *result, gpointer
 	Fic = fopen(fileName, "w");
 	if (Fic == NULL)
 	{
-		gchar *msg = g_strdup_printf(_("Cannot open file %s: %s\n"),
-		                             fileName, strerror(errno));
+		g_autofree gchar *msg = g_strdup_printf(_("Cannot open file %s: %s\n"),
+		                                         fileName, g_strerror(errno));
 		show_message(msg, MSG_ERR);
-		g_free(msg);
 	}
 	else
 	{
@@ -370,10 +368,9 @@ static void on_save_ascii_response(GObject *source, GAsyncResult *result, gpoint
 	Fic = fopen(fileName, "w");
 	if (Fic == NULL)
 	{
-		gchar *msg = g_strdup_printf(_("Cannot open file %s: %s\n"),
-		                             fileName, strerror(errno));
+		g_autofree gchar *msg = g_strdup_printf(_("Cannot open file %s: %s\n"),
+		                                         fileName, g_strerror(errno));
 		show_message(msg, MSG_ERR);
-		g_free(msg);
 	}
 	else
 	{

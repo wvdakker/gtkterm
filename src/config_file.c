@@ -264,9 +264,8 @@ void Copy_configuration(GKeyFile *kf, const gchar *section)
 	};
 	for (gsize ci = 0; ci < G_N_ELEMENTS(color_fields); ci++)
 	{
-		gchar *_s = g_strdup_printf("%.4f", *color_fields[ci].val);
+		g_autofree gchar *_s = g_strdup_printf("%.4f", *color_fields[ci].val);
 		g_key_file_set_string(kf, section, color_fields[ci].key, _s);
-		g_free(_s);
 	}
 }
 
@@ -282,9 +281,8 @@ gint Load_configuration_from_file(const gchar *config_name)
 
 	if (!g_key_file_has_group(kf, config_name))
 	{
-		gchar *msg = g_strdup_printf(_("No section \"%s\" in configuration file\n"), config_name);
+		g_autofree gchar *msg = g_strdup_printf(_("No section \"%s\" in configuration file\n"), config_name);
 		show_message(msg, MSG_ERR);
-		g_free(msg);
 		return -1;
 	}
 

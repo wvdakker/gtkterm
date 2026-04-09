@@ -30,47 +30,46 @@
 #define MAX_WRITE_ATTEMPTS 5
 
 static gboolean	  Logging;
-static gchar     *LoggingFileName;
-static FILE      *LoggingFile;
+static gchar     *LoggingFileName = NULL;
+static FILE      *LoggingFile = NULL;
 static gchar     *logfile_default = NULL;
 
-static gint OpenLogFile(gchar *filename)
+static void close_log_file(void)
 {
-	gchar *str;
-
-	// open file and start logging
-	if(!filename || (strcmp(filename, "") == 0))
-	{
-		show_message(_("Filename error\n"), MSG_ERR);
-		g_free(filename);
-		return FALSE;
-	}
-
 	if(LoggingFile != NULL)
 	{
 		fclose(LoggingFile);
 		LoggingFile = NULL;
-		Logging = FALSE;
+	}
+	Logging = FALSE;
+	g_free(LoggingFileName);
+	LoggingFileName = NULL;
+}
+
+static void OpenLogFile(const gchar *filename)
+{
+	// open file and start logging
+	if(!filename || !filename[0])
+	{
+		show_message(_("Filename error\n"), MSG_ERR);
+		return;
 	}
 
-	LoggingFileName = filename;
+	close_log_file();
 
-	LoggingFile = fopen(LoggingFileName, "a");
+	LoggingFile = fopen(filename, "a");
 	if(LoggingFile == NULL)
 	{
-		str = g_strdup_printf(_("Cannot open file %s: %s\n"), LoggingFileName, strerror(errno));
-
+		g_autofree gchar *str = g_strdup_printf(_("Cannot open file %s: %s\n"), filename, g_strerror(errno));
 		show_message(str, MSG_ERR);
-		g_free(str);
-		g_free(LoggingFileName);
 	}
 	else
 	{
-		logfile_default = g_strdup(LoggingFileName);
+		LoggingFileName = g_strdup(filename);
+		g_free(logfile_default);
+		logfile_default = g_strdup(filename);
 		Logging = TRUE;
 	}
-
-	return FALSE;
 }
 
 static void on_log_file_response(GObject *source, GAsyncResult *result, gpointer data)
@@ -90,6 +89,7 @@ static void on_log_file_response(GObject *source, GAsyncResult *result, gpointer
 	gchar *filename = g_file_get_path(file);
 	g_object_unref(file);
 	OpenLogFile(filename);
+	g_free(filename);
 
 	toggle_logging_sensitivity(Logging);
 	toggle_logging_pause_resume(Logging);
@@ -116,19 +116,16 @@ void logging_start(GSimpleAction *action, GVariant *param, gpointer data)
 void logging_clear(GSimpleAction *action, GVariant *param, gpointer data)
 {
 	if(LoggingFile == NULL)
-	{
 		return;
-	}
 
 	//Reopening with "w" will truncate the file
 	LoggingFile = freopen(LoggingFileName, "w", LoggingFile);
 
 	if (LoggingFile == NULL)
 	{
-		gchar *str = g_strdup_printf(_("Cannot open file %s: %s\n"), LoggingFileName, strerror(errno));
+		g_autofree gchar *str = g_strdup_printf(_("Cannot open file %s: %s\n"), LoggingFileName, g_strerror(errno));
 		show_message(str, MSG_ERR);
-		g_free(str);
-		g_free(LoggingFileName);
+		close_log_file();
 	}
 }
 
@@ -149,11 +146,7 @@ void logging_stop(GSimpleAction *action, GVariant *param, gpointer data)
 		return;
 	}
 
-	fclose(LoggingFile);
-	LoggingFile = NULL;
-	Logging = FALSE;
-	g_free(LoggingFileName);
-	LoggingFileName = NULL;
+	close_log_file();
 
 	toggle_logging_sensitivity(Logging);
 	toggle_logging_pause_resume(Logging);

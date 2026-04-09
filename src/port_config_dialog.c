@@ -83,9 +83,8 @@ static GtkStringList *build_baud_model(void)
 	GtkStringList *model = gtk_string_list_new(NULL);
 	for (i = 0; i < baudrate_count; i++)
 	{
-		gchar *s = g_strdup_printf("%u", baudrate_list[i].baud);
+		g_autofree gchar *s = g_strdup_printf("%u", baudrate_list[i].baud);
 		gtk_string_list_append(model, s);
-		g_free(s);
 	}
 	gtk_string_list_append(model, _("Custom..."));
 	return model;
@@ -234,10 +233,8 @@ void Config_Port_Fenetre(GSimpleAction *action, GVariant *param, gpointer data)
 	/* Wire baud dropdown → custom baud entry */
 	{
 		gboolean custom = (speed_index < 0);
-		gchar *string;
-		string = g_strdup_printf("%u", config.vitesse);
+		g_autofree gchar *string = g_strdup_printf("%u", config.vitesse);
 		gtk_editable_set_text(GTK_EDITABLE(baud_entry), string);
-		g_free(string);
 		gtk_editable_set_editable(GTK_EDITABLE(baud_entry), custom);
 		gtk_widget_set_sensitive(baud_entry, custom);
 		if (custom)

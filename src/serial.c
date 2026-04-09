@@ -137,7 +137,7 @@ int Send_chars(char *string, int length)
 gboolean Config_port(void)
 {
 	struct termios termios_p;
-	gchar *msg = NULL;
+	g_autofree gchar *msg = NULL;
 	unsigned int speed_margin;
 
 	Close_port();
@@ -149,7 +149,6 @@ gboolean Config_port(void)
 		msg = g_strdup_printf(_("Cannot open %s: %s\n"),
 		                      config.port, g_strerror(errno));
 		show_message(msg, MSG_ERR);
-		g_free(msg);
 
 		return FALSE;
 	}
@@ -160,7 +159,6 @@ gboolean Config_port(void)
 		msg = g_strdup_printf(_("%s is not a valid serial port\n"),
 				      config.port);
 		show_message(msg, MSG_ERR);
-		g_free(msg);
 
 		return FALSE;
 	}
@@ -189,7 +187,6 @@ gboolean Config_port(void)
 		msg = g_strdup_printf(_("Unable to set baud rate %u"),
 					config.vitesse);
 		show_message(msg, MSG_ERR);
-		g_free(msg);
 		return FALSE;
 	}
 

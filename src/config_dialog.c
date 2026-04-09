@@ -101,9 +101,8 @@ static void really_save_config(gpointer _unused, gint id, gconstpointer data)
 		Copy_configuration(kf, (const gchar *)data);
 		if (!save_key_file())
 			return;
-		gchar *msg = g_strdup_printf(_("Configuration [%s] saved\n"), (const gchar *)data);
+		g_autofree gchar *msg = g_strdup_printf(_("Configuration [%s] saved\n"), (const gchar *)data);
 		show_message(msg, MSG_WRN);
-		g_free(msg);
 	}
 	else
 		Save_config_file();
@@ -128,11 +127,10 @@ static void save_config(gpointer _unused, gint id, GtkWidget *edit)
 
 		if (g_key_file_has_group(get_key_file(), config_name))
 		{
-			gchar *alert_msg = g_strdup_printf(
+			g_autofree gchar *alert_msg = g_strdup_printf(
 			    _("Section [%s] already exists.\n\nDo you want to overwrite it ?"),
 			    config_name);
 			GtkAlertDialog *alert = gtk_alert_dialog_new("%s", alert_msg);
-			g_free(alert_msg);
 			gtk_alert_dialog_set_modal(alert, TRUE);
 			static const char * const buttons[] = { "_Yes", "_Cancel", NULL };
 			gtk_alert_dialog_set_buttons(alert, buttons);

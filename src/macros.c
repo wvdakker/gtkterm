@@ -111,9 +111,8 @@ static void shortcut_callback(gpointer *number)
 		}
 	}
 
-	str = g_strdup_printf(_("Macro \"%s\" sent!"), macros[(gintptr)number].shortcut);
-	Put_temp_message(str, 800);
-	g_free(str);
+	g_autofree gchar *msg = g_strdup_printf(_("Macro \"%s\" sent!"), macros[(gintptr)number].shortcut);
+	Put_temp_message(msg, 800);
 }
 
 /* Process a key event and trigger a macro if a match is found */

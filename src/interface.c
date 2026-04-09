@@ -711,9 +711,8 @@ void Set_status_message(gchar *msg)
 
 void Set_window_title(const gchar *msg)
 {
-	gchar *header = g_strdup_printf("GTKTerm - %s", msg);
+	g_autofree gchar *header = g_strdup_printf("GTKTerm - %s", msg);
 	gtk_window_set_title(GTK_WINDOW(Fenetre), header);
-	g_free(header);
 }
 
 void interface_open_port(void)
