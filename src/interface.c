@@ -667,13 +667,19 @@ gint send_serial(gchar *string, gint len)
 	if (bytes_written > 0)
 	{
 		if (echo_on)
-			put_chars(string, (size_t)bytes_written, crlfauto_on, esc_clear_screen_on);
+			put_chars(string, (size_t)bytes_written, crlfauto_on);
 	}
 	return (gint)bytes_written;
 }
 
 static void Got_Input(VteTerminal *widget, gchar *text, guint length, gpointer ptr)
 {
+	if (esc_clear_screen_on && length >= 1 && (guchar)text[0] == 0x1b)
+	{
+		clear_buffer();
+		clear_display();
+		return;
+	}
 	send_serial(text, (gint)length);
 }
 

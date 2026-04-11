@@ -81,7 +81,7 @@ static unsigned int insert_timestamp(char *buf_out)
   return size;
 }
 
-void put_chars(const char *chars, size_t size, gboolean crlf_auto, gboolean esc_clear_screen)
+void put_chars(const char *chars, size_t size, gboolean crlf_auto)
 {
 	// buffer must still be valid after cr conversion or adding timestamp
 	// only pointer is copied below
@@ -89,17 +89,12 @@ void put_chars(const char *chars, size_t size, gboolean crlf_auto, gboolean esc_
 	const char *characters;
 
 	/* If the auto CR LF mode on, read the buffer to add \r before \n */
-	if(crlf_auto || timestamp_on || esc_clear_screen)
+	if(crlf_auto || timestamp_on)
 	{
 		int i, out_size = 0;
 
 		for (i=0; i<(int)size; i++)
 		{
-			if(esc_clear_screen && chars[i] == '\x1b')
-			{
-				clear_buffer();
-				continue;
-			}
 			if(crlf_auto)
 			{
 				if (chars[i] == '\r')
@@ -160,7 +155,7 @@ void put_chars(const char *chars, size_t size, gboolean crlf_auto, gboolean esc_
 		// converted newline characters
 		chars = out_buffer;
 		size = out_size;
-	} // if(crlf_auto || timestamp_on || esc_clear_screen)
+	} // if(crlf_auto || timestamp_on)
 
 	if(buffer == NULL)
 	{

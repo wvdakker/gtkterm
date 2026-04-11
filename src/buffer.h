@@ -25,7 +25,7 @@
 
 void create_buffer(void);
 void delete_buffer(void);
-void put_chars(const char *, size_t, gboolean, gboolean);
+void put_chars(const char *, size_t, gboolean);
 void clear_buffer(void);
 void write_buffer(void);
 void set_display_func(void (*func)(const char *, size_t));
