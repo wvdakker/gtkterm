@@ -43,4 +43,8 @@ gint Load_configuration_from_file(const gchar *config_name);
 void Verify_configuration(void);
 gint Check_configuration_file(void);
 
+/* Window geometry: auto-saved to [window] section, independent of named configs */
+void save_window_geometry(void);
+void load_window_geometry(void);
+
 #endif /* CONFIG_FILE_H_ */

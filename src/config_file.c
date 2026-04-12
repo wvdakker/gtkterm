@@ -494,3 +494,64 @@ gint Check_configuration_file(void)
 	}
 	return 0;
 }
+
+/* ------------------------------------------------------------------ */
+/* Window geometry persistence — stored in the [window] section,      */
+/* independent of named port-configuration sections.                  */
+/* ------------------------------------------------------------------ */
+
+#define WINDOW_SECTION "window"
+
+void save_window_geometry(void)
+{
+	if (!Fenetre)
+		return;
+
+	int width  = gtk_widget_get_width(GTK_WIDGET(Fenetre));
+	int height = gtk_widget_get_height(GTK_WIDGET(Fenetre));
+
+	if (width <= 0 || height <= 0)
+		return;
+
+	GKeyFile *kf = get_key_file();
+	g_key_file_set_integer(kf, WINDOW_SECTION, "width",  width);
+	g_key_file_set_integer(kf, WINDOW_SECTION, "height", height);
+	save_key_file();
+}
+
+void load_window_geometry(void)
+{
+	if (!Fenetre)
+		return;
+
+	GKeyFile *kf = get_key_file();
+	if (!g_key_file_has_group(kf, WINDOW_SECTION))
+		return;
+
+	int width  = g_key_file_get_integer(kf, WINDOW_SECTION, "width",  NULL);
+	int height = g_key_file_get_integer(kf, WINDOW_SECTION, "height", NULL);
+
+	if (width <= 0 || height <= 0)
+		return;
+
+	/* Clamp to the work area of the first monitor (excludes taskbars/panels) */
+	GdkDisplay *gdk_disp = gdk_display_get_default();
+	if (gdk_disp)
+	{
+		GListModel *monitors = gdk_display_get_monitors(gdk_disp);
+		if (monitors && g_list_model_get_n_items(monitors) > 0)
+		{
+			GdkMonitor *monitor = g_list_model_get_item(monitors, 0);
+			if (monitor)
+			{
+				GdkRectangle workarea;
+				gdk_monitor_get_geometry(monitor, &workarea);
+				width  = CLAMP(width,  100, workarea.width);
+				height = CLAMP(height, 100, workarea.height);
+				g_object_unref(monitor);
+			}
+		}
+	}
+
+	gtk_window_set_default_size(GTK_WINDOW(Fenetre), width, height);
+}

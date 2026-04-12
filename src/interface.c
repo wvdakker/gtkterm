@@ -29,6 +29,7 @@
 #include "port_config_dialog.h"
 #include "terminal_config.h"
 #include "config_dialog.h"
+#include "config_file.h"
 #include "files.h"
 #include "search.h"
 #include "serial.h"
@@ -97,7 +98,14 @@ static gboolean on_macro_key_pressed(GtkEventControllerKey *ctrl,
 
 static void file_exit_cb(GSimpleAction *a, GVariant *p, gpointer data)
 {
+	save_window_geometry();
 	g_application_quit(G_APPLICATION(main_app));
+}
+
+static gboolean on_main_window_close_request(GtkWidget *widget, gpointer data)
+{
+	save_window_geometry();
+	return FALSE;
 }
 
 static void clear_screen_cb(GSimpleAction *a, GVariant *p, gpointer data)
@@ -607,6 +615,11 @@ void create_main_window(GtkApplication *app)
 	gtk_widget_add_controller(Fenetre, macro_key_ctrl);
 
 	g_timeout_add(POLL_DELAY, control_signals_read, NULL);
+
+	g_signal_connect(Fenetre, "close-request",
+	                 G_CALLBACK(on_main_window_close_request), NULL);
+
+	load_window_geometry();
 
 	gtk_widget_set_visible(Fenetre, TRUE);
 	search_bar_hide(searchBar);
