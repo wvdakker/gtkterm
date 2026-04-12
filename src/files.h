@@ -18,10 +18,10 @@
 void send_raw_file(GSimpleAction *action, GVariant *param, gpointer data);
 void save_raw_file(GSimpleAction *action, GVariant *param, gpointer data);
 void save_ascii_file(GSimpleAction *action, GVariant *param, gpointer data);
+void files_cleanup(void);
 void add_input(void);
 
 extern gboolean waiting_for_char;
 extern gchar *fic_defaut;
-
 
 #endif

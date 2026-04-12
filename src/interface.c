@@ -149,6 +149,16 @@ static void signals_toggle_RTS_cb(GSimpleAction *a, GVariant *p, gpointer data)
 	Set_signals(1);
 }
 
+static void on_signal_label_clicked(GtkGestureClick *gesture, int n_press,
+                                    double x, double y, gpointer data)
+{
+	int param = GPOINTER_TO_INT(data);
+	/* RTS is managed by the driver under HW flow control (flux==2) or RS485 (flux==3) */
+	if (param == 1 && (config.flux == 2 || config.flux == 3))
+		return;
+	Set_signals(param);
+}
+
 static void signals_close_port_cb(GSimpleAction *a, GVariant *p, gpointer data)
 {
 	interface_close_port();
@@ -523,6 +533,17 @@ void create_main_window(GtkApplication *app)
 	signals[1]      = GTK_WIDGET(gtk_builder_get_object(builder, "signal_dsr"));
 	signals[0]      = GTK_WIDGET(gtk_builder_get_object(builder, "signal_ri"));
 
+	/* Click-to-toggle for output signals DTR and RTS */
+	GtkGesture *dtr_click = gtk_gesture_click_new();
+	g_signal_connect(dtr_click, "pressed",
+	                 G_CALLBACK(on_signal_label_clicked), GINT_TO_POINTER(0));
+	gtk_widget_add_controller(signals[5], GTK_EVENT_CONTROLLER(dtr_click));
+
+	GtkGesture *rts_click = gtk_gesture_click_new();
+	g_signal_connect(rts_click, "pressed",
+	                 G_CALLBACK(on_signal_label_clicked), GINT_TO_POINTER(1));
+	gtk_widget_add_controller(signals[4], GTK_EVENT_CONTROLLER(rts_click));
+
 	/* VTE terminal */
 	display = vte_terminal_new();
 
@@ -698,8 +719,11 @@ void show_control_signals(int stat)
 	gtk_widget_set_sensitive(signals[1], (stat & TIOCM_DSR) != 0);
 	gtk_widget_set_sensitive(signals[2], (stat & TIOCM_CD)  != 0);
 	gtk_widget_set_sensitive(signals[3], (stat & TIOCM_CTS) != 0);
-	gtk_widget_set_sensitive(signals[4], (stat & TIOCM_RTS) != 0);
-	gtk_widget_set_sensitive(signals[5], (stat & TIOCM_DTR) != 0);
+	/* DTR and RTS: use opacity to show on/off state; always sensitive so the
+	   signal level is visible. Clicking RTS when driver-managed (HW flow or
+	   RS485) is silently ignored in on_signal_label_clicked(). */
+	gtk_widget_set_opacity(signals[5], (stat & TIOCM_DTR) ? 1.0 : 0.3);
+	gtk_widget_set_opacity(signals[4], (stat & TIOCM_RTS) ? 1.0 : 0.3);
 }
 
 gboolean control_signals_read(gpointer user_data)

@@ -199,7 +199,7 @@ void Copy_configuration(GKeyFile *kf, const gchar *section)
 {
 	static const char *parity_names[] = { "none", "odd",  "even" };
 	static const char *flow_names[]   = { "none", "xon",  "rts", "rs485" };
-	gchar *font_raw;
+	gchar *font_raw, *font_quoted;
 	gint size;
 
 	g_key_file_set_string( kf, section, "port",                     config.port);
@@ -221,7 +221,10 @@ void Copy_configuration(GKeyFile *kf, const gchar *section)
 	font_raw = term_conf.font_desc
 	    ? pango_font_description_to_string(term_conf.font_desc)
 	    : NULL;
-	g_key_file_set_string(kf, section, "font", font_raw ?: DEFAULT_FONT);
+
+	font_quoted = g_shell_quote(font_raw ?: DEFAULT_FONT);
+	g_key_file_set_string(kf, section, "font", font_quoted);
+	g_free(font_quoted);
 	g_free(font_raw);
 
 	macro_t *macros = get_shortcuts(&size);

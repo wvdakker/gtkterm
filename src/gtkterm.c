@@ -28,6 +28,7 @@
 #include "config_file.h"
 #include "device_monitor.h"
 #include "user_signals.h"
+#include "files.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
@@ -43,6 +44,7 @@ static void on_shutdown(GtkApplication *app, gpointer user_data)
 	Close_port();
 	device_monitor_stop();
 	config_file_free();
+	files_cleanup();
 }
 
 static void activate(GtkApplication *app, gpointer user_data)

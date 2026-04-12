@@ -377,12 +377,10 @@ int lis_sig(void)
 			return -2;
 		}
 
-		if(stat_read == stat)
-			return -1;
-
-		stat = stat_read;
-
-		return stat;
+		if(stat_read != stat) {
+			stat = stat_read;
+			return stat_read;
+		}
 	}
 	return -1;
 }

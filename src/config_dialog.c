@@ -15,13 +15,15 @@ static void delete_config(gpointer, gint, GtkSingleSelection *);
 static void save_config(gpointer, gint, GtkWidget *);
 static void really_save_config(gpointer, gint, gconstpointer);
 
-static void on_load_ok_clicked(GtkButton *btn, GtkSingleSelection *sel)
+static void on_load_ok_clicked(GtkSingleSelection *sel, GtkButton *btn)
 {
+	(void)btn;
 	load_config(NULL, GTK_RESPONSE_ACCEPT, sel);
 }
 
-static void on_delete_ok_clicked(GtkButton *btn, GtkSingleSelection *sel)
+static void on_delete_ok_clicked(GtkSingleSelection *sel, GtkButton *btn)
 {
+	(void)btn;
 	delete_config(NULL, GTK_RESPONSE_ACCEPT, sel);
 }
 
@@ -32,8 +34,9 @@ static void Select_config(gchar *title, GCallback on_ok)
 
 	GtkBuilderCScope *scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
 	gtk_builder_cscope_add_callback_symbols(scope,
-	    "on_ok_clicked",      on_ok,
-	    "gtk_window_destroy", G_CALLBACK(gtk_window_destroy),
+	    "on_ok_clicked",                on_ok,
+	    "gtk_window_destroy",           G_CALLBACK(gtk_window_destroy),
+	    "gtk_widget_activate_default",  G_CALLBACK(gtk_widget_activate_default),
 	    NULL);
 
 	GtkBuilder *builder = gtk_builder_new();
@@ -60,7 +63,7 @@ static void Select_config(gchar *title, GCallback on_ok)
 	gtk_window_present(GTK_WINDOW(dialog));
 }
 
-static void on_save_ok_clicked(GtkButton *btn, gpointer entry)
+static void on_save_ok_clicked(GtkEditable *entry, GtkButton *btn)
 {
 	save_config(NULL, GTK_RESPONSE_ACCEPT, GTK_WIDGET(entry));
 }

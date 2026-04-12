@@ -353,17 +353,19 @@
             <child>
               <object class="GtkLabel" id="signal_dtr">
                 <property name="label">DTR</property>
-                <property name="sensitive">False</property>
+                <property name="opacity">0.3</property>
                 <property name="margin-start">5</property>
                 <property name="margin-end">5</property>
+                <property name="cursor">pointer</property>
               </object>
             </child>
             <child>
               <object class="GtkLabel" id="signal_rts">
                 <property name="label">RTS</property>
-                <property name="sensitive">False</property>
+                <property name="opacity">0.3</property>
                 <property name="margin-start">5</property>
                 <property name="margin-end">5</property>
+                <property name="cursor">pointer</property>
               </object>
             </child>
             <child>

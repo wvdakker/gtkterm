@@ -40,6 +40,8 @@
                 <property name="text">default</property>
                 <property name="hexpand">True</property>
                 <signal name="insert-text" handler="check_text_input_alnum"/>
+                <signal name="activate" handler="on_save_ok_clicked" object="save_config_entry" swapped="yes"/>
+                <signal name="activate" handler="gtk_window_destroy" object="save_config_window" swapped="yes"/>
               </object>
             </child>
           </object>
@@ -71,7 +73,7 @@
               <object class="GtkButton" id="save_config_ok">
                 <property name="label" translatable="yes">_OK</property>
                 <property name="use-underline">True</property>
-                <signal name="clicked" handler="on_save_ok_clicked" object="save_config_entry"/>
+                <signal name="clicked" handler="on_save_ok_clicked" object="save_config_entry" swapped="yes"/>
                 <signal name="clicked" handler="gtk_window_destroy" object="save_config_window" swapped="yes"/>
               </object>
             </child>
