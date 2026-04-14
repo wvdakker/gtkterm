@@ -89,15 +89,6 @@ static gboolean on_hex_key_pressed(GtkEventControllerKey *ctrl,
                                     guint keyval, guint keycode,
                                     GdkModifierType state, gpointer user_data);
 
-static gboolean on_macro_key_pressed(GtkEventControllerKey *ctrl,
-                                     guint keyval, guint keycode,
-                                     GdkModifierType state, gpointer user_data)
-{
-	if (hotkeys_disabled)
-		return FALSE;
-	return macros_process_key(keyval, state);
-}
-
 static void file_exit_cb(GSimpleAction *a, GVariant *p, gpointer data)
 {
 	save_window_geometry();
@@ -257,6 +248,7 @@ static void disable_hotkeys_change_state(GSimpleAction *a, GVariant *s, gpointer
 	hotkeys_disabled = g_variant_get_boolean(s);
 	config.disable_hotkeys = hotkeys_disabled;
 	g_simple_action_set_state(a, s);
+	set_macros_shortcuts_enabled(!hotkeys_disabled);
 	for (gsize i = 0; i < G_N_ELEMENTS(app_accels); i++) {
 		if (hotkeys_disabled) {
 			const char *empty[] = { NULL };
@@ -406,6 +398,7 @@ void Set_timestamp(gboolean timestamp)
 void Set_hotkeys_disabled(gboolean disabled)
 {
 	hotkeys_disabled = disabled;
+	set_macros_shortcuts_enabled(!hotkeys_disabled);
 	GAction *action = g_action_map_lookup_action(G_ACTION_MAP(main_app), "disable-hotkeys");
 	if (action)
 		g_simple_action_set_state(G_SIMPLE_ACTION(action),
@@ -643,11 +636,8 @@ void create_main_window(GtkApplication *app)
 	got_input_handler_id = g_signal_connect_after(GTK_WIDGET(display), "commit",
 	                                              G_CALLBACK(Got_Input), NULL);
 
-	/* Key controller for macro shortcuts on the main window */
-	GtkEventController *macro_key_ctrl = gtk_event_controller_key_new();
-	g_signal_connect(macro_key_ctrl, "key-pressed",
-	                 G_CALLBACK(on_macro_key_pressed), NULL);
-	gtk_widget_add_controller(Fenetre, macro_key_ctrl);
+	/* Install GtkShortcutController for macro shortcuts on the main window */
+	install_macro_shortcut_controller(Fenetre);
 
 	g_signal_connect(Fenetre, "close-request",
 	                 G_CALLBACK(on_main_window_close_request), NULL);

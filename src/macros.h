@@ -28,10 +28,8 @@ void Config_macros(GSimpleAction *action, GVariant *param, gpointer data);
 void remove_shortcuts(void);
 void create_shortcuts(macro_t *, gint);
 macro_t *get_shortcuts(gint *);
-
-/* Process a key event against registered macros.
- * Returns TRUE if a macro was triggered. */
-gboolean macros_process_key(guint keyval, GdkModifierType state);
+void install_macro_shortcut_controller(GtkWidget *main_window);
+void set_macros_shortcuts_enabled(gboolean enabled);
 
 #endif
 

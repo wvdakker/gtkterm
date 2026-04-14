@@ -26,6 +26,10 @@
 macro_t *macros = NULL;
 static GtkWidget *window = NULL;
 
+/* Shortcut controller attached to the main window */
+static GtkShortcutController *macro_ctrl = NULL;
+static GPtrArray *macro_shortcuts = NULL; /* owned GtkShortcut* refs */
+
 macro_t *get_shortcuts(gint *size)
 {
 	gint i = 0;
@@ -37,6 +41,14 @@ macro_t *get_shortcuts(gint *size)
 	}
 	*size = i;
 	return macros;
+}
+
+static void shortcut_callback(gpointer *number); /* forward declaration */
+
+static gboolean macro_shortcut_activated(GtkWidget *widget, GVariant *args, gpointer user_data)
+{
+	shortcut_callback(user_data);
+	return TRUE;
 }
 
 static void shortcut_callback(gpointer *number)
@@ -115,29 +127,23 @@ static void shortcut_callback(gpointer *number)
 	Put_temp_message(msg, 800);
 }
 
-/* Process a key event and trigger a macro if a match is found */
-gboolean macros_process_key(guint keyval, GdkModifierType state)
+void install_macro_shortcut_controller(GtkWidget *main_window)
 {
-	gintptr i;
-	guint acc_key;
-	GdkModifierType mod;
+	if (macro_ctrl != NULL)
+		return;
+	macro_ctrl = GTK_SHORTCUT_CONTROLLER(gtk_shortcut_controller_new());
+	gtk_shortcut_controller_set_scope(macro_ctrl, GTK_SHORTCUT_SCOPE_MANAGED);
+	macro_shortcuts = g_ptr_array_new_with_free_func(g_object_unref);
+	gtk_widget_add_controller(main_window, GTK_EVENT_CONTROLLER(macro_ctrl));
+}
 
-	if (macros == NULL)
-		return FALSE;
-
-	for (i = 0; macros[i].shortcut != NULL; i++)
-	{
-		acc_key = 0;
-		mod = 0;
-		gtk_accelerator_parse(macros[i].shortcut, &acc_key, &mod);
-		if (acc_key != 0 && keyval == acc_key &&
-		    (state & gtk_accelerator_get_default_mod_mask()) == mod)
-		{
-			shortcut_callback((gpointer)i);
-			return TRUE;
-		}
-	}
-	return FALSE;
+void set_macros_shortcuts_enabled(gboolean enabled)
+{
+	if (macro_ctrl == NULL)
+		return;
+	gtk_event_controller_set_propagation_phase(
+		GTK_EVENT_CONTROLLER(macro_ctrl),
+		enabled ? GTK_PHASE_BUBBLE : GTK_PHASE_NONE);
 }
 
 void create_shortcuts(macro_t *macro, gint size)
@@ -154,11 +160,38 @@ void create_shortcuts(macro_t *macro, gint size)
 	}
 	macros[size].shortcut = NULL;
 	macros[size].action = NULL;
+
+	/* Register GtkShortcut entries for each macro */
+	if (macro_ctrl != NULL)
+	{
+		for (i = 0; i < size; i++)
+		{
+			guint keyval = 0;
+			GdkModifierType mods = 0;
+			if (!gtk_accelerator_parse(macros[i].shortcut, &keyval, &mods) || keyval == 0)
+				continue;
+			GtkShortcutTrigger *trigger = gtk_keyval_trigger_new(keyval, mods);
+			GtkShortcutAction  *act    = gtk_callback_action_new(
+				macro_shortcut_activated, GINT_TO_POINTER(i), NULL);
+			GtkShortcut *sc = gtk_shortcut_new(trigger, act);
+			gtk_shortcut_controller_add_shortcut(macro_ctrl, g_object_ref(sc));
+			g_ptr_array_add(macro_shortcuts, sc); /* takes ownership */
+		}
+	}
 }
 
 void remove_shortcuts(void)
 {
 	gint i = 0;
+
+	/* Remove GtkShortcut registrations */
+	if (macro_ctrl != NULL && macro_shortcuts != NULL)
+	{
+		for (guint j = 0; j < macro_shortcuts->len; j++)
+			gtk_shortcut_controller_remove_shortcut(
+				macro_ctrl, g_ptr_array_index(macro_shortcuts, j));
+		g_ptr_array_set_size(macro_shortcuts, 0);
+	}
 
 	if (macros == NULL)
 		return;
