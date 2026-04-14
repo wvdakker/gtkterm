@@ -166,6 +166,16 @@ static void signals_open_port_cb(GSimpleAction *a, GVariant *p, gpointer data)
 	interface_open_port();
 }
 
+static void help_shortcuts_cb(GSimpleAction *a, GVariant *p, gpointer data)
+{
+	GtkBuilder *builder = gtk_builder_new_from_resource(
+		"/org/gtk/gtkterm/shortcuts_window.ui");
+	GtkWidget *sw = GTK_WIDGET(gtk_builder_get_object(builder, "shortcuts_window"));
+	g_object_unref(builder);
+	gtk_window_set_transient_for(GTK_WINDOW(sw), GTK_WINDOW(Fenetre));
+	gtk_window_present(GTK_WINDOW(sw));
+}
+
 static void help_about_cb(GSimpleAction *a, GVariant *p, gpointer data)
 {
 	const gchar *authors[] = {"Julien Schimtt", "Zach Davis", "Florian Euchner", "Stephan Enderlein",
@@ -206,6 +216,7 @@ static const struct { const char *action; const char *accel; } app_accels[] = {
 	{ "app.signals-close-port", "F6" },
 	{ "app.signals-dtr",        "F7" },
 	{ "app.signals-rts",        "F8" },
+	{ "app.help-shortcuts",     "F1" },
 };
 
 static void echo_change_state(GSimpleAction *a, GVariant *s, gpointer data)
@@ -321,6 +332,7 @@ static const GActionEntry app_actions[] = {
 	{ "signals-close-port", signals_close_port_cb },
 	{ "signals-dtr",        signals_toggle_DTR_cb },
 	{ "signals-rts",        signals_toggle_RTS_cb },
+	{ "help-shortcuts",     help_shortcuts_cb },
 	{ "help-about",         help_about_cb },
 	/* Stateful toggles (NULL activate, type, initial state, change-state) */
 	{ "local-echo",         NULL, NULL, "false", echo_change_state },
