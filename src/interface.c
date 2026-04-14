@@ -48,6 +48,7 @@ gboolean autoreconnect_on;
 gboolean crlfauto_on;
 gboolean esc_clear_screen_on;
 gboolean timestamp_on = 0;
+static gboolean hotkeys_disabled = FALSE;
 GtkWidget *StatusBar;
 GtkWidget *signals[6];
 static GtkWidget *Hex_Box;
@@ -84,7 +85,6 @@ void set_saved_data(GtkWidget *widget, gboolean direction);
 void update_copy_sensivity(VteTerminal *terminal, gpointer data);
 void show_control_signals(int stat);
 static void Got_Input(VteTerminal *widget, gchar *text, guint length, gpointer ptr);
-gboolean control_signals_read(gpointer user_data);
 static gboolean on_hex_key_pressed(GtkEventControllerKey *ctrl,
                                     guint keyval, guint keycode,
                                     GdkModifierType state, gpointer user_data);
@@ -93,6 +93,8 @@ static gboolean on_macro_key_pressed(GtkEventControllerKey *ctrl,
                                      guint keyval, guint keycode,
                                      GdkModifierType state, gpointer user_data)
 {
+	if (hotkeys_disabled)
+		return FALSE;
 	return macros_process_key(keyval, state);
 }
 
@@ -160,11 +162,7 @@ static void signals_toggle_RTS_cb(GSimpleAction *a, GVariant *p, gpointer data)
 static void on_signal_label_clicked(GtkGestureClick *gesture, int n_press,
                                     double x, double y, gpointer data)
 {
-	int param = GPOINTER_TO_INT(data);
-	/* RTS is managed by the driver under HW flow control (flux==2) or RS485 (flux==3) */
-	if (param == 1 && (config.flux == 2 || config.flux == 3))
-		return;
-	Set_signals(param);
+	Set_signals(GPOINTER_TO_INT(data));
 }
 
 static void signals_close_port_cb(GSimpleAction *a, GVariant *p, gpointer data)
@@ -204,6 +202,21 @@ static void help_about_cb(GSimpleAction *a, GVariant *p, gpointer data)
 
 /* Toggle / radio change-state callbacks */
 
+static const struct { const char *action; const char *accel; } app_accels[] = {
+	{ "app.file-exit",          "<Shift><Control>Q" },
+	{ "app.clear-screen",       "<Shift><Control>L" },
+	{ "app.edit-copy",          "<Shift><Control>C" },
+	{ "app.edit-paste",         "<Shift><Control>V" },
+	{ "app.edit-find",          "<Shift><Control>F" },
+	{ "app.edit-select-all",    "<Shift><Control>A" },
+	{ "app.config-port",        "<Shift><Control>S" },
+	{ "app.signals-send-break", "<Shift><Control>B" },
+	{ "app.signals-open-port",  "F5" },
+	{ "app.signals-close-port", "F6" },
+	{ "app.signals-dtr",        "F7" },
+	{ "app.signals-rts",        "F8" },
+};
+
 static void echo_change_state(GSimpleAction *a, GVariant *s, gpointer data)
 {
 	echo_on = g_variant_get_boolean(s);
@@ -237,6 +250,22 @@ static void timestamp_change_state(GSimpleAction *a, GVariant *s, gpointer data)
 	timestamp_on = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 	config.timestamp = timestamp_on;
+}
+
+static void disable_hotkeys_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+{
+	hotkeys_disabled = g_variant_get_boolean(s);
+	config.disable_hotkeys = hotkeys_disabled;
+	g_simple_action_set_state(a, s);
+	for (gsize i = 0; i < G_N_ELEMENTS(app_accels); i++) {
+		if (hotkeys_disabled) {
+			const char *empty[] = { NULL };
+			gtk_application_set_accels_for_action(main_app, app_accels[i].action, empty);
+		} else {
+			const char *accel_list[] = { app_accels[i].accel, NULL };
+			gtk_application_set_accels_for_action(main_app, app_accels[i].action, accel_list);
+		}
+	}
 }
 
 static void view_index_change_state(GSimpleAction *a, GVariant *s, gpointer data)
@@ -307,6 +336,7 @@ static const GActionEntry app_actions[] = {
 	{ "crlfauto",           NULL, NULL, "false", crlfauto_change_state },
 	{ "esc-clear-screen",   NULL, NULL, "false", esc_clear_screen_change_state },
 	{ "timestamp",          NULL, NULL, "false", timestamp_change_state },
+	{ "disable-hotkeys",    NULL, NULL, "false", disable_hotkeys_change_state },
 	{ "view-index",         NULL, NULL, "false", view_index_change_state },
 	{ "view-send-hex",      NULL, NULL, "false", view_send_hex_change_state },
 	/* Stateful radio actions */
@@ -320,23 +350,9 @@ static const GActionEntry app_actions[] = {
 
 static void register_keyboard_shortcuts(GtkApplication *app)
 {
-	static const struct { const char *action; const char *accel; } accels[] = {
-		{ "app.file-exit",          "<Shift><Control>Q" },
-		{ "app.clear-screen",       "<Shift><Control>L" },
-		{ "app.edit-copy",          "<Shift><Control>C" },
-		{ "app.edit-paste",         "<Shift><Control>V" },
-		{ "app.edit-find",          "<Shift><Control>F" },
-		{ "app.edit-select-all",    "<Shift><Control>A" },
-		{ "app.config-port",        "<Shift><Control>S" },
-		{ "app.signals-send-break", "<Shift><Control>B" },
-		{ "app.signals-open-port",  "F5" },
-		{ "app.signals-close-port", "F6" },
-		{ "app.signals-dtr",        "F7" },
-		{ "app.signals-rts",        "F8" },
-	};
-	for (gsize i = 0; i < G_N_ELEMENTS(accels); i++) {
-		const char *accel_list[] = { accels[i].accel, NULL };
-		gtk_application_set_accels_for_action(app, accels[i].action, accel_list);
+	for (gsize i = 0; i < G_N_ELEMENTS(app_accels); i++) {
+		const char *accel_list[] = { app_accels[i].accel, NULL };
+		gtk_application_set_accels_for_action(app, app_accels[i].action, accel_list);
 	}
 }
 
@@ -385,6 +401,24 @@ void Set_timestamp(gboolean timestamp)
 	if (action)
 		g_simple_action_set_state(G_SIMPLE_ACTION(action),
 		                          g_variant_new_boolean(timestamp_on));
+}
+
+void Set_hotkeys_disabled(gboolean disabled)
+{
+	hotkeys_disabled = disabled;
+	GAction *action = g_action_map_lookup_action(G_ACTION_MAP(main_app), "disable-hotkeys");
+	if (action)
+		g_simple_action_set_state(G_SIMPLE_ACTION(action),
+		                          g_variant_new_boolean(hotkeys_disabled));
+	for (gsize i = 0; i < G_N_ELEMENTS(app_accels); i++) {
+		if (hotkeys_disabled) {
+			const char *empty[] = { NULL };
+			gtk_application_set_accels_for_action(main_app, app_accels[i].action, empty);
+		} else {
+			const char *accel_list[] = { app_accels[i].accel, NULL };
+			gtk_application_set_accels_for_action(main_app, app_accels[i].action, accel_list);
+		}
+	}
 }
 
 static gboolean reenable_commit_cb(gpointer data)
@@ -558,6 +592,7 @@ void create_main_window(GtkApplication *app)
 	vte_terminal_set_scroll_on_output(VTE_TERMINAL(display), FALSE);
 	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(display), TRUE);
 	vte_terminal_set_mouse_autohide(VTE_TERMINAL(display), TRUE);
+	vte_terminal_set_cursor_blink_mode(VTE_TERMINAL(display), VTE_CURSOR_BLINK_OFF);
 	vte_terminal_set_backspace_binding(VTE_TERMINAL(display),
 	                                   VTE_ERASE_ASCII_BACKSPACE);
 
@@ -613,8 +648,6 @@ void create_main_window(GtkApplication *app)
 	g_signal_connect(macro_key_ctrl, "key-pressed",
 	                 G_CALLBACK(on_macro_key_pressed), NULL);
 	gtk_widget_add_controller(Fenetre, macro_key_ctrl);
-
-	g_timeout_add(POLL_DELAY, control_signals_read, NULL);
 
 	g_signal_connect(Fenetre, "close-request",
 	                 G_CALLBACK(on_main_window_close_request), NULL);
@@ -739,11 +772,14 @@ void show_control_signals(int stat)
 	gtk_widget_set_opacity(signals[4], (stat & TIOCM_RTS) ? 1.0 : 0.3);
 }
 
-gboolean control_signals_read(gpointer user_data)
+gboolean control_signals_read(void)
 {
-	int state = lis_sig();
+	int state;
+
+	state = lis_sig();
 	if (state >= 0)
 		show_control_signals(state);
+
 	return TRUE;
 }
 

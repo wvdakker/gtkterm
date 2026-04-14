@@ -178,6 +178,7 @@ void Hard_default_configuration(void)
 	config.esc_clear_screen = FALSE;
 	config.timestamp = FALSE;
 	config.disable_port_lock = FALSE;
+	config.disable_hotkeys = FALSE;
 
 	set_terminal_font_from_string(DEFAULT_FONT);
 
@@ -217,6 +218,7 @@ void Copy_configuration(GKeyFile *kf, const gchar *section)
 	g_key_file_set_boolean(kf, section, "autoreconnect_enabled",    config.autoreconnect_enabled);
 	g_key_file_set_boolean(kf, section, "esc_clear_screen",         config.esc_clear_screen);
 	g_key_file_set_boolean(kf, section, "timestamp",                config.timestamp);
+	g_key_file_set_boolean(kf, section, "disable_hotkeys",          config.disable_hotkeys);
 
 	font_raw = term_conf.font_desc
 	    ? pango_font_description_to_string(term_conf.font_desc)
@@ -337,6 +339,7 @@ gint Load_configuration_from_file(const gchar *config_name)
 	config.autoreconnect_enabled = kf_get_bool(kf, config_name, "autoreconnect_enabled", FALSE);
 	config.esc_clear_screen      = kf_get_bool(kf, config_name, "esc_clear_screen",      FALSE);
 	config.timestamp             = kf_get_bool(kf, config_name, "timestamp",             FALSE);
+	config.disable_hotkeys       = kf_get_bool(kf, config_name, "disable_hotkeys",       FALSE);
 
 	s = g_key_file_get_string(kf, config_name, "font", NULL);
 	if (s) {

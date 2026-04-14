@@ -125,6 +125,10 @@
           <attribute name="label" translatable="yes">_Macros</attribute>
           <attribute name="action">app.macros</attribute>
         </item>
+        <item>
+          <attribute name="label" translatable="yes">Disable _hotkeys</attribute>
+          <attribute name="action">app.disable-hotkeys</attribute>
+        </item>
       </section>
       <section>
         <item>

@@ -11,6 +11,7 @@ void ConfigFlags(void)
 	Set_autoreconnect_enabled(config.autoreconnect_enabled);
 	Set_esc_clear_screen(config.esc_clear_screen);
 	Set_timestamp(config.timestamp);
+	Set_hotkeys_disabled(config.disable_hotkeys);
 }
 
 /**
