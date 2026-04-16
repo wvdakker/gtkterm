@@ -48,11 +48,12 @@ GKeyFile *get_key_file(void)
 {
 	if (!gkf)
 	{
-		gkf = g_key_file_new();
-		GError *err = NULL;
-	gchar *path = g_file_get_path(config_file);
-	g_key_file_load_from_file(gkf, path, G_KEY_FILE_KEEP_COMMENTS, &err);
-	g_free(path);
+		GError *err  = NULL;
+		gchar  *path;
+		gkf  = g_key_file_new();
+		path = g_file_get_path(config_file);
+		g_key_file_load_from_file(gkf, path, G_KEY_FILE_KEEP_COMMENTS, &err);
+		g_free(path);
 		g_clear_error(&err); /* ignore "file not found" */
 	}
 	return gkf;
@@ -77,10 +78,10 @@ gboolean save_key_file(void)
 static gfloat kf_get_color(GKeyFile *kf, const gchar *section,
                             const gchar *key, gfloat default_val)
 {
+	gfloat val;
 	gchar *s = g_key_file_get_string(kf, section, key, NULL);
 	if (!s)
 		return default_val;
-	gfloat val;
 	if (strchr(s, '.')) {
 		/* explicit decimal point → legacy double 0.0–1.0 */
 		val = (gfloat)g_ascii_strtod(s, NULL);
@@ -101,10 +102,11 @@ static gfloat kf_get_color(GKeyFile *kf, const gchar *section,
 static gboolean kf_get_bool(GKeyFile *kf, const gchar *section,
                             const gchar *key, gboolean default_val)
 {
+	gboolean val;
 	gchar *s = g_key_file_get_string(kf, section, key, NULL);
 	if (!s)
 		return default_val;
-	gboolean val = default_val;
+	val = default_val;
 	if (!g_ascii_strcasecmp(s, "true")  || !g_ascii_strcasecmp(s, "yes") || !strcmp(s, "1"))
 		val = TRUE;
 	else if (!g_ascii_strcasecmp(s, "false") || !g_ascii_strcasecmp(s, "no") || !strcmp(s, "0"))
@@ -200,8 +202,22 @@ void Copy_configuration(GKeyFile *kf, const gchar *section)
 {
 	static const char *parity_names[] = { "none", "odd",  "even" };
 	static const char *flow_names[]   = { "none", "xon",  "rts", "rs485" };
-	gchar *font_raw, *font_quoted;
-	gint size;
+	/* Use a fixed decimal format so the value always contains a '.'
+	 * (g_key_file_set_double omits the decimal for whole numbers like
+	 * 0.0 → "0", which breaks backward-compatible parsing). */
+	static const struct { const gchar *key; const gfloat *val; } color_fields[] = {
+		{ "term_foreground_red",   &term_conf.foreground_color.red   },
+		{ "term_foreground_green", &term_conf.foreground_color.green },
+		{ "term_foreground_blue",  &term_conf.foreground_color.blue  },
+		{ "term_foreground_alpha", &term_conf.foreground_color.alpha },
+		{ "term_background_red",   &term_conf.background_color.red   },
+		{ "term_background_green", &term_conf.background_color.green },
+		{ "term_background_blue",  &term_conf.background_color.blue  },
+		{ "term_background_alpha", &term_conf.background_color.alpha },
+	};
+	gchar   *font_raw, *font_quoted;
+	macro_t *macros;
+	gsize    size;
 
 	g_key_file_set_string( kf, section, "port",                     config.port);
 	g_key_file_set_integer(kf, section, "speed",                    (gint)config.vitesse);
@@ -229,18 +245,18 @@ void Copy_configuration(GKeyFile *kf, const gchar *section)
 	g_free(font_quoted);
 	g_free(font_raw);
 
-	macro_t *macros = get_shortcuts(&size);
+	macros = get_shortcuts(&size);
 	if (size > 0)
 	{
 		const gchar **macro_strs = g_new(const gchar *, size);
 		gchar       **alloc      = g_new(gchar *, size);
-		for (gint i = 0; i < size; i++)
+		for (guint i = 0; i < size; i++)
 		{
 			alloc[i]      = g_strdup_printf("%s::%s", macros[i].shortcut, macros[i].action);
 			macro_strs[i] = alloc[i];
 		}
 		g_key_file_set_string_list(kf, section, "macros", macro_strs, size);
-		for (gint i = 0; i < size; i++)
+		for (guint i = 0; i < size; i++)
 			g_free(alloc[i]);
 		g_free(alloc);
 		g_free(macro_strs);
@@ -254,19 +270,6 @@ void Copy_configuration(GKeyFile *kf, const gchar *section)
 	g_key_file_set_integer(kf, section, "term_scrollback",         term_conf.scrollback);
 	g_key_file_set_boolean(kf, section, "term_visual_bell",        term_conf.visual_bell);
 
-	/* Use a fixed decimal format so the value always contains a '.'
-	 * (g_key_file_set_double omits the decimal for whole numbers like
-	 * 0.0 → "0", which breaks backward-compatible parsing). */
-	static const struct { const gchar *key; const gfloat *val; } color_fields[] = {
-		{ "term_foreground_red",   &term_conf.foreground_color.red   },
-		{ "term_foreground_green", &term_conf.foreground_color.green },
-		{ "term_foreground_blue",  &term_conf.foreground_color.blue  },
-		{ "term_foreground_alpha", &term_conf.foreground_color.alpha },
-		{ "term_background_red",   &term_conf.background_color.red   },
-		{ "term_background_green", &term_conf.background_color.green },
-		{ "term_background_blue",  &term_conf.background_color.blue  },
-		{ "term_background_alpha", &term_conf.background_color.alpha },
-	};
 	for (gsize ci = 0; ci < G_N_ELEMENTS(color_fields); ci++)
 	{
 		g_autofree gchar *_s = g_strdup_printf("%.4f", *color_fields[ci].val);
@@ -280,9 +283,11 @@ void Copy_configuration(GKeyFile *kf, const gchar *section)
 
 gint Load_configuration_from_file(const gchar *config_name)
 {
-	GKeyFile *kf = get_key_file();
-	gchar    *s;
-	gint      v;
+	GKeyFile  *kf = get_key_file();
+	gchar    **macro_vals;
+	gchar     *s;
+	gsize      n_macros;
+	gint       v;
 
 	if (!g_key_file_has_group(kf, config_name))
 	{
@@ -353,8 +358,8 @@ gint Load_configuration_from_file(const gchar *config_name)
 	/* Macros — each entry is "shortcut::action" in a semicolon-separated list.
 	 * Note: old config files stored multiple "macros =" lines; GKeyFile only
 	 * keeps the last one, so existing multi-macro configs need one re-save. */
-	gsize n_macros = 0;
-	gchar **macro_vals = g_key_file_get_string_list(kf, config_name, "macros", &n_macros, NULL);
+	n_macros   = 0;
+	macro_vals = g_key_file_get_string_list(kf, config_name, "macros", &n_macros, NULL);
 	if (macro_vals && n_macros > 0)
 	{
 		macro_t *macros = g_new(macro_t, n_macros);
@@ -369,14 +374,8 @@ gint Load_configuration_from_file(const gchar *config_name)
 				n++;
 			}
 		}
-		create_shortcuts(macros, (gint)n);
-		for (gsize mi = 0; mi < n; mi++)
-		{
-			g_free(macros[mi].shortcut);
-			g_free(macros[mi].action);
-		}
-		g_free(macros);
 		g_strfreev(macro_vals);
+		create_shortcuts(macros, n); /* transfers ownership */
 	}
 
 	term_conf.block_cursor = kf_get_bool(kf, config_name, "term_block_cursor", TRUE);
