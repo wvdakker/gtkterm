@@ -248,6 +248,7 @@ void Lis_Config(void)
 {
 
 	gchar *message;
+	struct configuration_port prev_config = config;
 
 	g_strlcpy(config.port,
 	          gtk_editable_get_text(GTK_EDITABLE(port_entry)),
@@ -279,7 +280,8 @@ void Lis_Config(void)
 	else
 		config.car = -1;
 
-	Config_port();
+	if (memcmp(&config, &prev_config, sizeof(config)) != 0)
+		Config_port();
 	ConfigFlags();
 
 	message = get_port_string();
