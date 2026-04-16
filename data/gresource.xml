@@ -4,6 +4,7 @@
 		<file compressed="true">config_terminal_dialog.ui</file>
 		<file compressed="true">main_window.ui</file>
 		<file compressed="true">macros_dialog.ui</file>
+		<file compressed="true">macro_row.ui</file>
 		<file compressed="true">save_config_dialog.ui</file>
 		<file compressed="true">select_config_dialog.ui</file>
 		<file compressed="true">file_transfer_dialog.ui</file>

@@ -26,9 +26,9 @@ macro_t;
 
 void Config_macros(GSimpleAction *action, GVariant *param, gpointer data);
 void remove_shortcuts(void);
-void create_shortcuts(macro_t *, gint);
-macro_t *get_shortcuts(gint *);
-void install_macro_shortcut_controller(GtkWidget *main_window);
+void create_shortcuts(macro_t *, gsize);
+macro_t *get_shortcuts(gsize *);
+void install_macro_shortcut_controller(GtkShortcutController *ctrl);
 void set_macros_shortcuts_enabled(gboolean enabled);
 
 #endif

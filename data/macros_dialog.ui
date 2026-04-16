@@ -52,7 +52,7 @@
           </object>
         </child>
 
-        <!-- Scrolled window containing the listbox -->
+        <!-- Scrolled window containing the list box -->
         <child>
           <object class="GtkScrolledWindow" id="macros_sw">
             <property name="vexpand">True</property>
