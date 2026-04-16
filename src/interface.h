@@ -43,7 +43,7 @@ void Set_window_title(const gchar *msg);
 void interface_close_port(void);
 void interface_open_port(void);
 void show_control_signals(int stat);
-gboolean control_signals_read(void);
+gboolean control_signals_read(gpointer user_data);
 
 void toggle_logging_pause_resume(gboolean currentlyLogging);
 void toggle_logging_sensitivity(gboolean currentlyLogging);

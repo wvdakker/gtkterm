@@ -15,6 +15,7 @@
         <item>
           <attribute name="label" translatable="yes">_Clear screen</attribute>
           <attribute name="action">app.clear-screen</attribute>
+          <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;L</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">_Clear scrollback</attribute>
@@ -37,6 +38,7 @@
         <item>
           <attribute name="label" translatable="yes">_Quit</attribute>
           <attribute name="action">app.file-exit</attribute>
+          <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;Q</attribute>
         </item>
       </section>
     </submenu>
@@ -48,20 +50,24 @@
         <item>
           <attribute name="label" translatable="yes">_Copy</attribute>
           <attribute name="action">app.edit-copy</attribute>
+          <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;C</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">_Paste</attribute>
           <attribute name="action">app.edit-paste</attribute>
+          <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;V</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">_Find</attribute>
           <attribute name="action">app.edit-find</attribute>
+          <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;F</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Select _All</attribute>
           <attribute name="action">app.edit-select-all</attribute>
+          <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;A</attribute>
         </item>
       </section>
     </submenu>
@@ -96,6 +102,7 @@
         <item>
           <attribute name="label" translatable="yes">_Port</attribute>
           <attribute name="action">app.config-port</attribute>
+          <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;S</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">_Main window</attribute>
@@ -125,10 +132,6 @@
           <attribute name="label" translatable="yes">_Macros</attribute>
           <attribute name="action">app.macros</attribute>
         </item>
-        <item>
-          <attribute name="label" translatable="yes">Disable _hotkeys</attribute>
-          <attribute name="action">app.disable-hotkeys</attribute>
-        </item>
       </section>
       <section>
         <item>
@@ -153,22 +156,27 @@
         <item>
           <attribute name="label" translatable="yes">Send break</attribute>
           <attribute name="action">app.signals-send-break</attribute>
+          <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;B</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">_Open Port</attribute>
           <attribute name="action">app.signals-open-port</attribute>
+          <attribute name="accel">F5</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">_Close Port</attribute>
           <attribute name="action">app.signals-close-port</attribute>
+          <attribute name="accel">F6</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Toggle DTR</attribute>
           <attribute name="action">app.signals-dtr</attribute>
+          <attribute name="accel">F7</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Toggle RTS</attribute>
           <attribute name="action">app.signals-rts</attribute>
+          <attribute name="accel">F8</attribute>
         </item>
       </section>
     </submenu>
@@ -238,6 +246,7 @@
         <item>
           <attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
           <attribute name="action">app.help-shortcuts</attribute>
+          <attribute name="accel">&lt;Control&gt;question</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">_About</attribute>
@@ -283,6 +292,13 @@
        ============================================================ -->
 
   <object class="GtkApplicationWindow" id="main_window">
+    <signal name="close-request" handler="gtk_widget_unparent"
+            object="popup_menu" swapped="yes"/>
+    <child>
+      <object class="GtkShortcutController" id="macro_shortcut_ctrl">
+        <property name="scope">managed</property>
+      </object>
+    </child>
     <property name="default-width">750</property>
     <property name="default-height">550</property>
     <property name="icon-name">gtkterm</property>
@@ -304,13 +320,32 @@
           </object>
         </child>
 
-        <!-- Scrolled window; VTE terminal is set as its child in C -->
+        <!-- Scrolled window with VTE terminal -->
         <child>
           <object class="GtkScrolledWindow" id="scrolled_window">
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
             <property name="hscrollbar-policy">automatic</property>
             <property name="vscrollbar-policy">automatic</property>
+            <child>
+              <object class="VteTerminal" id="display">
+                <property name="scroll-on-output">False</property>
+                <property name="scroll-on-keystroke">True</property>
+                <property name="backspace-binding">ascii-backspace</property>
+                <signal name="selection-changed" handler="update_copy_sensivity"/>
+                <child>
+                  <object class="GtkGestureClick">
+                    <property name="button">3</property>
+                    <signal name="pressed" handler="on_right_click_pressed" object="popup_menu"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkEventControllerKey">
+                    <signal name="key-pressed" handler="terminal_popup_key_cb" object="popup_menu"/>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
         </child>
 
@@ -331,6 +366,11 @@
               <object class="GtkEntry" id="hex_send_entry">
                 <property name="hexpand">True</property>
                 <signal name="activate" handler="Send_Hexadecimal"/>
+                <child>
+                  <object class="GtkEventControllerKey">
+                    <signal name="key-pressed" handler="on_hex_key_pressed"/>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
@@ -364,7 +404,12 @@
                 <property name="opacity">0.3</property>
                 <property name="margin-start">5</property>
                 <property name="margin-end">5</property>
-                <property name="cursor">pointer</property>
+                <property name="cursor"><object class="GdkCursor"><property name="name">pointer</property></object></property>
+                <child>
+                  <object class="GtkGestureClick">
+                    <signal name="pressed" handler="on_dtr_clicked"/>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
@@ -373,7 +418,12 @@
                 <property name="opacity">0.3</property>
                 <property name="margin-start">5</property>
                 <property name="margin-end">5</property>
-                <property name="cursor">pointer</property>
+                <property name="cursor"><object class="GdkCursor"><property name="name">pointer</property></object></property>
+                <child>
+                  <object class="GtkGestureClick">
+                    <signal name="pressed" handler="on_rts_clicked"/>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
