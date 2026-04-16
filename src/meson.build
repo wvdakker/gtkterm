@@ -68,7 +68,8 @@ executable(
 		gtk_deps,
 		vte_deps,
 		config,
-		gudev_deps
+		gudev_deps,
+		dependency('threads')
 	],
 	install : true
 )

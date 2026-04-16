@@ -28,7 +28,8 @@
 #include <sys/ioctl.h>
 #include <sys/file.h>
 #include <string.h>
-
+#include <pthread.h>
+#include <signal.h>
 #include "term_config.h"
 #include "serial.h"
 #include "interface.h"
@@ -47,7 +48,10 @@ struct termios termios_save;
 int serial_port_fd = -1;
 static unsigned int serial_port_speed;
 
-guint callback_handler_in, callback_handler_err;
+guint callback_handler_in;
+static guint modem_poll_source = 0;
+static pthread_t modem_tid = 0;
+static int modem_watch_fd = -1;
 gboolean callback_activated = FALSE;
 
 extern struct configuration_port config;
@@ -57,6 +61,14 @@ static gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
 	ssize_t bytes_read;
 	static gchar c[BUFFER_RECEPTION];
 	ssize_t i;
+
+	if (cond & (G_IO_HUP | G_IO_ERR)) {
+		Close_port();
+		return G_SOURCE_REMOVE;
+	}
+
+	if (!(cond & G_IO_IN))
+		return G_SOURCE_CONTINUE;
 
 	bytes_read = BUFFER_RECEPTION;
 
@@ -92,10 +104,75 @@ static gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
 	return TRUE;
 }
 
-static gboolean io_err(GIOChannel* src, GIOCondition cond, gpointer data)
+/* No-op SIGURG handler used to interrupt TIOCMIWAIT in the modem thread */
+static void modem_sigurg_noop(int sig) { (void)sig; }
+
+static gboolean update_modem_idle(gpointer user_data)
 {
-	Close_port();
-	return TRUE;
+	int stat;
+	if (serial_port_fd != -1 && ioctl(serial_port_fd, TIOCMGET, &stat) == 0)
+		show_control_signals(stat);
+	return G_SOURCE_REMOVE;
+}
+
+static gboolean setup_modem_poll(gpointer user_data)
+{
+	if (modem_poll_source == 0 && serial_port_fd != -1) {
+		g_debug("modem status: TIOCMIWAIT not supported by driver, using %dms poll", POLL_DELAY);
+		modem_poll_source = g_timeout_add(POLL_DELAY, control_signals_read, NULL);
+	}
+	return G_SOURCE_REMOVE;
+}
+
+static void *modem_thread_func(void *arg)
+{
+	int fd = (int)(intptr_t)arg;
+	int bits = TIOCM_RNG | TIOCM_DSR | TIOCM_CD | TIOCM_CTS | TIOCM_DTR | TIOCM_RTS;
+	gboolean first = TRUE;
+
+	while (1) {
+		if (ioctl(fd, TIOCMIWAIT, bits) == -1) {
+			if (first && errno == EINVAL)
+				g_idle_add(setup_modem_poll, NULL);
+			break;  /* EINVAL (unsupported), EINTR (SIGURG), or EBADF (fd closed) */
+		}
+		if (first) {
+			g_debug("modem status: TIOCMIWAIT supported, event-driven monitoring active");
+			first = FALSE;
+		}
+		g_idle_add(update_modem_idle, NULL);
+	}
+	return NULL;
+}
+
+int lis_sig(void)
+{
+	static int stat = 0;
+	int stat_read;
+
+	if (config.flux == 3)
+		Set_signals(1);
+
+	if (serial_port_fd != -1)
+	{
+		if (ioctl(serial_port_fd, TIOCMGET, &stat_read) == -1)
+		{
+			/* Ignore EINVAL, as some serial ports
+			   genuinely lack these lines */
+			/* Thanks to Elie De Brauwer on ubuntu launchpad */
+			if (errno != EINVAL)
+			{
+				g_printerr("%s: %s\n", _("Control signals read lis_sig"), g_strerror(errno));
+				Close_port();
+			}
+			return -2;
+		}
+		if (stat_read == stat)
+			return -1;
+		stat = stat_read;
+		return stat;
+	}
+	return -1;
 }
 
 int Send_chars(char *string, int length)
@@ -163,14 +240,14 @@ gboolean Config_port(void)
 		return FALSE;
 	}
 
-	if(! config.disable_port_lock)
+	if (!config.disable_port_lock)
 	{
-	    if(flock(serial_port_fd, LOCK_EX | LOCK_NB) == -1)
-	    {
-		Close_port();
-		show_message(_("Cannot lock port! The serial port may currently be in use by another program.\n"), MSG_ERR);
-
-		return FALSE;
+		if (flock(serial_port_fd, LOCK_EX | LOCK_NB) == -1)
+		{
+			Close_port();
+			msg = g_strdup_printf(_("Cannot lock port: %s\n"), g_strerror(errno));
+			show_message(msg, MSG_ERR);
+			return FALSE;
 		}
 	}
 
@@ -253,17 +330,42 @@ gboolean Config_port(void)
 	tcflush(serial_port_fd, TCOFLUSH);
 	tcflush(serial_port_fd, TCIFLUSH);
 
+	/* Read initial modem status */
+	{
+		int initial_stat = 0;
+		ioctl(serial_port_fd, TIOCMGET, &initial_stat);
+		show_control_signals(initial_stat);
+	}
+
 	{
 		GIOChannel *ch_in = g_io_channel_unix_new(serial_port_fd);
-		callback_handler_in = g_io_add_watch_full(ch_in, 10, G_IO_IN,
+		callback_handler_in = g_io_add_watch_full(ch_in, 10, G_IO_IN | G_IO_HUP | G_IO_ERR,
 		                      (GIOFunc)Lis_port, NULL, NULL);
 		g_io_channel_unref(ch_in);
 	}
+
+	/* Try TIOCMIWAIT (event-driven); fall back to polling if driver doesn't support it.
+	   SIGURG is used to interrupt the blocking ioctl on Close_port. */
 	{
-		GIOChannel *ch_err = g_io_channel_unix_new(serial_port_fd);
-		callback_handler_err = g_io_add_watch_full(ch_err, 10, G_IO_ERR,
-		                       (GIOFunc)io_err, NULL, NULL);
-		g_io_channel_unref(ch_err);
+		struct sigaction sa;
+		sa.sa_handler = modem_sigurg_noop;
+		sigemptyset(&sa.sa_mask);
+		sa.sa_flags = 0;
+		sigaction(SIGURG, &sa, NULL);
+	}
+	modem_watch_fd = dup(serial_port_fd);
+	if (modem_watch_fd != -1) {
+		g_debug("modem status: starting TIOCMIWAIT thread (blocking in kernel until line changes)");
+		if (pthread_create(&modem_tid, NULL, modem_thread_func,
+		                   (void *)(intptr_t)modem_watch_fd) != 0) {
+			g_debug("modem status: pthread_create failed, using %dms poll", POLL_DELAY);
+			close(modem_watch_fd);
+			modem_watch_fd = -1;
+			modem_poll_source = g_timeout_add(POLL_DELAY, control_signals_read, NULL);
+		}
+	} else {
+		g_debug("modem status: dup(fd) failed, using %dms poll", POLL_DELAY);
+		modem_poll_source = g_timeout_add(POLL_DELAY, control_signals_read, NULL);
 	}
 
 	callback_activated = TRUE;
@@ -300,16 +402,29 @@ void Close_port(void)
 		if(callback_activated == TRUE)
 		{
 			g_source_remove(callback_handler_in);
-			g_source_remove(callback_handler_err);
 			callback_activated = FALSE;
 		}
+		/* Stop modem monitor thread: SIGURG interrupts any in-progress
+		   TIOCMIWAIT; closing modem_watch_fd ensures EBADF if SIGURG
+		   arrived between two calls. */
+		if (modem_tid != 0) {
+			pthread_kill(modem_tid, SIGURG);
+			if (modem_watch_fd != -1) {
+				close(modem_watch_fd);
+				modem_watch_fd = -1;
+			}
+			pthread_join(modem_tid, NULL);
+			modem_tid = 0;
+		}
+		if (modem_poll_source != 0) {
+			g_source_remove(modem_poll_source);
+			modem_poll_source = 0;
+		}
+		if (!config.disable_port_lock)
+			flock(serial_port_fd, LOCK_UN);
 		tcsetattr(serial_port_fd, TCSANOW, &termios_save);
 		tcflush(serial_port_fd, TCOFLUSH);
 		tcflush(serial_port_fd, TCIFLUSH);
-		if(! config.disable_port_lock)
-		{
-			flock(serial_port_fd, LOCK_UN);
-		}
 		close(serial_port_fd);
 		serial_port_fd = -1;
 	}
@@ -328,61 +443,17 @@ void Set_signals(guint param)
 		return;
 	}
 
-	/* DTR */
-	if(param == 0)
+	switch(param)
 	{
-		if(stat_ & TIOCM_DTR)
-			stat_ &= ~TIOCM_DTR;
-		else
-			stat_ |= TIOCM_DTR;
-		if(ioctl(serial_port_fd, TIOCMSET, &stat_) == -1)
-			g_printerr("%s: %s\n", _("DTR write"), g_strerror(errno));
-	}
-	/* RTS */
-	else if(param == 1)
-	{
-		if(stat_ & TIOCM_RTS)
-			stat_ &= ~TIOCM_RTS;
-		else
-			stat_ |= TIOCM_RTS;
-		if(ioctl(serial_port_fd, TIOCMSET, &stat_) == -1)
-			g_printerr("%s: %s\n", _("RTS write"), g_strerror(errno));
-	}
-}
-
-int lis_sig(void)
-{
-	static int stat = 0;
-	int stat_read;
-
-	if ( config.flux==3 )
-	{
-		//reset RTS (default = receive)
-		Set_signals( 1 );
+	case 0: stat_ ^= TIOCM_DTR; break;
+	case 1: stat_ ^= TIOCM_RTS; break;
+	default: return;
 	}
 
-	if(serial_port_fd != -1)
-	{
-		if(ioctl(serial_port_fd, TIOCMGET, &stat_read) == -1)
-		{
-			/* Ignore EINVAL, as some serial ports
-			genuinely lack these lines */
-			/* Thanks to Elie De Brauwer on ubuntu launchpad */
-			if (errno != EINVAL)
-			{
-				g_printerr("%s: %s\n", _("Control signals read lis_sig"), g_strerror(errno));
-				Close_port();
-			}
+	if(ioctl(serial_port_fd, TIOCMSET, &stat_) == -1)
+		g_printerr("%s: %s\n", _("TIOCMSET"), g_strerror(errno));
 
-			return -2;
-		}
-
-		if(stat_read != stat) {
-			stat = stat_read;
-			return stat_read;
-		}
-	}
-	return -1;
+	show_control_signals(stat_);
 }
 
 void sendbreak(void)

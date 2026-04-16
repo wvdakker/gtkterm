@@ -25,7 +25,6 @@ extern int serial_port_fd;
 int Send_chars(char *, int);
 gboolean Config_port(void);
 void Set_signals(guint);
-int lis_sig(void);
 void Close_port(void);
 void configure_echo(gboolean);
 void configure_crlfauto(gboolean);
@@ -34,6 +33,7 @@ void configure_esc_clear_screen(gboolean);
 void sendbreak(void);
 unsigned int set_port_baudrate(unsigned int, int);
 gchar* get_port_string(void);
+int lis_sig(void);
 
 struct baudrate {
 	unsigned int baud;

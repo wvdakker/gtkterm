@@ -17,6 +17,7 @@
 /***********************************************************************/
 
 #include <gtk/gtk.h>
+#include <signal.h>
 
 #include "interface.h"
 #include "serial.h"
