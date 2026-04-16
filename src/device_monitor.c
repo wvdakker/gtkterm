@@ -103,16 +103,7 @@ extern void device_monitor_start(void)
 
 	const gchar *const subsystems[] = {NULL, NULL};
 
-	/* Initial check */
 	udev_client = g_udev_client_new(subsystems);
-
-	GUdevDevice *dev = g_udev_client_query_by_device_file(udev_client, config.port);
-	if (dev == NULL) {
-		device_monitor_status(false);
-	} else {
-		device_monitor_status(true);
-		g_object_unref(dev);
-	}
 
 	/* Monitor device */
 	g_signal_connect(G_OBJECT(udev_client), "uevent",
