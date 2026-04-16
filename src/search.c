@@ -67,15 +67,16 @@ static void search_callback(GtkWidget *widget, gpointer data)
 		                                 &error);
 		if (regex == NULL)
 		{
-		GtkAlertDialog *dialog = gtk_alert_dialog_new("%s", error->message);
-		gtk_alert_dialog_set_modal(dialog, TRUE);
-		gtk_alert_dialog_show(dialog, GTK_WINDOW(parentWindow));
-		g_object_unref(dialog);
+			GtkAlertDialog *dialog = gtk_alert_dialog_new("%s", error->message);
+			gtk_alert_dialog_set_modal(dialog, TRUE);
+			gtk_alert_dialog_show(dialog, GTK_WINDOW(parentWindow));
+			g_object_unref(dialog);
 			g_error_free(error);
 			return;
 		}
 
-		vte_terminal_search_set_regex(term, regex, 0);
+		if (term)
+			vte_terminal_search_set_regex(term, regex, 0);
 	}
 
 	if (direction == FIND_PREVIOUS)
@@ -116,12 +117,14 @@ GtkWidget *search_bar_new(GtkWindow *parent, VteTerminal *terminal)
 	parentWindow = parent;
 	term = terminal;
 	regex = NULL;
-	vte_terminal_search_set_wrap_around(term, TRUE);
+	if (term)
+		vte_terminal_search_set_wrap_around(term, TRUE);
 
 	GtkBuilderCScope *scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
 	gtk_builder_cscope_add_callback_symbols(scope,
 	    "entry_changed_callback", G_CALLBACK(entry_changed_callback),
 	    "search_direction_cb",    G_CALLBACK(search_direction_cb),
+	    "entry_key_press_cb",     G_CALLBACK(entry_key_press_cb),
 	    NULL);
 	GtkBuilder *builder = gtk_builder_new();
 	gtk_builder_set_scope(builder, GTK_BUILDER_SCOPE(scope));
@@ -132,11 +135,6 @@ GtkWidget *search_bar_new(GtkWindow *parent, VteTerminal *terminal)
 	entry       = GTK_WIDGET(gtk_builder_get_object(builder, "search_entry"));
 	prevButton  = GTK_WIDGET(gtk_builder_get_object(builder, "search_prev_button"));
 	nextButton  = GTK_WIDGET(gtk_builder_get_object(builder, "search_next_button"));
-
-	GtkEventController *key_ctrl = gtk_event_controller_key_new();
-	g_signal_connect(key_ctrl, "key-pressed",
-	                 G_CALLBACK(entry_key_press_cb), NULL);
-	gtk_widget_add_controller(entry, key_ctrl);
 
 	gtk_search_bar_connect_entry(GTK_SEARCH_BAR(searchBar), GTK_EDITABLE(entry));
 
@@ -163,7 +161,8 @@ void search_bar_show(GtkWidget *self)
 void search_bar_hide(GtkWidget *self)
 {
 	gtk_widget_set_visible(self, FALSE);
-	vte_terminal_search_set_regex(term, NULL, 0);
+	if (term)
+		vte_terminal_search_set_regex(term, NULL, 0);
 	gtk_search_bar_set_search_mode(GTK_SEARCH_BAR(searchBar), FALSE);
 
 	if (regex != NULL)
