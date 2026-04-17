@@ -18,8 +18,6 @@
 /***********************************************************************/
 
 #include <glib.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "buffer.h"
 #include "serial.h"
@@ -46,39 +44,37 @@ void (*clear_func)(void) = NULL;
 
 void create_buffer(void)
 {
-	if(buffer == NULL)
+	if (buffer == NULL)
 	{
-		buffer = malloc(BUFFER_SIZE);
+		buffer = g_malloc(BUFFER_SIZE);
 		clear_buffer();
 	}
-	return;
 }
 
 void delete_buffer(void)
 {
-	if(buffer != NULL)
-		free(buffer);
-	return;
+	g_free(buffer);
 }
 
 //assumes that buffer always has space for timestamp (TIMESTAMP_SIZE)
 //buffer points to location where timestamp will be inserted
 static unsigned int insert_timestamp(char *buf_out)
 {
-  unsigned int size = 0;
+	unsigned int size = 0;
 
-	if(timestamp_on)
+	if (timestamp_on)
 	{
 		struct timespec ts;
 		struct tm tm;
 		timespec_get(&ts, TIME_UTC);
 		localtime_r(&ts.tv_sec, &tm);
-		size = (unsigned int)snprintf(buf_out, TIMESTAMP_SIZE,
+		size = (unsigned int)g_snprintf(buf_out, TIMESTAMP_SIZE,
 		    "[%d.%02dh.%02dm.%02ds.%03ld] ",
 		    tm.tm_yday, tm.tm_hour, tm.tm_min, tm.tm_sec,
 		    ts.tv_nsec / 1000000L);
 	}
-  return size;
+
+	return size;
 }
 
 void put_chars(const char *chars, size_t size, gboolean crlf_auto)
