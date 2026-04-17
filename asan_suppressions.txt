@@ -1,0 +1,37 @@
+{
+	gtk4-fontconfig-fcfontsetlist
+	Memcheck:Leak
+	match-leak-kinds: definite,indirect,possible,reachable
+	fun:malloc
+	...
+	fun:FcFontSetList
+	...
+}
+
+{
+	gtk4-nvidia-driver-leak
+	Memcheck:Leak
+	match-leak-kinds: possible,reachable
+	fun:malloc
+	...
+	obj:*/libnvidia-glcore.so*
+	...
+}{
+	gtk4-fontconfig-fcfontsetlist
+	Memcheck:Leak
+	match-leak-kinds: definite,indirect,possible,reachable
+	fun:malloc
+	...
+	fun:FcFontSetList
+	...
+}
+
+{
+	gtk4-nvidia-driver-leak
+	Memcheck:Leak
+	match-leak-kinds: possible,reachable
+	fun:malloc
+	...
+	obj:*/libnvidia-glcore.so*
+	...
+}

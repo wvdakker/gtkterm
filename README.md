@@ -60,6 +60,22 @@ Once these dependencies are installed, most people should simply run:
 	meson build
 	ninja -C build
 
+For development-focused memory diagnostics, you can build with sanitizers enabled:
+
+    meson setup build-asan -Ddev_sanitizers=true
+    ninja -C build-asan
+
+For Valgrind runs in this repository, use the included suppression file to filter common GTK/fontconfig/NVIDIA noise:
+
+    valgrind --suppressions=asan_suppressions.txt --leak-check=full build/src/gtkterm
+
+For actual leak detection on a normal GUI startup/shutdown path, prefer the helper script instead of a raw timeout-based run. It starts Xvfb, applies a lower-noise GTK/GLib runtime environment, and exits the app cleanly over D-Bus:
+
+	tools/leak-check.sh --valgrind
+	tools/leak-check.sh --asan --build-dir build-asan
+
+This is a better signal for app-owned leaks than `gtkterm --help`, because it exercises the GUI lifecycle and avoids forced termination.
+
 To install GTKTerm system-wide, run:
 
 	ninja -C build install

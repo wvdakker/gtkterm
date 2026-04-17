@@ -1,4 +1,31 @@
 prog_sh = find_program('sh')
+dev_sanitizers = get_option('dev_sanitizers')
+
+gtkterm_c_args = [
+	# Hardening flags
+	'-D_FORTIFY_SOURCE=2',
+	'-fstack-protector-strong',
+	'-fstack-clash-protection',
+	'-fcf-protection=full',
+	'-Wformat=2',
+	'-Wformat-security',
+]
+
+gtkterm_link_args = [
+	'-Wl,-z,relro',
+	'-Wl,-z,now',
+	'-Wl,-z,noexecstack',
+]
+
+if dev_sanitizers
+	gtkterm_c_args += [
+		'-fsanitize=address,leak',
+		'-fno-omit-frame-pointer',
+		'-O1',
+	]
+	gtkterm_link_args += ['-fsanitize=address,leak']
+endif
+
 baudrates_h = custom_target(
 	    'baudrates.h',
 	    output : 'baudrates.h',
@@ -48,22 +75,8 @@ sources = [
 executable(
 	'gtkterm', sources,
 	export_dynamic : true,
-	c_args : [
-		'-Wno-unused-parameter',
-		'-Wno-missing-field-initializers',
-		# Hardening flags
-		'-D_FORTIFY_SOURCE=2',
-		'-fstack-protector-strong',
-		'-fstack-clash-protection',
-		'-fcf-protection=full',
-		'-Wformat=2',
-		'-Wformat-security',
-	],
-	link_args : [
-		'-Wl,-z,relro',
-		'-Wl,-z,now',
-		'-Wl,-z,noexecstack',
-	],
+	c_args : gtkterm_c_args,
+	link_args : gtkterm_link_args,
 	dependencies : [
 		gtk_deps,
 		vte_deps,
