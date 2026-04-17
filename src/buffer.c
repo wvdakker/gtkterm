@@ -54,6 +54,9 @@ void create_buffer(void)
 void delete_buffer(void)
 {
 	g_free(buffer);
+	buffer = NULL;
+	current_buffer = NULL;
+	pointer = 0;
 }
 
 //assumes that buffer always has space for timestamp (TIMESTAMP_SIZE)

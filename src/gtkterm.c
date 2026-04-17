@@ -59,7 +59,6 @@ static void activate(GtkApplication *app, gpointer user_data)
 
 	if(read_command_line(data->argc, data->argv) < 0)
 	{
-		delete_buffer();
 		g_application_quit(G_APPLICATION(app));
 		return;
 	}
