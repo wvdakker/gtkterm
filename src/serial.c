@@ -375,26 +375,6 @@ gboolean Config_port(void)
 	return TRUE;
 }
 
-void configure_echo(gboolean echo)
-{
-	config.echo = echo;
-}
-
-void configure_crlfauto(gboolean crlfauto)
-{
-	config.crlfauto = crlfauto;
-}
-
-void configure_autoreconnect_enable(gboolean autoreconnect)
-{
-	config.autoreconnect_enabled = autoreconnect;
-}
-
-void configure_esc_clear_screen(gboolean esc_clear_screen)
-{
-	config.esc_clear_screen = esc_clear_screen;
-}
-
 void Close_port(void)
 {
 	if(serial_port_fd != -1)

@@ -24,9 +24,9 @@ extern GFile *config_file;
 extern struct configuration_port config;
 extern display_config_t          term_conf;
 
-/* GKeyFile singleton — lazy-loaded on first access */
-GKeyFile    *get_key_file(void);
-gboolean     save_key_file(void);
+/* Load/save the configuration file on demand */
+GKeyFile    *load_key_file(void);
+gboolean     save_key_file(GKeyFile *kf);
 
 /* One-time initialisation: locate/migrate the config file path */
 void         config_file_init(void);
@@ -44,7 +44,7 @@ void Verify_configuration(void);
 gint Check_configuration_file(void);
 
 /* Window geometry: auto-saved to [window] section, independent of named configs */
-void save_window_geometry(void);
-void load_window_geometry(void);
+void save_window_geometry(int width, int height);
+gboolean load_window_geometry(int *width, int *height);
 
 #endif /* CONFIG_FILE_H_ */

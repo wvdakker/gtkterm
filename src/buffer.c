@@ -28,7 +28,8 @@
 
 #define TIMESTAMP_SIZE 50
 
-extern gboolean timestamp_on;
+#include "config_file.h"
+
 static int need_to_write_timestamp = 0;
 static char *buffer = NULL;
 static char *current_buffer;
@@ -65,7 +66,7 @@ static unsigned int insert_timestamp(char *buf_out)
 {
 	unsigned int size = 0;
 
-	if (timestamp_on)
+	if (config.timestamp)
 	{
 		struct timespec ts;
 		struct tm tm;
@@ -88,7 +89,7 @@ void put_chars(const char *chars, size_t size, gboolean crlf_auto)
 	const char *characters;
 
 	/* If the auto CR LF mode on, read the buffer to add \r before \n */
-	if(crlf_auto || timestamp_on)
+	if(crlf_auto || config.timestamp)
 	{
 		int i, out_size = 0;
 
@@ -154,7 +155,7 @@ void put_chars(const char *chars, size_t size, gboolean crlf_auto)
 		// converted newline characters
 		chars = out_buffer;
 		size = out_size;
-	} // if(crlf_auto || timestamp_on)
+	} // if(crlf_auto || config.timestamp)
 
 	if(buffer == NULL)
 	{

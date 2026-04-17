@@ -57,6 +57,8 @@ static void activate(GtkApplication *app, gpointer user_data)
 
 	create_main_window(app);
 
+	interface_load_window_geometry();
+
 	if(read_command_line(data->argc, data->argv) < 0)
 	{
 		g_application_quit(G_APPLICATION(app));

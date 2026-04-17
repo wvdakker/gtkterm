@@ -39,13 +39,8 @@
 #include "device_monitor.h"
 
 #include <glib/gi18n.h>
+#include "config_file.h"
 
-gboolean echo_on;
-gboolean autoreconnect_on;
-static gboolean hotkeys_disabled = FALSE;
-gboolean crlfauto_on;
-gboolean esc_clear_screen_on;
-gboolean timestamp_on = 0;
 GtkWidget *StatusBar;
 GtkWidget *signals[6];
 static GtkWidget *Hex_Box;
@@ -63,8 +58,6 @@ static guint pending_reenable = 0;
 
 GList *hex_history = NULL;
 GList *current_hex = NULL;
-
-extern struct configuration_port config;
 
 /* Variables for hexadecimal display */
 static guint bytes_per_line = 16;
@@ -215,37 +208,32 @@ static void help_about_cb(GSimpleAction *a, GVariant *p, gpointer data)
 
 static void echo_change_state(GSimpleAction *a, GVariant *s, gpointer data)
 {
-	echo_on = g_variant_get_boolean(s);
+	config.echo = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
-	configure_echo(echo_on);
 }
 
 static void autoreconnect_change_state(GSimpleAction *a, GVariant *s, gpointer data)
 {
-	autoreconnect_on = g_variant_get_boolean(s);
+	config.autoreconnect_enabled = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
-	configure_autoreconnect_enable(autoreconnect_on);
 }
 
 static void crlfauto_change_state(GSimpleAction *a, GVariant *s, gpointer data)
 {
-	crlfauto_on = g_variant_get_boolean(s);
+	config.crlfauto = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
-	configure_crlfauto(crlfauto_on);
 }
 
 static void esc_clear_screen_change_state(GSimpleAction *a, GVariant *s, gpointer data)
 {
-	esc_clear_screen_on = g_variant_get_boolean(s);
+	config.esc_clear_screen = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
-	configure_esc_clear_screen(esc_clear_screen_on);
 }
 
 static void timestamp_change_state(GSimpleAction *a, GVariant *s, gpointer data)
 {
-	timestamp_on = g_variant_get_boolean(s);
+	config.timestamp = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
-	config.timestamp = timestamp_on;
 }
 
 static void view_index_change_state(GSimpleAction *a, GVariant *s, gpointer data)
@@ -319,10 +307,9 @@ static void apply_hotkeys_disabled(gboolean disabled)
 
 static void disable_hotkeys_change_state(GSimpleAction *a, GVariant *s, gpointer data)
 {
-	hotkeys_disabled = g_variant_get_boolean(s);
-	config.disable_hotkeys = hotkeys_disabled;
+	config.disable_hotkeys = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
-	apply_hotkeys_disabled(hotkeys_disabled);
+	apply_hotkeys_disabled(config.disable_hotkeys);
 }
 
 /* Normal action entries table */
@@ -396,15 +383,15 @@ static void set_string_action(const char *name, const char *value)
 		                          g_variant_new_string(value));
 }
 
-void Set_local_echo(gboolean v)            { echo_on = v;              set_bool_action("local-echo",       v); }
-void Set_crlfauto(gboolean v)              { crlfauto_on = v;          set_bool_action("crlfauto",         v); }
-void Set_autoreconnect_enabled(gboolean v) { autoreconnect_on = v;     set_bool_action("autoreconnect",    v); }
-void Set_esc_clear_screen(gboolean v)      { esc_clear_screen_on = v;  set_bool_action("esc-clear-screen", v); }
-void Set_timestamp(gboolean v)             { timestamp_on = v;         set_bool_action("timestamp",        v); }
+void Set_local_echo(gboolean v)            { config.echo                  = v; set_bool_action("local-echo",       v); }
+void Set_crlfauto(gboolean v)              { config.crlfauto              = v; set_bool_action("crlfauto",         v); }
+void Set_autoreconnect_enabled(gboolean v) { config.autoreconnect_enabled = v; set_bool_action("autoreconnect",    v); }
+void Set_esc_clear_screen(gboolean v)      { config.esc_clear_screen      = v; set_bool_action("esc-clear-screen", v); }
+void Set_timestamp(gboolean v)             { config.timestamp             = v; set_bool_action("timestamp",        v); }
 
 void Set_hotkeys_disabled(gboolean disabled)
 {
-	hotkeys_disabled = disabled;
+	config.disable_hotkeys = disabled;
 	set_bool_action("disable-hotkeys", disabled);
 	apply_hotkeys_disabled(disabled);
 }
@@ -497,6 +484,61 @@ gboolean terminal_popup_key_cb(GtkEventControllerKey *ctrl,
 }
 
 /* ---- Main window creation ---- */
+
+static gboolean on_main_window_close(GtkWindow *win, gpointer data)
+{
+	interface_save_window_geometry();
+	return FALSE;
+}
+
+void interface_save_window_geometry(void)
+{
+	int width;
+	int height;
+
+	if (!Fenetre)
+		return;
+
+	width  = gtk_widget_get_width(GTK_WIDGET(Fenetre));
+	height = gtk_widget_get_height(GTK_WIDGET(Fenetre));
+
+	if (width > 0 && height > 0)
+		save_window_geometry(width, height);
+}
+
+void interface_load_window_geometry(void)
+{
+	int width;
+	int height;
+	GdkDisplay *gdk_disp;
+
+	if (!Fenetre)
+		return;
+
+	if (!load_window_geometry(&width, &height))
+		return;
+
+	/* Clamp to the work area of the first monitor (excludes taskbars/panels) */
+	gdk_disp = gdk_display_get_default();
+	if (gdk_disp)
+	{
+		GListModel *monitors = gdk_display_get_monitors(gdk_disp);
+		if (monitors && g_list_model_get_n_items(monitors) > 0)
+		{
+			GdkMonitor *monitor = g_list_model_get_item(monitors, 0);
+			if (monitor)
+			{
+				GdkRectangle workarea;
+				gdk_monitor_get_geometry(monitor, &workarea);
+				width  = CLAMP(width,  100, workarea.width);
+				height = CLAMP(height, 100, workarea.height);
+				g_object_unref(monitor);
+			}
+		}
+	}
+
+	gtk_window_set_default_size(GTK_WINDOW(Fenetre), width, height);
+}
 
 void create_main_window(GtkApplication *app)
 {
@@ -661,15 +703,15 @@ gint send_serial(gchar *string, gint len)
 	ssize_t bytes_written = Send_chars(string, len);
 	if (bytes_written > 0)
 	{
-		if (echo_on)
-			put_chars(string, (size_t)bytes_written, crlfauto_on);
+		if (config.echo)
+			put_chars(string, (size_t)bytes_written, config.crlfauto);
 	}
 	return (gint)bytes_written;
 }
 
 static void Got_Input(VteTerminal *widget, gchar *text, guint length, gpointer ptr)
 {
-	if (esc_clear_screen_on && length >= 1 && (guchar)text[0] == 0x1b)
+	if (config.esc_clear_screen && length >= 1 && (guchar)text[0] == 0x1b)
 	{
 		clear_buffer();
 		clear_display();

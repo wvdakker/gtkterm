@@ -11,12 +11,9 @@ extern GtkWidget *display;
 
 static void config_color(GObject *source,
                          GdkRGBA *dest,
-                         void (*vte_set)(VteTerminal *, const GdkRGBA *),
-                         const gchar *prefix)
+                         void (*vte_set)(VteTerminal *, const GdkRGBA *))
 {
 	const GdkRGBA *c;
-	GKeyFile *kf;
-	gchar key[48];
 
 	c = gtk_color_dialog_button_get_rgba(GTK_COLOR_DIALOG_BUTTON(source));
 	if (!c) return;
@@ -24,12 +21,6 @@ static void config_color(GObject *source,
 
 	vte_set(VTE_TERMINAL(display), dest);
 	gtk_widget_queue_draw(display);
-
-	kf = get_key_file();
-	g_snprintf(key, sizeof key, "%s_red",   prefix); g_key_file_set_double(kf, "default", key, dest->red);
-	g_snprintf(key, sizeof key, "%s_green", prefix); g_key_file_set_double(kf, "default", key, dest->green);
-	g_snprintf(key, sizeof key, "%s_blue",  prefix); g_key_file_set_double(kf, "default", key, dest->blue);
-	g_snprintf(key, sizeof key, "%s_alpha", prefix); g_key_file_set_double(kf, "default", key, dest->alpha);
 }
 
 void set_terminal_font(PangoFontDescription *desc)
@@ -64,13 +55,13 @@ static gboolean cursor_block(GtkSwitch *ToggleSwitch, gboolean state, gpointer d
 static void config_fg_color(GObject *source, GParamSpec *pspec, gpointer data)
 {
 	config_color(source, &term_conf.foreground_color,
-	             vte_terminal_set_color_foreground, "term_foreground");
+	             vte_terminal_set_color_foreground);
 }
 
 static void config_bg_color(GObject *source, GParamSpec *pspec, gpointer data)
 {
 	config_color(source, &term_conf.background_color,
-	             vte_terminal_set_color_background, "term_background");
+	             vte_terminal_set_color_background);
 }
 
 static void scrollback_set(GtkAdjustment *Adjustment, gpointer data)

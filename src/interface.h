@@ -42,6 +42,9 @@ void Put_temp_message(const gchar *, gint);
 void Set_window_title(const gchar *msg);
 void interface_close_port(void);
 void interface_open_port(void);
+void interface_save_window_geometry(void);
+void interface_load_window_geometry(void);
+void interface_cleanup(void);
 void show_control_signals(int stat);
 gboolean control_signals_read(gpointer user_data);
 

@@ -38,7 +38,7 @@ static void Select_config(gchar *title, GCallback on_ok)
 	GtkWidget *Liste;
 	GtkStringList *string_list;
 
-	kf = get_key_file();
+	kf = load_key_file();
 	groups = g_key_file_get_groups(kf, NULL);
 
 	scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
@@ -64,6 +64,7 @@ static void Select_config(gchar *title, GCallback on_ok)
 	for (g = groups; *g; g++)
 		gtk_string_list_append(string_list, *g);
 	g_strfreev(groups);
+	g_key_file_free(kf);
 	gtk_single_selection_set_model(
 	    GTK_SINGLE_SELECTION(gtk_list_view_get_model(GTK_LIST_VIEW(Liste))),
 	    G_LIST_MODEL(string_list));
@@ -111,10 +112,14 @@ static void really_save_config(gpointer _unused, gint id, gconstpointer data)
 {
 	if(id == GTK_RESPONSE_ACCEPT)
 	{
-		GKeyFile *kf = get_key_file();
+		GKeyFile *kf = load_key_file();
 		Copy_configuration(kf, (const gchar *)data);
-		if (!save_key_file())
+		if (!save_key_file(kf))
+		{
+			g_key_file_free(kf);
 			return;
+		}
+		g_key_file_free(kf);
 		g_autofree gchar *msg = g_strdup_printf(_("Configuration [%s] saved\n"), (const gchar *)data);
 		show_message(msg, MSG_WRN);
 	}
@@ -140,11 +145,16 @@ static void save_config(gpointer _unused, gint id, GtkWidget *edit)
 		const gchar *config_name;
 		g_autofree gchar *alert_msg;
 		GtkAlertDialog *alert;
+		GKeyFile *kf;
+		gboolean has_group;
 		static const char * const buttons[] = { "_Yes", "_Cancel", NULL };
 
 		config_name = gtk_editable_get_text(GTK_EDITABLE(edit));
+		kf = load_key_file();
+		has_group = g_key_file_has_group(kf, config_name);
+		g_key_file_free(kf);
 
-		if (g_key_file_has_group(get_key_file(), config_name))
+		if (has_group)
 		{
 			alert_msg = g_strdup_printf(
 			    _("Section [%s] already exists.\n\nDo you want to overwrite it ?"),
@@ -196,13 +206,15 @@ static void delete_config(gpointer _unused, gint id, GtkSingleSelection *selecti
 		{
 			const gchar *txt = gtk_string_object_get_string(obj);
 			GError *err = NULL;
-			if (!g_key_file_remove_group(get_key_file(), txt, &err))
+			GKeyFile *kf = load_key_file();
+			if (!g_key_file_remove_group(kf, txt, &err))
 			{
 				show_message(_("Cannot delete section!"), MSG_ERR);
 				g_clear_error(&err);
 			}
 			else
-				save_key_file();
+				save_key_file(kf);
+			g_key_file_free(kf);
 		}
 	}
 }

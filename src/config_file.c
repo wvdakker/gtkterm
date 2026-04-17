@@ -8,7 +8,7 @@
 /*   Purpose                                                           */
 /*      GKeyFile-backed configuration file handling:                   */
 /*        - locate / migrate .gtktermrc on first run                   */
-/*        - lazy-load and save the GKeyFile singleton                  */
+/*        - load and save GKeyFile objects on demand                   */
 /*        - load / save sections to/from config & term_conf            */
 /*        - hard-coded defaults                                        */
 /*                                                                     */
@@ -36,34 +36,35 @@ display_config_t          term_conf;
 extern GtkWidget *display;
 
 /* ------------------------------------------------------------------ */
-/* GKeyFile singleton                                                  */
+/* GKeyFile loading/saving                                             */
 /* ------------------------------------------------------------------ */
 
-static GKeyFile *gkf = NULL;
-
-/* Load (lazily) the GKeyFile for the config file.
+/* Load the GKeyFile for the config file.
  * If the file does not exist an empty GKeyFile is returned — the caller
  * creates the content and saves it. */
-GKeyFile *get_key_file(void)
+GKeyFile *load_key_file(void)
 {
-	if (!gkf)
-	{
-		GError *err  = NULL;
-		gchar  *path;
-		gkf  = g_key_file_new();
-		path = g_file_get_path(config_file);
-		g_key_file_load_from_file(gkf, path, G_KEY_FILE_KEEP_COMMENTS, &err);
-		g_free(path);
-		g_clear_error(&err); /* ignore "file not found" */
-	}
-	return gkf;
+	GError *err  = NULL;
+	gchar  *path;
+	GKeyFile *kf;
+
+	kf = g_key_file_new();
+	path = g_file_get_path(config_file);
+	g_key_file_load_from_file(kf, path, G_KEY_FILE_KEEP_COMMENTS, &err);
+	g_free(path);
+	g_clear_error(&err); /* ignore "file not found" */
+	return kf;
 }
 
-gboolean save_key_file(void)
+gboolean save_key_file(GKeyFile *kf)
 {
 	GError *err = NULL;
+
+	if (kf == NULL)
+		return FALSE;
+
 	gchar *path = g_file_get_path(config_file);
-	gboolean ok = g_key_file_save_to_file(gkf, path, &err);
+	gboolean ok = g_key_file_save_to_file(kf, path, &err);
 	g_free(path);
 	if (!ok)
 	{
@@ -149,10 +150,6 @@ void config_file_free(void)
 	if (config_file != NULL) {
 		g_object_unref(config_file);
 		config_file = NULL;
-	}
-	if (gkf != NULL) {
-		g_key_file_free(gkf);
-		gkf = NULL;
 	}
 	pango_font_description_free(term_conf.font_desc);
 	term_conf.font_desc = NULL;
@@ -283,7 +280,7 @@ void Copy_configuration(GKeyFile *kf, const gchar *section)
 
 gint Load_configuration_from_file(const gchar *config_name)
 {
-	GKeyFile  *kf = get_key_file();
+	GKeyFile  *kf = load_key_file();
 	gchar    **macro_vals;
 	gchar     *s;
 	gsize      n_macros;
@@ -292,6 +289,7 @@ gint Load_configuration_from_file(const gchar *config_name)
 	if (!g_key_file_has_group(kf, config_name))
 	{
 		g_autofree gchar *msg = g_strdup_printf(_("No section \"%s\" in configuration file\n"), config_name);
+		g_key_file_free(kf);
 		show_message(msg, MSG_ERR);
 		return -1;
 	}
@@ -374,9 +372,9 @@ gint Load_configuration_from_file(const gchar *config_name)
 				n++;
 			}
 		}
-		g_strfreev(macro_vals);
 		create_shortcuts(macros, n); /* transfers ownership */
 	}
+	g_strfreev(macro_vals); /* safe when NULL; frees even if n_macros == 0 */
 
 	term_conf.block_cursor = kf_get_bool(kf, config_name, "term_block_cursor", TRUE);
 
@@ -420,6 +418,7 @@ gint Load_configuration_from_file(const gchar *config_name)
 	vte_terminal_set_cursor_shape(VTE_TERMINAL(display),
 	    term_conf.block_cursor ? VTE_CURSOR_SHAPE_BLOCK : VTE_CURSOR_SHAPE_IBEAM);
 	gtk_widget_queue_draw(display);
+	g_key_file_free(kf);
 
 	return 0;
 }
@@ -473,27 +472,30 @@ void Verify_configuration(void)
 
 gint Check_configuration_file(void)
 {
-	GKeyFile *kf = get_key_file();
+	GKeyFile *kf = load_key_file();
 
 	if (g_key_file_has_group(kf, "default"))
 	{
 		if (Load_configuration_from_file("default") == -1)
 		{
+			g_key_file_free(kf);
 			Hard_default_configuration();
 			return -1;
 		}
 	}
 	else
 	{
+		g_autofree gchar *config_path = g_file_get_path(config_file);
 		gchar *msg = g_strdup_printf(
 		    _("Configuration file (%s) with\n[default] configuration has been created.\n"),
-		    g_file_get_path(config_file));
+		    config_path);
 		show_message(msg, MSG_WRN);
 		g_free(msg);
 		Hard_default_configuration();
 		Copy_configuration(kf, "default");
-		save_key_file();
+		save_key_file(kf);
 	}
+	g_key_file_free(kf);
 	return 0;
 }
 
@@ -504,65 +506,28 @@ gint Check_configuration_file(void)
 
 #define WINDOW_SECTION "window"
 
-void save_window_geometry(void)
+void save_window_geometry(int width, int height)
 {
-	int width;
-	int height;
-        GKeyFile *kf;
-
-        if (!Fenetre)
-                return;
-
-        width  = gtk_widget_get_width(GTK_WIDGET(Fenetre));
-        height = gtk_widget_get_height(GTK_WIDGET(Fenetre));
-
-        if (width <= 0 || height <= 0)
-                return;
-
-        kf = get_key_file();
-        g_key_file_set_integer(kf, WINDOW_SECTION, "width",  width);
-        g_key_file_set_integer(kf, WINDOW_SECTION, "height", height);
-        save_key_file();
+	GKeyFile *kf = load_key_file();
+	g_key_file_set_integer(kf, WINDOW_SECTION, "width",  width);
+	g_key_file_set_integer(kf, WINDOW_SECTION, "height", height);
+	save_key_file(kf);
+	g_key_file_free(kf);
 }
 
-void load_window_geometry(void)
+gboolean load_window_geometry(int *width, int *height)
 {
-	GKeyFile *kf;
-	int width;
-	int height;
-	GdkDisplay *gdk_disp;
+	GKeyFile *kf = load_key_file();
 
-	if (!Fenetre)
-		return;
-
-	kf = get_key_file();
 	if (!g_key_file_has_group(kf, WINDOW_SECTION))
-		return;
-
-	width  = g_key_file_get_integer(kf, WINDOW_SECTION, "width",  NULL);
-	height = g_key_file_get_integer(kf, WINDOW_SECTION, "height", NULL);
-
-	if (width <= 0 || height <= 0)
-		return;
-
-	/* Clamp to the work area of the first monitor (excludes taskbars/panels) */
-	gdk_disp = gdk_display_get_default();
-	if (gdk_disp)
 	{
-		GListModel *monitors = gdk_display_get_monitors(gdk_disp);
-		if (monitors && g_list_model_get_n_items(monitors) > 0)
-		{
-			GdkMonitor *monitor = g_list_model_get_item(monitors, 0);
-			if (monitor)
-			{
-				GdkRectangle workarea;
-				gdk_monitor_get_geometry(monitor, &workarea);
-				width  = CLAMP(width,  100, workarea.width);
-				height = CLAMP(height, 100, workarea.height);
-				g_object_unref(monitor);
-			}
-		}
+		g_key_file_free(kf);
+		return FALSE;
 	}
 
-	gtk_window_set_default_size(GTK_WINDOW(Fenetre), width, height);
+	*width  = g_key_file_get_integer(kf, WINDOW_SECTION, "width",  NULL);
+	*height = g_key_file_get_integer(kf, WINDOW_SECTION, "height", NULL);
+	g_key_file_free(kf);
+
+	return *width > 0 && *height > 0;
 }
