@@ -74,9 +74,14 @@ static void OpenLogFile(const gchar *filename)
 
 static void on_log_file_response(GObject *source, GAsyncResult *result, gpointer data)
 {
-	GtkFileDialog *dialog = GTK_FILE_DIALOG(source);
-	GError *error = NULL;
-	GFile *file = gtk_file_dialog_save_finish(dialog, result, &error);
+	GtkFileDialog *dialog;
+	GError *error;
+	GFile *file;
+	gchar *filename;
+
+	dialog = GTK_FILE_DIALOG(source);
+	error = NULL;
+	file = gtk_file_dialog_save_finish(dialog, result, &error);
 
 	if (!file)
 	{
@@ -86,7 +91,7 @@ static void on_log_file_response(GObject *source, GAsyncResult *result, gpointer
 		return;
 	}
 
-	gchar *filename = g_file_get_path(file);
+	filename = g_file_get_path(file);
 	g_object_unref(file);
 	OpenLogFile(filename);
 	g_free(filename);

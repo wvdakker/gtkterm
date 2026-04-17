@@ -114,19 +114,22 @@ static gboolean entry_key_press_cb(GtkEventControllerKey *ctrl,
 
 GtkWidget *search_bar_new(GtkWindow *parent, VteTerminal *terminal)
 {
+	GtkBuilderCScope *scope;
+	GtkBuilder *builder;
+
 	parentWindow = parent;
 	term = terminal;
 	regex = NULL;
 	if (term)
 		vte_terminal_search_set_wrap_around(term, TRUE);
 
-	GtkBuilderCScope *scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
+	scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
 	gtk_builder_cscope_add_callback_symbols(scope,
 	    "entry_changed_callback", G_CALLBACK(entry_changed_callback),
 	    "search_direction_cb",    G_CALLBACK(search_direction_cb),
 	    "entry_key_press_cb",     G_CALLBACK(entry_key_press_cb),
 	    NULL);
-	GtkBuilder *builder = gtk_builder_new();
+	builder = gtk_builder_new();
 	gtk_builder_set_scope(builder, GTK_BUILDER_SCOPE(scope));
 	g_object_unref(scope);
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/search_bar.ui", NULL);

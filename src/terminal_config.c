@@ -14,15 +14,18 @@ static void config_color(GObject *source,
                          void (*vte_set)(VteTerminal *, const GdkRGBA *),
                          const gchar *prefix)
 {
-	const GdkRGBA *c = gtk_color_dialog_button_get_rgba(GTK_COLOR_DIALOG_BUTTON(source));
+	const GdkRGBA *c;
+	GKeyFile *kf;
+	gchar key[48];
+
+	c = gtk_color_dialog_button_get_rgba(GTK_COLOR_DIALOG_BUTTON(source));
 	if (!c) return;
 	*dest = *c;
 
 	vte_set(VTE_TERMINAL(display), dest);
 	gtk_widget_queue_draw(display);
 
-	GKeyFile *kf = get_key_file();
-	gchar key[48];
+	kf = get_key_file();
 	g_snprintf(key, sizeof key, "%s_red",   prefix); g_key_file_set_double(kf, "default", key, dest->red);
 	g_snprintf(key, sizeof key, "%s_green", prefix); g_key_file_set_double(kf, "default", key, dest->green);
 	g_snprintf(key, sizeof key, "%s_blue",  prefix); g_key_file_set_double(kf, "default", key, dest->blue);
@@ -84,39 +87,46 @@ void clear_scrollback(void)
 
 void Config_Terminal(GSimpleAction *action, GVariant *param, gpointer data)
 {
-	GtkBuilderCScope *scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
-	gtk_builder_cscope_add_callback_symbols(scope,
-	    "read_font_button",    G_CALLBACK(read_font_button),
-	    "scrollback_set",      G_CALLBACK(scrollback_set),
-	    "cursor_block",        G_CALLBACK(cursor_block),
-	    "config_fg_color",     G_CALLBACK(config_fg_color),
-	    "config_bg_color",     G_CALLBACK(config_bg_color),
-	    "gtk_window_destroy",  G_CALLBACK(gtk_window_destroy),
-	    NULL);
+	GtkBuilderCScope *scope;
+	GtkBuilder *builder;
+	GtkWidget *dialog;
+	GtkWidget *cfg_terminal_font;
+	GtkAdjustment *cfg_scrollback_lines;
+	GtkWidget *cfg_block_cursor;
+	GtkWidget *cfg_text_color;
+	GtkWidget *cfg_background_color;
 
-	GtkBuilder *builder = gtk_builder_new();
+	scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
+	gtk_builder_cscope_add_callback_symbols(scope,
+		"read_font_button",    G_CALLBACK(read_font_button),
+		"scrollback_set",      G_CALLBACK(scrollback_set),
+		"cursor_block",        G_CALLBACK(cursor_block),
+		"config_fg_color",     G_CALLBACK(config_fg_color),
+		"config_bg_color",     G_CALLBACK(config_bg_color),
+		"gtk_window_destroy",  G_CALLBACK(gtk_window_destroy),
+		NULL);
+
+	builder = gtk_builder_new();
 	gtk_builder_set_scope(builder, GTK_BUILDER_SCOPE(scope));
 	g_object_unref(scope);
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/config_terminal_dialog.ui", NULL);
 
-	GtkWidget *dialog = GTK_WIDGET(gtk_builder_get_object(builder, "dialog"));
+	dialog = GTK_WIDGET(gtk_builder_get_object(builder, "dialog"));
 	gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(Fenetre));
 
-	GtkWidget *cfg_terminal_font = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_terminal_font"));
+	cfg_terminal_font = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_terminal_font"));
 	gtk_font_dialog_button_set_font_desc(GTK_FONT_DIALOG_BUTTON(cfg_terminal_font), term_conf.font_desc);
 
-	GtkAdjustment *cfg_scrollback_lines = GTK_ADJUSTMENT(gtk_builder_get_object(builder, "cfg_scrollback_lines"));
+	cfg_scrollback_lines = GTK_ADJUSTMENT(gtk_builder_get_object(builder, "cfg_scrollback_lines"));
 	gtk_adjustment_set_value(cfg_scrollback_lines, term_conf.scrollback);
 
-	GtkWidget *cfg_block_cursor = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_block_cursor"));
+	cfg_block_cursor = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_block_cursor"));
 	gtk_switch_set_active(GTK_SWITCH(cfg_block_cursor), term_conf.block_cursor);
 
-	GtkWidget *cfg_text_color = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_text_color"));
+	cfg_text_color = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_text_color"));
 	gtk_color_dialog_button_set_rgba(GTK_COLOR_DIALOG_BUTTON(cfg_text_color), &term_conf.foreground_color);
 
-	GtkWidget *cfg_background_color = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_background_color"));
-	gtk_color_dialog_button_set_rgba(GTK_COLOR_DIALOG_BUTTON(cfg_background_color), &term_conf.background_color);
-
+	cfg_background_color = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_background_color"));
 	g_object_unref(builder);
 
 	gtk_window_present(GTK_WINDOW(dialog));

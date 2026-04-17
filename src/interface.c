@@ -283,10 +283,12 @@ static GHashTable *accel_snapshot = NULL; /* action → gchar** (NULL-terminated
 
 static void snapshot_accels(void)
 {
-	gchar **actions = gtk_application_list_action_descriptions(main_app);
+	gchar **actions;
+	gchar **a;
 	accel_snapshot = g_hash_table_new_full(g_str_hash, g_str_equal,
 	                                       g_free, (GDestroyNotify)g_strfreev);
-	for (gchar **a = actions; *a; a++) {
+	actions = gtk_application_list_action_descriptions(main_app);
+	for (a = actions; *a; a++) {
 		gchar **accels = gtk_application_get_accels_for_action(main_app, *a);
 		if (accels && accels[0])
 			g_hash_table_insert(accel_snapshot, g_strdup(*a), accels);
@@ -298,13 +300,13 @@ static void snapshot_accels(void)
 
 static void apply_hotkeys_disabled(gboolean disabled)
 {
+	GHashTableIter iter;
+	gpointer key, val;
 	/* Lazy snapshot: taken on first call, after GTK has processed all
 	 * <attribute name="accel"> entries from the menu model. */
 	if (!accel_snapshot)
 		snapshot_accels();
 	set_macros_shortcuts_enabled(!disabled);
-	GHashTableIter iter;
-	gpointer key, val;
 	g_hash_table_iter_init(&iter, accel_snapshot);
 	while (g_hash_table_iter_next(&iter, &key, &val)) {
 		if (disabled) {
@@ -499,6 +501,10 @@ gboolean terminal_popup_key_cb(GtkEventControllerKey *ctrl,
 
 void create_main_window(GtkApplication *app)
 {
+	GtkBuilderCScope *scope;
+	GtkBuilder *builder;
+	GtkWidget *sb_placeholder;
+	GtkShortcutController *macro_ctrl;
 
 	main_app = app;
 
@@ -512,7 +518,7 @@ void create_main_window(GtkApplication *app)
 	g_type_ensure(VTE_TYPE_TERMINAL);
 
 	/* Load window layout and menu models from resource */
-	GtkBuilderCScope *scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
+	scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
 	gtk_builder_cscope_add_callback_symbols(scope,
 	    "g_application_quit",         G_CALLBACK(g_application_quit),
 	    "Send_Hexadecimal",           G_CALLBACK(Send_Hexadecimal),
@@ -525,7 +531,7 @@ void create_main_window(GtkApplication *app)
 	    "gtk_widget_unparent",        G_CALLBACK(gtk_widget_unparent),
 	    NULL);
 
-	GtkBuilder *builder = gtk_builder_new();
+	builder = gtk_builder_new();
 	gtk_builder_set_scope(builder, GTK_BUILDER_SCOPE(scope));
 	g_object_unref(scope);
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/main_window.ui", NULL);
@@ -555,7 +561,7 @@ void create_main_window(GtkApplication *app)
 	clear_display();
 
 	/* Search bar — inserted into its placeholder box */
-	GtkWidget *sb_placeholder = GTK_WIDGET(gtk_builder_get_object(builder, "search_bar_placeholder"));
+	sb_placeholder = GTK_WIDGET(gtk_builder_get_object(builder, "search_bar_placeholder"));
 	searchBar = search_bar_new(GTK_WINDOW(Fenetre), VTE_TERMINAL(display));
 	gtk_box_append(GTK_BOX(sb_placeholder), GTK_WIDGET(searchBar));
 
@@ -563,9 +569,8 @@ void create_main_window(GtkApplication *app)
 	popup_menu = GTK_WIDGET(gtk_builder_get_object(builder, "popup_menu"));
 	gtk_widget_set_parent(popup_menu, GTK_WIDGET(display));
 
-	GtkShortcutController *macro_ctrl = GTK_SHORTCUT_CONTROLLER(
-		gtk_builder_get_object(builder, "macro_shortcut_ctrl"));
-
+	macro_ctrl = GTK_SHORTCUT_CONTROLLER(
+	                gtk_builder_get_object(builder, "macro_shortcut_ctrl"));
 	g_object_unref(builder);
 
 	set_action_enabled("edit-copy", FALSE);
@@ -715,8 +720,10 @@ void Set_window_title(const gchar *msg)
 
 void interface_open_port(void)
 {
+	gchar *message;
+
 	Config_port();
-	gchar *message = get_port_string();
+	message = get_port_string();
 	Set_status_message(message);
 	Set_window_title(message);
 	g_free(message);
@@ -724,8 +731,10 @@ void interface_open_port(void)
 
 void interface_close_port(void)
 {
+	gchar *message;
+
 	Close_port();
-	gchar *message = get_port_string();
+	message = get_port_string();
 	Set_status_message(message);
 	Set_window_title(message);
 	g_free(message);
@@ -733,10 +742,12 @@ void interface_close_port(void)
 
 void show_message(const gchar *message, gint type_msg)
 {
+	GtkAlertDialog *dialog;
+
 	if (type_msg != MSG_ERR && type_msg != MSG_WRN)
 		return;
 
-	GtkAlertDialog *dialog = gtk_alert_dialog_new("%s", message);
+	dialog = gtk_alert_dialog_new("%s", message);
 	gtk_alert_dialog_set_modal(dialog, TRUE);
 	gtk_alert_dialog_show(dialog, GTK_WINDOW(Fenetre));
 	g_object_unref(dialog);

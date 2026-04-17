@@ -29,30 +29,39 @@ static void on_delete_ok_clicked(GtkSingleSelection *sel, GtkButton *btn)
 
 static void Select_config(gchar *title, GCallback on_ok)
 {
-	GKeyFile *kf = get_key_file();
-	gchar **groups = g_key_file_get_groups(kf, NULL);
+	GKeyFile *kf;
+	gchar **groups;
+	gchar **g;
+	GtkBuilderCScope *scope;
+	GtkBuilder *builder;
+	GtkWidget *dialog;
+	GtkWidget *Liste;
+	GtkStringList *string_list;
 
-	GtkBuilderCScope *scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
+	kf = get_key_file();
+	groups = g_key_file_get_groups(kf, NULL);
+
+	scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
 	gtk_builder_cscope_add_callback_symbols(scope,
 	    "on_ok_clicked",                on_ok,
 	    "gtk_window_destroy",           G_CALLBACK(gtk_window_destroy),
 	    "gtk_widget_activate_default",  G_CALLBACK(gtk_widget_activate_default),
 	    NULL);
 
-	GtkBuilder *builder = gtk_builder_new();
+	builder = gtk_builder_new();
 	gtk_builder_set_scope(builder, GTK_BUILDER_SCOPE(scope));
 	g_object_unref(scope);
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/select_config_dialog.ui", NULL);
 
-	GtkWidget          *dialog = GTK_WIDGET(gtk_builder_get_object(builder, "select_config_window"));
-	GtkWidget          *Liste  = GTK_WIDGET(gtk_builder_get_object(builder, "select_config_list"));
+	dialog = GTK_WIDGET(gtk_builder_get_object(builder, "select_config_window"));
+	Liste  = GTK_WIDGET(gtk_builder_get_object(builder, "select_config_list"));
 	g_object_unref(builder);
 
 	gtk_window_set_title(GTK_WINDOW(dialog), title);
 	gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(Fenetre));
 
-	GtkStringList *string_list = gtk_string_list_new(NULL);
-	for (gchar **g = groups; *g; g++)
+	string_list = gtk_string_list_new(NULL);
+	for (g = groups; *g; g++)
 		gtk_string_list_append(string_list, *g);
 	g_strfreev(groups);
 	gtk_single_selection_set_model(
@@ -77,21 +86,23 @@ static void check_text_input_alnum(GtkEditable *editable, gchar *new_text,
 
 static void Save_config_file(void)
 {
-	GtkBuilderCScope *scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
-	gtk_builder_cscope_add_callback_symbols(scope,
-	    "check_text_input_alnum", G_CALLBACK(check_text_input_alnum),
-	    "on_save_ok_clicked",     G_CALLBACK(on_save_ok_clicked),
-	    "gtk_window_destroy",     G_CALLBACK(gtk_window_destroy),
-	    NULL);
+	GtkBuilderCScope *scope;
+	GtkBuilder *builder;
+	GtkWidget *dialog;
 
-	GtkBuilder *builder = gtk_builder_new();
+	scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
+	gtk_builder_cscope_add_callback_symbols(scope,
+		"check_text_input_alnum", G_CALLBACK(check_text_input_alnum),
+		"on_save_ok_clicked",     G_CALLBACK(on_save_ok_clicked),
+		"gtk_window_destroy",     G_CALLBACK(gtk_window_destroy),
+		NULL);
+
+	builder = gtk_builder_new();
 	gtk_builder_set_scope(builder, GTK_BUILDER_SCOPE(scope));
 	g_object_unref(scope);
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/save_config_dialog.ui", NULL);
 
-	GtkWidget *dialog = GTK_WIDGET(gtk_builder_get_object(builder, "save_config_window"));
-	g_object_unref(builder);
-
+	dialog = GTK_WIDGET(gtk_builder_get_object(builder, "save_config_window"));
 	gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(Fenetre));
 	gtk_window_present(GTK_WINDOW(dialog));
 }
@@ -126,16 +137,20 @@ static void save_config(gpointer _unused, gint id, GtkWidget *edit)
 {
 	if(id == GTK_RESPONSE_ACCEPT)
 	{
-		const gchar *config_name = gtk_editable_get_text(GTK_EDITABLE(edit));
+		const gchar *config_name;
+		g_autofree gchar *alert_msg;
+		GtkAlertDialog *alert;
+		static const char * const buttons[] = { "_Yes", "_Cancel", NULL };
+
+		config_name = gtk_editable_get_text(GTK_EDITABLE(edit));
 
 		if (g_key_file_has_group(get_key_file(), config_name))
 		{
-			g_autofree gchar *alert_msg = g_strdup_printf(
+			alert_msg = g_strdup_printf(
 			    _("Section [%s] already exists.\n\nDo you want to overwrite it ?"),
 			    config_name);
-			GtkAlertDialog *alert = gtk_alert_dialog_new("%s", alert_msg);
+			alert = gtk_alert_dialog_new("%s", alert_msg);
 			gtk_alert_dialog_set_modal(alert, TRUE);
-			static const char * const buttons[] = { "_Yes", "_Cancel", NULL };
 			gtk_alert_dialog_set_buttons(alert, buttons);
 			gtk_alert_dialog_set_default_button(alert, 0);
 			gtk_alert_dialog_set_cancel_button(alert, 1);

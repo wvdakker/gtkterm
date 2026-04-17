@@ -52,6 +52,7 @@ static inline void device_monitor_handle(const char *action)
 
 void event_udev(GUdevClient *client, const gchar *action, GUdevDevice *device)
 {
+	const gchar *name;
 
 	if (!device || !action)
 		return;
@@ -59,7 +60,7 @@ void event_udev(GUdevClient *client, const gchar *action, GUdevDevice *device)
 	if (!g_udev_device_get_device_file(device))
 		return;
 
-	const gchar *name = config.port;
+	name = config.port;
 
 	if (strcmp(g_udev_device_get_device_file(device), name) == 0)
 		device_monitor_handle(action);

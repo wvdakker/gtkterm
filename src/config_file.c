@@ -506,38 +506,47 @@ gint Check_configuration_file(void)
 
 void save_window_geometry(void)
 {
-	if (!Fenetre)
-		return;
+	int width;
+	int height;
+        GKeyFile *kf;
 
-	int width  = gtk_widget_get_width(GTK_WIDGET(Fenetre));
-	int height = gtk_widget_get_height(GTK_WIDGET(Fenetre));
+        if (!Fenetre)
+                return;
 
-	if (width <= 0 || height <= 0)
-		return;
+        width  = gtk_widget_get_width(GTK_WIDGET(Fenetre));
+        height = gtk_widget_get_height(GTK_WIDGET(Fenetre));
 
-	GKeyFile *kf = get_key_file();
-	g_key_file_set_integer(kf, WINDOW_SECTION, "width",  width);
-	g_key_file_set_integer(kf, WINDOW_SECTION, "height", height);
-	save_key_file();
+        if (width <= 0 || height <= 0)
+                return;
+
+        kf = get_key_file();
+        g_key_file_set_integer(kf, WINDOW_SECTION, "width",  width);
+        g_key_file_set_integer(kf, WINDOW_SECTION, "height", height);
+        save_key_file();
 }
 
 void load_window_geometry(void)
 {
+	GKeyFile *kf;
+	int width;
+	int height;
+	GdkDisplay *gdk_disp;
+
 	if (!Fenetre)
 		return;
 
-	GKeyFile *kf = get_key_file();
+	kf = get_key_file();
 	if (!g_key_file_has_group(kf, WINDOW_SECTION))
 		return;
 
-	int width  = g_key_file_get_integer(kf, WINDOW_SECTION, "width",  NULL);
-	int height = g_key_file_get_integer(kf, WINDOW_SECTION, "height", NULL);
+	width  = g_key_file_get_integer(kf, WINDOW_SECTION, "width",  NULL);
+	height = g_key_file_get_integer(kf, WINDOW_SECTION, "height", NULL);
 
 	if (width <= 0 || height <= 0)
 		return;
 
 	/* Clamp to the work area of the first monitor (excludes taskbars/panels) */
-	GdkDisplay *gdk_disp = gdk_display_get_default();
+	gdk_disp = gdk_display_get_default();
 	if (gdk_disp)
 	{
 		GListModel *monitors = gdk_display_get_monitors(gdk_disp);

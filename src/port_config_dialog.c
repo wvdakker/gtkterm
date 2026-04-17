@@ -127,7 +127,10 @@ void Config_Port_Fenetre(GSimpleAction *action, GVariant *param, gpointer data)
 	int speed_index;
 	int port_index;
 
-	gchar *no_ports_msg = NULL;
+	GtkBuilderCScope *scope;
+	gchar *no_ports_msg;
+
+	no_ports_msg = NULL;
 	ports = serial_find_ports(&no_ports_msg);
 	if (no_ports_msg)
 	{
@@ -135,7 +138,7 @@ void Config_Port_Fenetre(GSimpleAction *action, GVariant *param, gpointer data)
 		g_free(no_ports_msg);
 	}
 
-	GtkBuilderCScope *scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
+	scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
 	gtk_builder_cscope_add_callback_symbols(scope,
 	    "on_port_ok_clicked",  G_CALLBACK(on_port_ok_clicked),
 	    "gtk_window_destroy",  G_CALLBACK(gtk_window_destroy),

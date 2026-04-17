@@ -58,10 +58,15 @@ extern struct configuration_port config;
 static gchar *finish_file_dialog(GObject *source, GAsyncResult *result,
                                  gboolean is_save, const gchar *err_msg)
 {
-	GtkFileDialog *dialog = GTK_FILE_DIALOG(source);
-	GError *error = NULL;
-	GFile *file = is_save ? gtk_file_dialog_save_finish(dialog, result, &error)
-	                      : gtk_file_dialog_open_finish(dialog, result, &error);
+	GtkFileDialog *dialog;
+	GError *error;
+	GFile *file;
+	gchar *fileName;
+
+	dialog = GTK_FILE_DIALOG(source);
+	error = NULL;
+	file = is_save ? gtk_file_dialog_save_finish(dialog, result, &error)
+	               : gtk_file_dialog_open_finish(dialog, result, &error);
 	if (!file)
 	{
 		if (!g_error_matches(error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_DISMISSED))
@@ -69,7 +74,7 @@ static gchar *finish_file_dialog(GObject *source, GAsyncResult *result,
 		g_clear_error(&error);
 		return NULL;
 	}
-	gchar *fileName = g_file_get_path(file);
+	fileName = g_file_get_path(file);
 	g_object_unref(file);
 	return fileName;
 }
@@ -118,13 +123,16 @@ static void run_file_dialog(const gchar *title, gboolean is_save,
 
 static void show_transfer_dialog(const gchar *title)
 {
-	GtkBuilderCScope *scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
+	GtkBuilderCScope *scope;
+	GtkBuilder *builder;
+
+	scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
 	gtk_builder_cscope_add_callback_symbols(scope,
 	    "close_all",                        G_CALLBACK(close_all),
 	    "on_file_transfer_close_request",   G_CALLBACK(on_file_transfer_close_request),
 	    NULL);
 
-	GtkBuilder *builder = gtk_builder_new();
+	builder = gtk_builder_new();
 	gtk_builder_set_scope(builder, GTK_BUILDER_SCOPE(scope));
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/file_transfer_dialog.ui", NULL);
 	g_object_unref(scope);
