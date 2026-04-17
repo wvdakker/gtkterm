@@ -36,10 +36,6 @@ endif
 if cc.has_header('linux/termios.h')
   conf.set('HAVE_LINUX_TERMIOS_H', '1')
 endif
-if cc.has_header('sys/ttycom.h')
-  conf.set('HAVE_SYS_TTYCOM_H', '1')
-endif
-
 if cc.has_header('sys/sysmacros.h')
   conf.set('HAVE_SYS_SYSMACROS_H', '1')
 endif

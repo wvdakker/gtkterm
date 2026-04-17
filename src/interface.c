@@ -18,7 +18,6 @@
 #ifdef HAVE_LINUX_TERMIOS_H
 # include <linux/termios.h>	/* For control signals */
 # define NO_TERMIOS		/* Conflicts with <termios.h> */
-#elif defined (HAVE_SYS_TTYCOM_H)
 #endif
 #include <vte/vte.h>
 #include <stdlib.h>
