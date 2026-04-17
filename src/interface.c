@@ -43,6 +43,7 @@
 
 gboolean echo_on;
 gboolean autoreconnect_on;
+static gboolean hotkeys_disabled = FALSE;
 gboolean crlfauto_on;
 gboolean esc_clear_screen_on;
 gboolean timestamp_on = 0;
@@ -276,6 +277,53 @@ static void hex_chars_change_state(GSimpleAction *a, GVariant *s, gpointer data)
 	set_view(HEXADECIMAL_VIEW);
 }
 
+/* Snapshot of accelerators read from the application after the UI is loaded.
+ * Keys and values are both heap-allocated strings owned by the GHashTable. */
+static GHashTable *accel_snapshot = NULL; /* action → gchar** (NULL-terminated) */
+
+static void snapshot_accels(void)
+{
+	gchar **actions = gtk_application_list_action_descriptions(main_app);
+	accel_snapshot = g_hash_table_new_full(g_str_hash, g_str_equal,
+	                                       g_free, (GDestroyNotify)g_strfreev);
+	for (gchar **a = actions; *a; a++) {
+		gchar **accels = gtk_application_get_accels_for_action(main_app, *a);
+		if (accels && accels[0])
+			g_hash_table_insert(accel_snapshot, g_strdup(*a), accels);
+		else
+			g_strfreev(accels);
+	}
+	g_strfreev(actions);
+}
+
+static void apply_hotkeys_disabled(gboolean disabled)
+{
+	/* Lazy snapshot: taken on first call, after GTK has processed all
+	 * <attribute name="accel"> entries from the menu model. */
+	if (!accel_snapshot)
+		snapshot_accels();
+	set_macros_shortcuts_enabled(!disabled);
+	GHashTableIter iter;
+	gpointer key, val;
+	g_hash_table_iter_init(&iter, accel_snapshot);
+	while (g_hash_table_iter_next(&iter, &key, &val)) {
+		if (disabled) {
+			const char *empty[] = { NULL };
+			gtk_application_set_accels_for_action(main_app, key, empty);
+		} else {
+			gtk_application_set_accels_for_action(main_app, key, val);
+		}
+	}
+}
+
+static void disable_hotkeys_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+{
+	hotkeys_disabled = g_variant_get_boolean(s);
+	config.disable_hotkeys = hotkeys_disabled;
+	g_simple_action_set_state(a, s);
+	apply_hotkeys_disabled(hotkeys_disabled);
+}
+
 /* Normal action entries table */
 static const GActionEntry app_actions[] = {
 	{ "file-exit",          file_exit_cb },
@@ -318,6 +366,7 @@ static const GActionEntry app_actions[] = {
 	{ "hex-chars",          NULL, "s",  "'16'",    hex_chars_change_state },
 	/* Simple action used only for enabling/disabling the hex-chars submenu */
 	{ "hex-chars-submenu",  NULL },
+	{ "disable-hotkeys",    NULL, NULL, "false", disable_hotkeys_change_state },
 };
 
 
@@ -354,7 +403,9 @@ void Set_timestamp(gboolean v)             { timestamp_on = v;         set_bool_
 
 void Set_hotkeys_disabled(gboolean disabled)
 {
-	set_macros_shortcuts_enabled(!disabled);
+	hotkeys_disabled = disabled;
+	set_bool_action("disable-hotkeys", disabled);
+	apply_hotkeys_disabled(disabled);
 }
 
 static gboolean reenable_commit_cb(gpointer data)
