@@ -58,22 +58,20 @@ extern struct configuration_port config;
 static gchar *finish_file_dialog(GObject *source, GAsyncResult *result,
                                  gboolean is_save, const gchar *err_msg)
 {
-	GtkFileDialog *dialog;
-	GError *error;
-	GFile *file;
 	gchar *fileName;
+	GError *error = NULL;
 
-	dialog = GTK_FILE_DIALOG(source);
-	error = NULL;
-	file = is_save ? gtk_file_dialog_save_finish(dialog, result, &error)
-	               : gtk_file_dialog_open_finish(dialog, result, &error);
+	GFile *file = is_save
+	    ? gtk_file_dialog_save_finish(GTK_FILE_DIALOG(source), result, &error)
+	    : gtk_file_dialog_open_finish(GTK_FILE_DIALOG(source), result, &error);
 	if (!file)
 	{
 		if (!g_error_matches(error, GTK_DIALOG_ERROR, GTK_DIALOG_ERROR_DISMISSED))
-			show_message(err_msg, MSG_ERR);
+			show_message(MSG_ERR, err_msg);
 		g_clear_error(&error);
 		return NULL;
 	}
+
 	fileName = g_file_get_path(file);
 	g_object_unref(file);
 	return fileName;
@@ -86,9 +84,8 @@ static void save_to_file(gchar *fileName, void (*writer)(const char *, size_t))
 	Fic = fopen(fileName, "w");
 	if (Fic == NULL)
 	{
-		g_autofree gchar *msg = g_strdup_printf(_("Cannot open file %s: %s\n"),
-		                                         fileName, g_strerror(errno));
-		show_message(msg, MSG_ERR);
+		show_messagef(MSG_ERR, _("Cannot open file %s: %s\n"),
+		              fileName, g_strerror(errno));
 		g_free(fileName);
 	}
 	else
@@ -104,6 +101,7 @@ static void run_file_dialog(const gchar *title, gboolean is_save,
                             GAsyncReadyCallback callback)
 {
 	GtkFileDialog *dialog = gtk_file_dialog_new();
+
 	gtk_file_dialog_set_title(dialog, title);
 	gtk_file_dialog_set_modal(dialog, TRUE);
 
@@ -170,9 +168,8 @@ static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer
 	}
 	else
 	{
-		g_autofree gchar *msg = g_strdup_printf(_("Cannot read file %s: %s\n"),
-		                                         fileName, g_strerror(errno));
-		show_message(msg, MSG_ERR);
+		show_messagef(MSG_ERR, _("Cannot read file %s: %s\n"),
+		              fileName, g_strerror(errno));
 		g_free(fileName);
 	}
 }
@@ -205,8 +202,7 @@ static gboolean ecriture(GIOChannel *src, GIOCondition cond, gpointer data)
 
 		if (current_buffer == NULL)
 		{
-			g_autofree gchar *str = g_strdup_printf(_("Error sending file\n"));
-			show_message(str, MSG_ERR);
+			show_message(MSG_ERR, _("Error sending file\n"));
 			close_all();
 			return G_SOURCE_REMOVE;
 		}
@@ -230,8 +226,7 @@ static gboolean ecriture(GIOChannel *src, GIOCondition cond, gpointer data)
 
 		if (bytes_written == -1)
 		{
-			g_autofree gchar *str = g_strdup_printf(_("Error sending file: %s\n"), g_strerror(errno));
-			show_message(str, MSG_ERR);
+			show_messagef(MSG_ERR, _("Error sending file: %s\n"), g_strerror(errno));
 			close_all();
 			return G_SOURCE_REMOVE;
 		}

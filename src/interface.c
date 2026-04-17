@@ -483,62 +483,20 @@ gboolean terminal_popup_key_cb(GtkEventControllerKey *ctrl,
 	return FALSE;
 }
 
+void interface_apply_term_config(void)
+{
+	if (!display)
+		return;
+	vte_terminal_set_size(VTE_TERMINAL(display), term_conf.rows, term_conf.columns);
+	vte_terminal_set_scrollback_lines(VTE_TERMINAL(display), term_conf.scrollback);
+	vte_terminal_set_color_foreground(VTE_TERMINAL(display), &term_conf.foreground_color);
+	vte_terminal_set_color_background(VTE_TERMINAL(display), &term_conf.background_color);
+	vte_terminal_set_cursor_shape(VTE_TERMINAL(display),
+	    term_conf.block_cursor ? VTE_CURSOR_SHAPE_BLOCK : VTE_CURSOR_SHAPE_IBEAM);
+	gtk_widget_queue_draw(display);
+}
+
 /* ---- Main window creation ---- */
-
-static gboolean on_main_window_close(GtkWindow *win, gpointer data)
-{
-	interface_save_window_geometry();
-	return FALSE;
-}
-
-void interface_save_window_geometry(void)
-{
-	int width;
-	int height;
-
-	if (!Fenetre)
-		return;
-
-	width  = gtk_widget_get_width(GTK_WIDGET(Fenetre));
-	height = gtk_widget_get_height(GTK_WIDGET(Fenetre));
-
-	if (width > 0 && height > 0)
-		save_window_geometry(width, height);
-}
-
-void interface_load_window_geometry(void)
-{
-	int width;
-	int height;
-	GdkDisplay *gdk_disp;
-
-	if (!Fenetre)
-		return;
-
-	if (!load_window_geometry(&width, &height))
-		return;
-
-	/* Clamp to the work area of the first monitor (excludes taskbars/panels) */
-	gdk_disp = gdk_display_get_default();
-	if (gdk_disp)
-	{
-		GListModel *monitors = gdk_display_get_monitors(gdk_disp);
-		if (monitors && g_list_model_get_n_items(monitors) > 0)
-		{
-			GdkMonitor *monitor = g_list_model_get_item(monitors, 0);
-			if (monitor)
-			{
-				GdkRectangle workarea;
-				gdk_monitor_get_geometry(monitor, &workarea);
-				width  = CLAMP(width,  100, workarea.width);
-				height = CLAMP(height, 100, workarea.height);
-				g_object_unref(monitor);
-			}
-		}
-	}
-
-	gtk_window_set_default_size(GTK_WINDOW(Fenetre), width, height);
-}
 
 void create_main_window(GtkApplication *app)
 {
@@ -620,8 +578,6 @@ void create_main_window(GtkApplication *app)
 
 	got_input_handler_id = g_signal_connect_after(GTK_WIDGET(display), "commit",
 	                                              G_CALLBACK(Got_Input), NULL);
-
-	g_signal_connect(Fenetre, "close-request", G_CALLBACK(on_main_window_close), NULL);
 
 	g_timeout_add(POLL_DELAY, control_signals_read, NULL);
 
@@ -783,7 +739,7 @@ void interface_close_port(void)
 	g_free(message);
 }
 
-void show_message(const gchar *message, gint type_msg)
+void show_message(gint type_msg, const gchar *message)
 {
 	GtkAlertDialog *dialog;
 
@@ -794,6 +750,16 @@ void show_message(const gchar *message, gint type_msg)
 	gtk_alert_dialog_set_modal(dialog, TRUE);
 	gtk_alert_dialog_show(dialog, GTK_WINDOW(Fenetre));
 	g_object_unref(dialog);
+}
+
+void show_messagef(gint type_msg, const gchar *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	gchar *msg = g_strdup_vprintf(fmt, args);
+	va_end(args);
+	show_message(type_msg, msg);
+	g_free(msg);
 }
 
 static void Send_Hexadecimal(GtkWidget *widget, gpointer pointer)

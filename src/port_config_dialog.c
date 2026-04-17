@@ -134,7 +134,7 @@ void Config_Port_Fenetre(GSimpleAction *action, GVariant *param, gpointer data)
 	ports = serial_find_ports(&no_ports_msg);
 	if (no_ports_msg)
 	{
-		show_message(no_ports_msg, MSG_WRN);
+		show_message(MSG_WRN, no_ports_msg);
 		g_free(no_ports_msg);
 	}
 

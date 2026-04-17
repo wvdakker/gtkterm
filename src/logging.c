@@ -51,7 +51,7 @@ static void OpenLogFile(const gchar *filename)
 	// open file and start logging
 	if(!filename || !filename[0])
 	{
-		show_message(_("Filename error\n"), MSG_ERR);
+		show_message(MSG_ERR, _("Filename error\n"));
 		return;
 	}
 
@@ -59,10 +59,7 @@ static void OpenLogFile(const gchar *filename)
 
 	LoggingFile = fopen(filename, "a");
 	if(LoggingFile == NULL)
-	{
-		g_autofree gchar *str = g_strdup_printf(_("Cannot open file %s: %s\n"), filename, g_strerror(errno));
-		show_message(str, MSG_ERR);
-	}
+		show_messagef(MSG_ERR, _("Cannot open file %s: %s\n"), filename, g_strerror(errno));
 	else
 	{
 		LoggingFileName = g_strdup(filename);
@@ -128,8 +125,7 @@ void logging_clear(GSimpleAction *action, GVariant *param, gpointer data)
 
 	if (LoggingFile == NULL)
 	{
-		g_autofree gchar *str = g_strdup_printf(_("Cannot open file %s: %s\n"), LoggingFileName, g_strerror(errno));
-		show_message(str, MSG_ERR);
+		show_messagef(MSG_ERR, _("Cannot open file %s: %s\n"), LoggingFileName, g_strerror(errno));
 		close_log_file();
 	}
 }
@@ -175,7 +171,7 @@ void log_chars(const gchar *chars, guint size)
 		                       size-bytesWritten, LoggingFile);
 		if (bytesWritten == prev && ++writeAttempts >= MAX_WRITE_ATTEMPTS)
 		{
-			show_message(_("Failed to log data\n"), MSG_ERR);
+			show_message(MSG_ERR, _("Failed to log data\n"));
 			return;
 		}
 	}
