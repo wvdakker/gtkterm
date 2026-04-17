@@ -55,6 +55,8 @@ typedef struct
 	GdkRGBA foreground_color;
 	GdkRGBA background_color;
 	PangoFontDescription *font_desc;
+	gint window_width;
+	gint window_height;
 } display_config_t;
 
 
