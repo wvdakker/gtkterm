@@ -127,6 +127,7 @@ void Config_Terminal(GSimpleAction *action, GVariant *param, gpointer data)
 	gtk_color_dialog_button_set_rgba(GTK_COLOR_DIALOG_BUTTON(cfg_text_color), &term_conf.foreground_color);
 
 	cfg_background_color = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_background_color"));
+	gtk_color_dialog_button_set_rgba(GTK_COLOR_DIALOG_BUTTON(cfg_background_color), &term_conf.background_color);
 	g_object_unref(builder);
 
 	gtk_window_present(GTK_WINDOW(dialog));
