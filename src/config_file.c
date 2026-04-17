@@ -14,26 +14,25 @@
 /*                                                                     */
 /***********************************************************************/
 
-#include <gtk/gtk.h>
-#include <vte/vte.h>
 #include <string.h>
 #include <glib/gi18n.h>
+#include <glib/gstdio.h>
 
 #include "term_config.h"
-#include "config_file.h"
 #include "interface.h"
+#include "config_file.h"
 #include "macros.h"
 #include "terminal_config.h"
 #include "serial.h"
 
 #define CONFIGURATION_FILENAME ".gtktermrc"
 
+/* Module-private globals */
+static gchar             *config_path;
+
 /* Public globals — forward-declared as extern in config_file.h */
-GFile                    *config_file;
 struct configuration_port config;
 display_config_t          term_conf;
-
-extern GtkWidget *display;
 
 /* ------------------------------------------------------------------ */
 /* GKeyFile loading/saving                                             */
@@ -42,33 +41,29 @@ extern GtkWidget *display;
 /* Load the GKeyFile for the config file.
  * If the file does not exist an empty GKeyFile is returned — the caller
  * creates the content and saves it. */
-GKeyFile *load_key_file(void)
+static GKeyFile *load_key_file(void)
 {
 	GError *err  = NULL;
-	gchar  *path;
 	GKeyFile *kf;
 
 	kf = g_key_file_new();
-	path = g_file_get_path(config_file);
-	g_key_file_load_from_file(kf, path, G_KEY_FILE_KEEP_COMMENTS, &err);
-	g_free(path);
+	g_key_file_load_from_file(kf, config_path, G_KEY_FILE_KEEP_COMMENTS, &err);
 	g_clear_error(&err); /* ignore "file not found" */
 	return kf;
 }
 
-gboolean save_key_file(GKeyFile *kf)
+static gboolean save_key_file(GKeyFile *kf)
 {
 	GError *err = NULL;
 
 	if (kf == NULL)
 		return FALSE;
 
-	gchar *path = g_file_get_path(config_file);
-	gboolean ok = g_key_file_save_to_file(kf, path, &err);
-	g_free(path);
+	gboolean ok = g_key_file_save_to_file(kf, config_path, &err);
 	if (!ok)
 	{
-		show_message(_("Cannot save configuration file!\n"), MSG_ERR);
+		show_messagef(MSG_ERR, _("Cannot save configuration file: %s"),
+		              err ? err->message : _("unknown error"));
 		g_clear_error(&err);
 	}
 	return ok;
@@ -137,20 +132,19 @@ void config_file_init(void)
 	 * If configuration file exists at new location, use that one.
 	 * Otherwise, if file exists at old location, move file to new location.
 	 */
-	GFile *config_file_old = g_file_new_build_filename(getenv("HOME"), CONFIGURATION_FILENAME, NULL);
-	config_file = g_file_new_build_filename(g_get_user_config_dir(), CONFIGURATION_FILENAME, NULL);
+	gchar *old_path = g_build_filename(getenv("HOME"), CONFIGURATION_FILENAME, NULL);
+	config_path = g_build_filename(g_get_user_config_dir(), CONFIGURATION_FILENAME, NULL);
 
-	if (!g_file_query_exists(config_file, NULL) && g_file_query_exists(config_file_old, NULL))
-		g_file_move(config_file_old, config_file, G_FILE_COPY_NONE, NULL, NULL, NULL, NULL);
-	g_object_unref(config_file_old);
+	if (!g_file_test(config_path, G_FILE_TEST_EXISTS) &&
+	     g_file_test(old_path, G_FILE_TEST_EXISTS))
+		g_rename(old_path, config_path);
+	g_free(old_path);
 }
 
 void config_file_free(void)
 {
-	if (config_file != NULL) {
-		g_object_unref(config_file);
-		config_file = NULL;
-	}
+	g_free(config_path);
+	config_path = NULL;
 	pango_font_description_free(term_conf.font_desc);
 	term_conf.font_desc = NULL;
 }
@@ -159,7 +153,7 @@ void config_file_free(void)
 /* Defaults                                                            */
 /* ------------------------------------------------------------------ */
 
-void Hard_default_configuration(void)
+static void Hard_default_configuration(void)
 {
 	strcpy(config.port, DEFAULT_PORT);
 	config.vitesse = DEFAULT_SPEED;
@@ -195,7 +189,7 @@ void Hard_default_configuration(void)
 /* Copy current config/term_conf into a GKeyFile section              */
 /* ------------------------------------------------------------------ */
 
-void Copy_configuration(GKeyFile *kf, const gchar *section)
+static void Copy_configuration(GKeyFile *kf, const gchar *section)
 {
 	static const char *parity_names[] = { "none", "odd",  "even" };
 	static const char *flow_names[]   = { "none", "xon",  "rts", "rs485" };
@@ -272,6 +266,12 @@ void Copy_configuration(GKeyFile *kf, const gchar *section)
 		g_autofree gchar *_s = g_strdup_printf("%.4f", *color_fields[ci].val);
 		g_key_file_set_string(kf, section, color_fields[ci].key, _s);
 	}
+
+	if (term_conf.window_width > 0 && term_conf.window_height > 0)
+	{
+		g_key_file_set_integer(kf, section, "window_width",  term_conf.window_width);
+		g_key_file_set_integer(kf, section, "window_height", term_conf.window_height);
+	}
 }
 
 /* ------------------------------------------------------------------ */
@@ -288,9 +288,7 @@ gint Load_configuration_from_file(const gchar *config_name)
 
 	if (!g_key_file_has_group(kf, config_name))
 	{
-		g_autofree gchar *msg = g_strdup_printf(_("No section \"%s\" in configuration file\n"), config_name);
 		g_key_file_free(kf);
-		show_message(msg, MSG_ERR);
 		return -1;
 	}
 
@@ -411,13 +409,11 @@ gint Load_configuration_from_file(const gchar *config_name)
 		Selec_couleur(&term_conf.background_color, 0, 0, 0, 1.0f);
 	}
 
-	vte_terminal_set_size(VTE_TERMINAL(display), term_conf.rows, term_conf.columns);
-	vte_terminal_set_scrollback_lines(VTE_TERMINAL(display), term_conf.scrollback);
-	vte_terminal_set_color_foreground(VTE_TERMINAL(display), &term_conf.foreground_color);
-	vte_terminal_set_color_background(VTE_TERMINAL(display), &term_conf.background_color);
-	vte_terminal_set_cursor_shape(VTE_TERMINAL(display),
-	    term_conf.block_cursor ? VTE_CURSOR_SHAPE_BLOCK : VTE_CURSOR_SHAPE_IBEAM);
-	gtk_widget_queue_draw(display);
+	v = g_key_file_get_integer(kf, config_name, "window_width",  NULL);
+	if (v > 0) term_conf.window_width = v;
+	v = g_key_file_get_integer(kf, config_name, "window_height", NULL);
+	if (v > 0) term_conf.window_height = v;
+
 	g_key_file_free(kf);
 
 	return 0;
@@ -429,41 +425,70 @@ gint Load_configuration_from_file(const gchar *config_name)
 
 void Verify_configuration(void)
 {
-	gchar *string = NULL;
-
 	if (find_standard_baudrate(config.vitesse) == B0)
-	{
-		string = g_strdup_printf(_("Baud rate %u may not be supported by all hardware"), config.vitesse);
-		show_message(string, MSG_ERR);
-		g_free(string);
-	}
+		show_messagef(MSG_WRN, _("Baud rate %u may not be supported by all hardware"), config.vitesse);
 
 	if (config.stops != 1 && config.stops != 2)
 	{
-		string = g_strdup_printf(_("Invalid number of stop-bits: %d\nFalling back to default number of stop-bits number: %d\n"), config.stops, DEFAULT_STOP);
-		show_message(string, MSG_ERR);
+		show_messagef(MSG_WRN, _("Invalid number of stop-bits: %d\nFalling back to default number of stop-bits number: %d\n"), config.stops, DEFAULT_STOP);
 		config.stops = DEFAULT_STOP;
-		g_free(string);
 	}
 
 	if (config.bits < 5 || config.bits > 8)
 	{
-		string = g_strdup_printf(_("Invalid number of bits: %d\nFalling back to default number of bits: %d\n"), config.bits, DEFAULT_BITS);
-		show_message(string, MSG_ERR);
+		show_messagef(MSG_WRN, _("Invalid number of bits: %d\nFalling back to default number of bits: %d\n"), config.bits, DEFAULT_BITS);
 		config.bits = DEFAULT_BITS;
-		g_free(string);
 	}
 
 	if (config.delai < 0 || config.delai > 500)
 	{
-		string = g_strdup_printf(_("Invalid delay: %d ms\nFalling back to default delay: %d ms\n"), config.delai, DEFAULT_DELAY);
-		show_message(string, MSG_ERR);
+		show_messagef(MSG_WRN, _("Invalid delay: %d ms\nFalling back to default delay: %d ms\n"), config.delai, DEFAULT_DELAY);
 		config.delai = DEFAULT_DELAY;
-		g_free(string);
 	}
 
 	if (term_conf.font_desc == NULL)
 		set_terminal_font_from_string(DEFAULT_FONT);
+}
+
+gboolean Save_configuration_to_file(const gchar *config_name)
+{
+	GKeyFile *kf = load_key_file();
+	Copy_configuration(kf, config_name);
+	gboolean ok = save_key_file(kf);
+	g_key_file_free(kf);
+	return ok;
+}
+
+/* ------------------------------------------------------------------ */
+/* Query whether a named section exists in the config file            */
+/* ------------------------------------------------------------------ */
+
+gboolean config_section_exists(const gchar *config_name)
+{
+	GKeyFile *kf = load_key_file();
+	gboolean  exists = g_key_file_has_group(kf, config_name);
+	g_key_file_free(kf);
+	return exists;
+}
+
+gboolean config_delete_section(const gchar *config_name)
+{
+	GError   *err = NULL;
+	GKeyFile *kf  = load_key_file();
+	gboolean  ok  = g_key_file_remove_group(kf, config_name, &err);
+	if (ok)
+		save_key_file(kf);
+	g_clear_error(&err);
+	g_key_file_free(kf);
+	return ok;
+}
+
+gchar **config_get_sections(void)
+{
+	GKeyFile *kf = load_key_file();
+	gchar   **groups = g_key_file_get_groups(kf, NULL);
+	g_key_file_free(kf);
+	return groups;
 }
 
 /* ------------------------------------------------------------------ */
@@ -472,62 +497,18 @@ void Verify_configuration(void)
 
 gint Check_configuration_file(void)
 {
-	GKeyFile *kf = load_key_file();
+	Hard_default_configuration();
 
-	if (g_key_file_has_group(kf, "default"))
+	if (!config_section_exists("default"))
 	{
-		if (Load_configuration_from_file("default") == -1)
-		{
-			g_key_file_free(kf);
-			Hard_default_configuration();
+		if (!Save_configuration_to_file("default"))
 			return -1;
-		}
-	}
-	else
-	{
-		g_autofree gchar *config_path = g_file_get_path(config_file);
-		gchar *msg = g_strdup_printf(
+
+		show_messagef(MSG_WRN,
 		    _("Configuration file (%s) with\n[default] configuration has been created.\n"),
 		    config_path);
-		show_message(msg, MSG_WRN);
-		g_free(msg);
-		Hard_default_configuration();
-		Copy_configuration(kf, "default");
-		save_key_file(kf);
-	}
-	g_key_file_free(kf);
-	return 0;
-}
-
-/* ------------------------------------------------------------------ */
-/* Window geometry persistence — stored in the [window] section,      */
-/* independent of named port-configuration sections.                  */
-/* ------------------------------------------------------------------ */
-
-#define WINDOW_SECTION "window"
-
-void save_window_geometry(int width, int height)
-{
-	GKeyFile *kf = load_key_file();
-	g_key_file_set_integer(kf, WINDOW_SECTION, "width",  width);
-	g_key_file_set_integer(kf, WINDOW_SECTION, "height", height);
-	save_key_file(kf);
-	g_key_file_free(kf);
-}
-
-gboolean load_window_geometry(int *width, int *height)
-{
-	GKeyFile *kf = load_key_file();
-
-	if (!g_key_file_has_group(kf, WINDOW_SECTION))
-	{
-		g_key_file_free(kf);
-		return FALSE;
+		return 1;
 	}
 
-	*width  = g_key_file_get_integer(kf, WINDOW_SECTION, "width",  NULL);
-	*height = g_key_file_get_integer(kf, WINDOW_SECTION, "height", NULL);
-	g_key_file_free(kf);
-
-	return *width > 0 && *height > 0;
+	return Load_configuration_from_file("default") == -1 ? -1 : 0;
 }

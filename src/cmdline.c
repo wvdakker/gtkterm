@@ -26,6 +26,7 @@
 #include "cmdline.h"
 #include "files.h"
 #include "auto_config.h"
+#include "interface.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
@@ -96,7 +97,10 @@ int read_command_line(int argc, char **argv)
 		switch(c)
 		{
 		case 'c':
-			Load_configuration_from_file(optarg);
+			if (Load_configuration_from_file(optarg) == -1)
+				show_messagef(MSG_ERR, _("No section \"%s\" in configuration file\n"), optarg);
+			else
+				interface_apply_term_config();
 			break;
 
 		case 's':
