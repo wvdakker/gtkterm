@@ -16,22 +16,44 @@
 	...
 	obj:*/libnvidia-glcore.so*
 	...
-}{
-	gtk4-fontconfig-fcfontsetlist
+}
+
+{
+	gtk4-fontconfig-fcinit
 	Memcheck:Leak
 	match-leak-kinds: definite,indirect,possible,reachable
 	fun:malloc
 	...
-	fun:FcFontSetList
+	fun:FcInit
 	...
 }
 
 {
-	gtk4-nvidia-driver-leak
+	gtk4-fontconfig-fcrenderpreapre
 	Memcheck:Leak
-	match-leak-kinds: possible,reachable
-	fun:malloc
+	match-leak-kinds: definite,indirect,possible,reachable
+	fun:realloc
 	...
-	obj:*/libnvidia-glcore.so*
+	fun:FcFontRenderPrepare
+	...
+}
+
+{
+	gtk4-fontconfig-fcfontsetmatch
+	Memcheck:Leak
+	match-leak-kinds: definite,indirect,possible,reachable
+	fun:realloc
+	...
+	fun:FcFontSetMatch
+	...
+}
+
+{
+	gtk4-pango-vte-font-load
+	Memcheck:Leak
+	match-leak-kinds: definite,indirect,possible,reachable
+	fun:realloc
+	...
+	fun:vte_terminal_set_font
 	...
 }

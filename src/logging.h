@@ -19,5 +19,6 @@ void logging_pause_resume(GSimpleAction *action, GVariant *param, gpointer data)
 void logging_stop(GSimpleAction *action, GVariant *param, gpointer data);
 void logging_clear(GSimpleAction *action, GVariant *param, gpointer data);
 void log_chars(const gchar *chars, guint size);
+void logging_cleanup(void);
 
 #endif /* LOGGING_H_ */

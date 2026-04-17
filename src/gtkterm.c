@@ -30,6 +30,7 @@
 #include "device_monitor.h"
 #include "user_signals.h"
 #include "files.h"
+#include "logging.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
@@ -44,6 +45,9 @@ static void on_shutdown(GtkApplication *app, gpointer user_data)
 	delete_buffer();
 	Close_port();
 	device_monitor_stop();
+	macros_cleanup();
+	logging_cleanup();
+	interface_cleanup();
 	config_file_free();
 	files_cleanup();
 }

@@ -182,3 +182,10 @@ void log_chars(const gchar *chars, guint size)
 
 	fflush(LoggingFile);
 }
+
+void logging_cleanup(void)
+{
+	close_log_file(); /* frees LoggingFileName, closes LoggingFile */
+	g_free(logfile_default);
+	logfile_default = NULL;
+}

@@ -621,6 +621,8 @@ void create_main_window(GtkApplication *app)
 	got_input_handler_id = g_signal_connect_after(GTK_WIDGET(display), "commit",
 	                                              G_CALLBACK(Got_Input), NULL);
 
+	g_signal_connect(Fenetre, "close-request", G_CALLBACK(on_main_window_close), NULL);
+
 	g_timeout_add(POLL_DELAY, control_signals_read, NULL);
 
 	install_macro_shortcut_controller(macro_ctrl);
@@ -918,4 +920,20 @@ void set_saved_data(GtkWidget *widget, gboolean direction)
 	}
 
 	gtk_editable_set_text(GTK_EDITABLE(widget), text);
+}
+
+void interface_cleanup(void)
+{
+	if (accel_snapshot != NULL)
+	{
+		g_hash_table_destroy(accel_snapshot);
+		accel_snapshot = NULL;
+	}
+
+	if (hex_history != NULL)
+	{
+		g_list_free_full(hex_history, g_free);
+		hex_history = NULL;
+		current_hex = NULL;
+	}
 }

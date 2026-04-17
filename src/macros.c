@@ -171,6 +171,35 @@ void remove_shortcuts(void)
 	macros_count = 0;
 }
 
+void macros_cleanup(void)
+{
+	guint i;
+
+	/* Free macro string data. Do NOT touch macro_ctrl here — the
+	 * GtkShortcutController belongs to the main window which is already
+	 * destroyed by the time on_shutdown() runs. */
+	if (macros != NULL)
+	{
+		for (i = 0; i < macros_count; i++)
+		{
+			g_free(macros[i].shortcut);
+			g_free(macros[i].action);
+		}
+		g_free(macros);
+		macros = NULL;
+		macros_count = 0;
+	}
+
+	/* Free the GPtrArray — its free_func (g_object_unref) will release any
+	 * GtkShortcut objects that outlived the controller. */
+	if (macro_shortcuts != NULL)
+	{
+		g_ptr_array_free(macro_shortcuts, TRUE);
+		macro_shortcuts = NULL;
+	}
+	macro_ctrl = NULL;
+}
+
 /* ---- GtkListBox-based macro editor ---- */
 
 static void Add_shortcut(GtkWidget *button, gpointer listbox_ptr)
