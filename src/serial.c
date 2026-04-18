@@ -58,9 +58,9 @@ extern struct configuration_port config;
 
 static gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
 {
-	ssize_t bytes_read;
+	gssize bytes_read;
 	static gchar c[BUFFER_RECEPTION];
-	ssize_t i;
+	gssize i;
 
 	if (cond & (G_IO_HUP | G_IO_ERR)) {
 		Close_port();
@@ -77,7 +77,7 @@ static gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
 		bytes_read = read(serial_port_fd, c, BUFFER_RECEPTION);
 		if(bytes_read > 0)
 		{
-			put_chars(c, (size_t)bytes_read, config.crlfauto);
+			put_chars(c, (gsize)bytes_read, config.crlfauto);
 
 			if(config.car != -1 && waiting_for_char == TRUE)
 			{
@@ -175,9 +175,9 @@ int lis_sig(void)
 	return -1;
 }
 
-int Send_chars(char *string, int length)
+gssize Send_chars(const char *string, gsize length)
 {
-	ssize_t bytes_written = 0;
+	gssize bytes_written = 0;
 
 	if(serial_port_fd == -1)
 		return 0;
@@ -195,7 +195,7 @@ int Send_chars(char *string, int length)
 			usleep((unsigned int)(config.rs485_rts_time_before_transmit*1000));
 	}
 
-	bytes_written = write(serial_port_fd, string, (size_t)length);
+	bytes_written = write(serial_port_fd, string, length);
 
 	/* RS485 half-duplex mode ? */
 	if( config.flux==3 )
@@ -208,7 +208,7 @@ int Send_chars(char *string, int length)
 		Set_signals( 1 );
 	}
 
-	return (int)bytes_written;
+	return bytes_written;
 }
 
 gboolean Config_port(void)

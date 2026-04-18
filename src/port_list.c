@@ -244,7 +244,7 @@ GPtrArray *serial_find_ports(gchar **no_ports_msg)
 		/* Build list of searched patterns for the error message */
 		const struct device_path *dp;
 		gchar *str, *p, *ep;
-		size_t len = 1;
+		gsize len = 1;
 
 		for (dp = device_paths; dp->pat; dp++)
 			len += strlen(dp->pat) + 2;

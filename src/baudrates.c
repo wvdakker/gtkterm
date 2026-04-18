@@ -12,7 +12,6 @@
 /*                                                                     */
 /***********************************************************************/
 
-#include <stddef.h>
 #include <stdlib.h>
 #include <termios.h>
 #include <glib.h>
@@ -23,11 +22,9 @@
 
 const struct baudrate baudrate_list[] = {
 #include "baudrates.h"
-	{ 0, B0 }
 };
 
-const size_t baudrate_count =
-     sizeof(baudrate_list) / sizeof(baudrate_list[0]) - 1;
+const gsize baudrate_count = G_N_ELEMENTS(baudrate_list);
 const gboolean speed_t_is_sane = SPEED_T_IS_SANE;
 
 static int cmp_baud(const void *key, const void *elem)
@@ -64,13 +61,13 @@ unsigned int speed_t_to_baud(speed_t speed)
 	}
 	else
 	{
-		size_t i;
+		gsize i;
 
 		for (i = 0; i < baudrate_count; i++)
 		{
 			if (baudrate_list[i].speed == speed)
-				break;
+				return baudrate_list[i].baud;
 		}
-		return baudrate_list[i].baud; /* 0 if end of list */
+		return 0;
 	}
 }

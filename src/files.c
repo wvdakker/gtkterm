@@ -28,9 +28,9 @@
 
 /* Global variables */
 static gint nb_car;
-static gint car_written;
-static gint current_buffer_position;
-static ssize_t bytes_read;
+static gsize car_written;
+static gsize current_buffer_position;
+static gssize bytes_read;
 static GtkWidget *ProgressBar;
 static gint Fichier = -1;
 static guint callback_handler;
@@ -79,7 +79,7 @@ static gchar *finish_file_dialog(GObject *source, GAsyncResult *result,
 
 /* Shared body for save-raw and save-ascii: opens fileName for writing,
  * drains the buffer through writer, then takes ownership of fileName. */
-static void save_to_file(gchar *fileName, void (*writer)(const char *, size_t))
+static void save_to_file(gchar *fileName, void (*writer)(const char *, gsize))
 {
 	Fic = fopen(fileName, "w");
 	if (Fic == NULL)
@@ -183,8 +183,8 @@ static gboolean ecriture(GIOChannel *src, GIOCondition cond, gpointer data)
 {
 	static gchar buffer[BUFFER_EMISSION];
 	static gchar *current_buffer;
-	static gint bytes_to_write;
-	ssize_t bytes_written;
+	static gsize bytes_to_write;
+	gssize bytes_written;
 	gchar *car;
 
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar),
@@ -197,7 +197,7 @@ static gboolean ecriture(GIOChannel *src, GIOCondition cond, gpointer data)
 			bytes_read = read(Fichier, buffer, BUFFER_EMISSION);
 			current_buffer_position = 0;
 			current_buffer = buffer;
-			bytes_to_write = (gint)bytes_read;
+			bytes_to_write = (gsize)bytes_read;
 		}
 
 		if (current_buffer == NULL)
@@ -212,7 +212,7 @@ static gboolean ecriture(GIOChannel *src, GIOCondition cond, gpointer data)
 		if (config.delai != 0 || config.car != -1)
 		{
 			bytes_to_write = current_buffer_position;
-			while (*car != LINE_FEED && bytes_to_write < bytes_read)
+			while (*car != LINE_FEED && bytes_to_write < (gsize)bytes_read)
 			{
 				car++;
 				bytes_to_write++;
@@ -231,8 +231,8 @@ static gboolean ecriture(GIOChannel *src, GIOCondition cond, gpointer data)
 			return G_SOURCE_REMOVE;
 		}
 
-		car_written += (gint)bytes_written;
-		current_buffer_position += (gint)bytes_written;
+		car_written += (gsize)bytes_written;
+		current_buffer_position += (gsize)bytes_written;
 		current_buffer += bytes_written;
 
 		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar),
@@ -318,21 +318,21 @@ static gboolean on_file_transfer_close_request(GtkWindow *window, gpointer data)
 	return FALSE; /* let GTK destroy the window */
 }
 
-void write_file(const char *data, size_t size)
+void write_file(const char *data, gsize size)
 {
 	fwrite(data, size, 1, Fic);
 }
 
-static void write_ascii_file(const char *data, size_t size)
+static void write_ascii_file(const char *data, gsize size)
 {
 	char *cleanbuff = g_malloc(size);
-	int newsize = 0;
-	for (size_t x = 0; x < size; ++x)
+	gsize newsize = 0;
+	for (gsize x = 0; x < size; ++x)
 	{
 		if (data[x] > 0x1F || data[x] == 0x0A || data[x] == 0x0D)
 			cleanbuff[newsize++] = data[x];
 	}
-	fwrite(cleanbuff, (size_t)newsize, 1, Fic);
+	fwrite(cleanbuff, newsize, 1, Fic);
 	g_free(cleanbuff);
 }
 

@@ -40,7 +40,7 @@ char overlapped;
 extern guint virt_col_pos;
 
 
-void (*write_func)(const char *, size_t) = NULL;
+void (*write_func)(const char *, gsize) = NULL;
 void (*clear_func)(void) = NULL;
 
 void create_buffer(void)
@@ -81,7 +81,7 @@ static unsigned int insert_timestamp(char *buf_out)
 	return size;
 }
 
-void put_chars(const char *chars, size_t size, gboolean crlf_auto)
+void put_chars(const char *chars, gsize size, gboolean crlf_auto)
 {
 	// buffer must still be valid after cr conversion or adding timestamp
 	// only pointer is copied below
@@ -207,9 +207,9 @@ void write_buffer(void)
 	}
 }
 
-void write_buffer_with_func(void (*func)(const char *, size_t))
+void write_buffer_with_func(void (*func)(const char *, gsize))
 {
-	void (*write_func_backup)(const char *, size_t);
+	void (*write_func_backup)(const char *, gsize);
 
 	write_func_backup = write_func;
 	write_func = func;
@@ -244,12 +244,12 @@ void unset_clear_func(void (*func)(void))
 	clear_func = NULL;
 }
 
-void set_display_func(void (*func)(const char *, size_t))
+void set_display_func(void (*func)(const char *, gsize))
 {
 	write_func = func;
 }
 
-void unset_display_func(void (*func)(const char *, size_t))
+void unset_display_func(void (*func)(const char *, gsize))
 {
 	write_func = NULL;
 }

@@ -22,7 +22,7 @@
 
 extern int serial_port_fd;
 
-int Send_chars(char *, int);
+gssize Send_chars(const char *, gsize);
 gboolean Config_port(void);
 void Set_signals(guint);
 void Close_port(void);
@@ -36,7 +36,7 @@ struct baudrate {
 	speed_t speed;
 };
 extern const struct baudrate baudrate_list[];
-extern const size_t baudrate_count;
+extern const gsize baudrate_count;
 extern const gboolean speed_t_is_sane;
 speed_t find_standard_baudrate(unsigned int);
 int     baudrate_find_index(unsigned int);
