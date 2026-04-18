@@ -29,9 +29,7 @@ void put_chars(const char *, gsize, gboolean);
 void clear_buffer(void);
 void write_buffer(void);
 void set_display_func(void (*func)(const char *, gsize));
-void unset_display_func(void (*func)(const char *, gsize));
 void set_clear_func(void (*func)(void));
-void unset_clear_func(void (*func)(void));
 void write_buffer_with_func(void (*func)(const char *, gsize));
 
 #endif

@@ -239,17 +239,8 @@ void set_clear_func(void (*func)(void))
 	clear_func = func;
 }
 
-void unset_clear_func(void (*func)(void))
-{
-	clear_func = NULL;
-}
-
 void set_display_func(void (*func)(const char *, gsize))
 {
 	write_func = func;
 }
 
-void unset_display_func(void (*func)(const char *, gsize))
-{
-	write_func = NULL;
-}
