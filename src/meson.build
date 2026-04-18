@@ -2,6 +2,9 @@ prog_sh = find_program('sh')
 dev_sanitizers = get_option('dev_sanitizers')
 
 gtkterm_c_args = [
+	'-Wall',
+	'-Wextra',
+	'-Werror',
 	# Hardening flags
 	'-D_FORTIFY_SOURCE=2',
 	'-fstack-protector-strong',
