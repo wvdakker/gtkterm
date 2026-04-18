@@ -132,18 +132,22 @@ int read_command_line(int argc, char **argv)
 			break;
 
 		case 'a':
-			if(!strcmp(optarg, "odd"))
+			if (!g_ascii_strcasecmp(optarg, "odd"))
 				config.parite = 1;
-			else if(!strcmp(optarg, "even"))
+			else if (!g_ascii_strcasecmp(optarg, "even"))
 				config.parite = 2;
+			else
+				config.parite = 0;
 			break;
 
 		case 't':
-			config.stops = atoi(optarg);
+			config.stops = (atoi(optarg) == 2) ? 2 : 1;
 			break;
 
 		case 'b':
 			config.bits = atoi(optarg);
+			if (config.bits < 5 || config.bits > 8)
+				config.bits = DEFAULT_BITS;
 			break;
 
 		case 'f':
@@ -155,20 +159,22 @@ int read_command_line(int argc, char **argv)
 			break;
 
 		case 'w':
-			if(!strcmp(optarg, "Xon"))
+			if (!g_ascii_strcasecmp(optarg, "Xon"))
 				config.flux = 1;
-			else if(!strcmp(optarg, "RTS"))
+			else if (!g_ascii_strcasecmp(optarg, "RTS"))
 				config.flux = 2;
-			else if(!strcmp(optarg, "RS485"))
+			else if (!g_ascii_strcasecmp(optarg, "RS485"))
 				config.flux = 3;
 			break;
 
 		case 'd':
 			config.delai = atoi(optarg);
+			if (config.delai < 0 || config.delai > 500)
+				config.delai = DEFAULT_DELAY;
 			break;
 
 		case 'r':
-			config.car = *optarg;
+			config.car = *optarg ? *optarg : -1;
 			break;
 
 		case 'e':
@@ -181,10 +187,14 @@ int read_command_line(int argc, char **argv)
 
 		case 'x':
 			config.rs485_rts_time_before_transmit = atoi(optarg);
+			if (config.rs485_rts_time_before_transmit < 0 || config.rs485_rts_time_before_transmit > 500)
+				config.rs485_rts_time_before_transmit = DEFAULT_DELAY_RS485;
 			break;
 
 		case 'y':
 			config.rs485_rts_time_after_transmit = atoi(optarg);
+			if (config.rs485_rts_time_after_transmit < 0 || config.rs485_rts_time_after_transmit > 500)
+				config.rs485_rts_time_after_transmit = DEFAULT_DELAY_RS485;
 			break;
 
 		case 'h':

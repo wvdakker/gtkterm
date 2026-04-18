@@ -277,6 +277,34 @@ static void Copy_configuration(GKeyFile *kf, const gchar *section)
 }
 
 /* ------------------------------------------------------------------ */
+/* Normalise configuration values to valid ranges after any load       */
+/* ------------------------------------------------------------------ */
+
+static void Verify_configuration(void)
+{
+	if (config.stops != 1 && config.stops != 2)
+		config.stops = DEFAULT_STOP;
+
+	if (config.bits < 5 || config.bits > 8)
+		config.bits = DEFAULT_BITS;
+
+	if (config.parite < 0 || config.parite > 2)
+		config.parite = DEFAULT_PARITY;
+
+	if (config.delai < 0 || config.delai > 500)
+		config.delai = DEFAULT_DELAY;
+
+	if (config.rs485_rts_time_before_transmit < 0 || config.rs485_rts_time_before_transmit > 500)
+		config.rs485_rts_time_before_transmit = DEFAULT_DELAY_RS485;
+
+	if (config.rs485_rts_time_after_transmit < 0 || config.rs485_rts_time_after_transmit > 500)
+		config.rs485_rts_time_after_transmit = DEFAULT_DELAY_RS485;
+
+	if (term_conf.font_desc == NULL)
+		set_terminal_font_from_string(DEFAULT_FONT);
+}
+
+/* ------------------------------------------------------------------ */
 /* Load a named section into config/term_conf                         */
 /* ------------------------------------------------------------------ */
 
@@ -419,38 +447,8 @@ gint Load_configuration_from_file(const gchar *config_name)
 
 	g_key_file_free(kf);
 
+	Verify_configuration();
 	return 0;
-}
-
-/* ------------------------------------------------------------------ */
-/* Validate the loaded configuration; warn on out-of-range values     */
-/* ------------------------------------------------------------------ */
-
-void Verify_configuration(void)
-{
-	if (find_standard_baudrate(config.vitesse) == B0)
-		show_messagef(MSG_WRN, _("Baud rate %u may not be supported by all hardware"), config.vitesse);
-
-	if (config.stops != 1 && config.stops != 2)
-	{
-		show_messagef(MSG_WRN, _("Invalid number of stop-bits: %d\nFalling back to default number of stop-bits number: %d\n"), config.stops, DEFAULT_STOP);
-		config.stops = DEFAULT_STOP;
-	}
-
-	if (config.bits < 5 || config.bits > 8)
-	{
-		show_messagef(MSG_WRN, _("Invalid number of bits: %d\nFalling back to default number of bits: %d\n"), config.bits, DEFAULT_BITS);
-		config.bits = DEFAULT_BITS;
-	}
-
-	if (config.delai < 0 || config.delai > 500)
-	{
-		show_messagef(MSG_WRN, _("Invalid delay: %d ms\nFalling back to default delay: %d ms\n"), config.delai, DEFAULT_DELAY);
-		config.delai = DEFAULT_DELAY;
-	}
-
-	if (term_conf.font_desc == NULL)
-		set_terminal_font_from_string(DEFAULT_FONT);
 }
 
 gboolean Save_configuration_to_file(const gchar *config_name)

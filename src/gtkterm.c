@@ -52,7 +52,6 @@ static void activate(GtkApplication *app, gpointer user_data G_GNUC_UNUSED)
 	create_buffer();
 
 	create_main_window(app);
-	Verify_configuration();
 	interface_apply_term_config();
 
 	Config_port();

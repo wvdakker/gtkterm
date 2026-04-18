@@ -133,7 +133,6 @@ static void on_load_ok_clicked(GtkListBox *listbox, GtkButton *btn G_GNUC_UNUSED
 			return;
 		}
 
-		Verify_configuration();
 		interface_apply_term_config();
 		Config_port();
 		ConfigFlags();
