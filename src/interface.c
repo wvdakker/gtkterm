@@ -485,7 +485,6 @@ void create_main_window(GtkApplication *app)
 	GtkBuilderCScope *scope;
 	GtkBuilder *builder;
 	GtkWidget *sb_placeholder;
-	GtkShortcutController *macro_ctrl;
 	guint i;
 
 	main_app = app;
@@ -552,8 +551,6 @@ void create_main_window(GtkApplication *app)
 	searchBar = search_bar_new(GTK_WINDOW(Fenetre), VTE_TERMINAL(display));
 	gtk_box_append(GTK_BOX(sb_placeholder), GTK_WIDGET(searchBar));
 
-	macro_ctrl = GTK_SHORTCUT_CONTROLLER(
-	                gtk_builder_get_object(builder, "macro_shortcut_ctrl"));
 	g_object_unref(builder);
 
 	set_action_enabled("edit-copy", FALSE);
@@ -565,7 +562,7 @@ void create_main_window(GtkApplication *app)
 
 	g_timeout_add(POLL_DELAY, control_signals_read, NULL);
 
-	install_macro_shortcut_controller(macro_ctrl);
+	install_macro_shortcut_controller(display);
 
 	if (term_conf.window_width > 0 && term_conf.window_height > 0)
 	{

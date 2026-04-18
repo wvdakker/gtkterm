@@ -300,11 +300,6 @@
        ============================================================ -->
 
   <object class="GtkApplicationWindow" id="main_window">
-    <child>
-      <object class="GtkShortcutController" id="macro_shortcut_ctrl">
-        <property name="scope">managed</property>
-      </object>
-    </child>
     <property name="default-width">750</property>
     <property name="default-height">550</property>
     <property name="icon-name">gtkterm</property>

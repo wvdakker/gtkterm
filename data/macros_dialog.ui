@@ -76,21 +76,21 @@
               <object class="GtkButton" id="macros_add_btn">
                 <property name="label" translatable="yes">_Add</property>
                 <property name="use-underline">True</property>
-                <signal name="clicked" handler="Add_shortcut" object="macros_listbox"/>
+                <signal name="clicked" handler="Add_shortcut"/>
               </object>
             </child>
             <child>
               <object class="GtkButton" id="macros_delete_btn">
                 <property name="label" translatable="yes">_Delete</property>
                 <property name="use-underline">True</property>
-                <signal name="clicked" handler="Delete_shortcut" object="macros_listbox"/>
+                <signal name="clicked" handler="Delete_shortcut"/>
               </object>
             </child>
             <child>
               <object class="GtkButton" id="macros_capture_btn">
                 <property name="label" translatable="yes">_Capture Shortcut</property>
                 <property name="use-underline">True</property>
-                <signal name="clicked" handler="Capture_shortcut" object="macros_listbox"/>
+                <signal name="clicked" handler="Capture_shortcut"/>
               </object>
             </child>
           </object>
@@ -112,22 +112,21 @@
               <object class="GtkButton" id="macros_help_btn">
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use-underline">True</property>
-                <signal name="clicked" handler="Help_screen" object="macros_window"/>
+                <signal name="clicked" handler="Help_screen"/>
               </object>
             </child>
             <child>
               <object class="GtkButton" id="macros_ok_btn">
                 <property name="label" translatable="yes">_OK</property>
                 <property name="use-underline">True</property>
-                <signal name="clicked" handler="Save_shortcuts" object="macros_listbox"/>
-                <signal name="clicked" handler="gtk_window_close" object="macros_window" swapped="yes"/>
+                <signal name="clicked" handler="on_ok_clicked"/>
               </object>
             </child>
             <child>
               <object class="GtkButton" id="macros_cancel_btn">
                 <property name="label" translatable="yes">_Cancel</property>
                 <property name="use-underline">True</property>
-                <signal name="clicked" handler="gtk_window_close" object="macros_window" swapped="yes"/>
+                <signal name="clicked" handler="on_cancel_clicked"/>
               </object>
             </child>
           </object>

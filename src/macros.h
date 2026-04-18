@@ -19,8 +19,11 @@
 
 typedef struct
 {
-	gchar *shortcut;
-	gchar *action;
+	gchar          *shortcut;
+	gchar          *action;
+	gchar          *expanded;
+	guint           keyval;
+	GdkModifierType mods;
 }
 macro_t;
 
@@ -28,7 +31,7 @@ void Config_macros(GSimpleAction *action, GVariant *param, gpointer data);
 void remove_shortcuts(void);
 void create_shortcuts(macro_t *, gsize);
 macro_t *get_shortcuts(gsize *);
-void install_macro_shortcut_controller(GtkShortcutController *ctrl);
+void install_macro_shortcut_controller(GtkWidget *win);
 void set_macros_shortcuts_enabled(gboolean enabled);
 void macros_cleanup(void);
 

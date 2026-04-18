@@ -25,10 +25,11 @@
 static macro_t *macros = NULL;
 static gsize macros_count = 0;
 static GtkWidget *window = NULL;
+static GtkWidget *macro_listbox = NULL;
 
-/* Shortcut controller attached to the main window */
-static GtkShortcutController *macro_ctrl = NULL;
-static GPtrArray *macro_shortcuts = NULL; /* owned GtkShortcut* refs */
+/* Capture-phase key controller on the main window */
+static GtkEventController *macro_key_ctrl = NULL;
+static gboolean macros_enabled = TRUE;
 
 /* ---- Helper: build one row from the UI template ---- */
 
@@ -42,8 +43,9 @@ static GtkWidget *create_macro_row(const gchar *shortcut, const gchar *action)
 
 	gtk_label_set_text(GTK_LABEL(label), shortcut ? shortcut : "None");
 	gtk_editable_set_text(GTK_EDITABLE(entry), action ? action : "");
+	g_object_ref(row); /* keep alive after builder releases it */
 	g_object_unref(b);
-	return row;
+	return row; /* caller must g_object_unref after parenting */
 }
 
 /* ---- Row accessors ---- */
@@ -66,52 +68,52 @@ macro_t *get_shortcuts(gsize *size)
 	return macros;
 }
 
-static void shortcut_callback(gpointer *number); /* forward declaration */
-
-static gboolean macro_shortcut_activated(GtkWidget *widget, GVariant *args, gpointer user_data)
+static gboolean macro_key_pressed(GtkEventControllerKey *controller,
+                                   guint keyval, guint keycode,
+                                   GdkModifierType state, gpointer unused)
 {
-	shortcut_callback(user_data);
-	return TRUE;
+	guint i;
+
+	if (!macros_enabled || macros == NULL)
+		return FALSE;
+
+	state &= gtk_accelerator_get_default_mod_mask();
+
+	for (i = 0; i < macros_count; i++)
+	{
+		if (macros[i].keyval == keyval && macros[i].mods == state)
+		{
+			g_autofree gchar *msg;
+
+			send_serial(macros[i].expanded, strlen(macros[i].expanded));
+			msg = g_strdup_printf(_("Macro \"%s\" sent!"), macros[i].shortcut);
+			Put_temp_message(msg, 800);
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 
-static void shortcut_callback(gpointer *number)
+void install_macro_shortcut_controller(GtkWidget *win)
 {
-	g_autofree gchar *expanded;
-	g_autofree gchar *msg;
-
-	expanded = g_strcompress(macros[(gintptr)number].action);
-	send_serial(expanded, strlen(expanded));
-
-	msg = g_strdup_printf(_("Macro \"%s\" sent!"), macros[(gintptr)number].shortcut);
-	Put_temp_message(msg, 800);
-}
-
-void install_macro_shortcut_controller(GtkShortcutController *ctrl)
-{
-	if (macro_ctrl != NULL)
+	if (macro_key_ctrl != NULL)
 		return;
 
-	macro_ctrl = ctrl;
-	macro_shortcuts = g_ptr_array_new_with_free_func(g_object_unref);
+	macro_key_ctrl = gtk_event_controller_key_new();
+	gtk_event_controller_set_propagation_phase(macro_key_ctrl, GTK_PHASE_CAPTURE);
+	g_signal_connect(macro_key_ctrl, "key-pressed",
+	                 G_CALLBACK(macro_key_pressed), NULL);
+	gtk_widget_add_controller(win, macro_key_ctrl);
 }
 
 void set_macros_shortcuts_enabled(gboolean enabled)
 {
-	if (macro_ctrl == NULL)
-		return;
-	gtk_event_controller_set_propagation_phase(
-		GTK_EVENT_CONTROLLER(macro_ctrl),
-		enabled ? GTK_PHASE_BUBBLE : GTK_PHASE_NONE);
+	macros_enabled = enabled;
 }
 
 void create_shortcuts(macro_t *macro, gsize size)
 {
 	guint i;
-	guint keyval;
-	GdkModifierType mods;
-	GtkShortcutTrigger *trigger;
-	GtkShortcutAction  *act;
-	GtkShortcut *sc;
 
 	remove_shortcuts();
 
@@ -121,42 +123,21 @@ void create_shortcuts(macro_t *macro, gsize size)
 		return;
 	}
 
+	for (i = 0; i < (guint)size; i++)
+	{
+		macro[i].keyval   = 0;
+		macro[i].mods     = 0;
+		macro[i].expanded = g_strcompress(macro[i].action);
+		gtk_accelerator_parse(macro[i].shortcut, &macro[i].keyval, &macro[i].mods);
+	}
+
 	macros       = macro;
 	macros_count = (guint)size;
-
-	/* Register GtkShortcut entries for each macro */
-	if (macro_ctrl != NULL)
-	{
-		for (i = 0; i < macros_count; i++)
-		{
-			keyval = 0;
-			mods = 0;
-			if (!gtk_accelerator_parse(macros[i].shortcut, &keyval, &mods) || keyval == 0)
-				continue;
-
-			trigger = gtk_keyval_trigger_new(keyval, mods);
-			act     = gtk_callback_action_new(
-				macro_shortcut_activated, GINT_TO_POINTER(i), NULL);
-
-			sc = gtk_shortcut_new(trigger, act);
-			gtk_shortcut_controller_add_shortcut(macro_ctrl, g_object_ref(sc));
-			g_ptr_array_add(macro_shortcuts, sc); /* takes ownership */
-		}
-	}
 }
 
 void remove_shortcuts(void)
 {
 	guint i;
-
-	/* Remove GtkShortcut registrations */
-	if (macro_ctrl != NULL && macro_shortcuts != NULL)
-	{
-		for (i = 0; i < macro_shortcuts->len; i++)
-			gtk_shortcut_controller_remove_shortcut(
-				macro_ctrl, g_ptr_array_index(macro_shortcuts, i));
-		g_ptr_array_set_size(macro_shortcuts, 0);
-	}
 
 	if (macros == NULL)
 		return;
@@ -165,6 +146,7 @@ void remove_shortcuts(void)
 	{
 		g_free(macros[i].shortcut);
 		g_free(macros[i].action);
+		g_free(macros[i].expanded);
 	}
 	g_free(macros);
 	macros = NULL;
@@ -184,32 +166,32 @@ void macros_cleanup(void)
 		{
 			g_free(macros[i].shortcut);
 			g_free(macros[i].action);
+			g_free(macros[i].expanded);
 		}
 		g_free(macros);
 		macros = NULL;
 		macros_count = 0;
 	}
 
-	/* Free the GPtrArray — its free_func (g_object_unref) will release any
-	 * GtkShortcut objects that outlived the controller. */
-	if (macro_shortcuts != NULL)
-	{
-		g_ptr_array_free(macro_shortcuts, TRUE);
-		macro_shortcuts = NULL;
-	}
-	macro_ctrl = NULL;
+	/* macro_key_ctrl is owned by the window widget and will be
+	 * destroyed with it. Just clear our reference. */
+	macro_key_ctrl = NULL;
 }
 
 /* ---- GtkListBox-based macro editor ---- */
 
-static void Add_shortcut(GtkWidget *button, gpointer listbox_ptr)
+static void Add_shortcut(GtkWidget *button, gpointer unused)
 {
-	GtkListBox *listbox = GTK_LIST_BOX(listbox_ptr);
+	GtkListBox *listbox = GTK_LIST_BOX(macro_listbox);
 	GListModel *children;
 	GtkListBoxRow *new_row;
 	guint n;
 
-	gtk_list_box_append(listbox, create_macro_row("None", ""));
+	{
+		GtkWidget *new_widget = create_macro_row("None", "");
+		gtk_list_box_append(listbox, new_widget);
+		g_object_unref(new_widget);
+	}
 	children = gtk_widget_observe_children(GTK_WIDGET(listbox));
 	n = g_list_model_get_n_items(children);
 	new_row = gtk_list_box_get_row_at_index(listbox, n - 1);
@@ -218,17 +200,17 @@ static void Add_shortcut(GtkWidget *button, gpointer listbox_ptr)
 	g_object_unref(children);
 }
 
-static void Delete_shortcut(GtkWidget *button, gpointer listbox_ptr)
+static void Delete_shortcut(GtkWidget *button, gpointer unused)
 {
-	GtkListBox *listbox = GTK_LIST_BOX(listbox_ptr);
+	GtkListBox *listbox = GTK_LIST_BOX(macro_listbox);
 	GtkListBoxRow *row = gtk_list_box_get_selected_row(listbox);
 	if (row)
 		gtk_list_box_remove(listbox, GTK_WIDGET(row));
 }
 
-static void Save_shortcuts(GtkWidget *button, gpointer listbox_ptr)
+static void Save_shortcuts(GtkWidget *button, gpointer unused)
 {
-	GtkListBox *listbox = GTK_LIST_BOX(listbox_ptr);
+	GtkListBox *listbox = GTK_LIST_BOX(macro_listbox);
 	GListModel *children;
 	macro_t *new_macros;
 	guint n;
@@ -289,7 +271,7 @@ static gboolean key_capture_pressed(GtkEventControllerKey *controller,
 		break;
 	}
 
-	row = gtk_list_box_get_selected_row(GTK_LIST_BOX(listbox_ptr));
+	row = gtk_list_box_get_selected_row(GTK_LIST_BOX(macro_listbox));
 	if (row)
 	{
 		str = gtk_accelerator_name(keyval,
@@ -299,20 +281,20 @@ static gboolean key_capture_pressed(GtkEventControllerKey *controller,
 	}
 
 	g_signal_handlers_disconnect_by_func(controller,
-	                                     G_CALLBACK(key_capture_pressed), listbox_ptr);
+	                                     G_CALLBACK(key_capture_pressed), NULL);
 	return TRUE;
 }
 
-static void Capture_shortcut(GtkWidget *button, gpointer listbox_ptr)
+static void Capture_shortcut(GtkWidget *button, gpointer unused)
 {
 	GtkEventController *ctrl = gtk_event_controller_key_new();
 
 	g_signal_connect(ctrl, "key-pressed",
-	                 G_CALLBACK(key_capture_pressed), listbox_ptr);
+	                 G_CALLBACK(key_capture_pressed), NULL);
 	gtk_widget_add_controller(window, ctrl);
 }
 
-static void Help_screen(GtkWidget *button, gpointer pointer)
+static void Help_screen(GtkWidget *button, gpointer unused)
 {
 	GtkAlertDialog *Dialog = gtk_alert_dialog_new("%s",
 	    _("The \"action\" field of a macro is the data to be sent on the port. "
@@ -322,19 +304,30 @@ static void Help_screen(GtkWidget *button, gpointer pointer)
 	      "\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n"
 	      "\t\"Hello\\x0A\" does the same thing but the LF is entered in hexadecimal"));
 	gtk_alert_dialog_set_modal(Dialog, TRUE);
-	gtk_alert_dialog_show(Dialog, GTK_WINDOW(pointer));
+	gtk_alert_dialog_show(Dialog, GTK_WINDOW(window));
 	g_object_unref(Dialog);
+}
+
+static void on_ok_clicked(GtkWidget *button, gpointer unused)
+{
+	Save_shortcuts(button, NULL);
+	gtk_window_close(GTK_WINDOW(window));
+}
+
+static void on_cancel_clicked(GtkWidget *button, gpointer unused)
+{
+	gtk_window_close(GTK_WINDOW(window));
 }
 
 static gboolean on_macros_close_request(GtkWindow *win, gpointer data)
 {
 	window = NULL;
+	macro_listbox = NULL;
 	return FALSE; /* allow default destruction */
 }
 
 void Config_macros(GSimpleAction *action, GVariant *param, gpointer data)
 {
-	GtkWidget *listbox;
 	GtkBuilderCScope *scope;
 	GtkBuilder *builder;
 
@@ -351,8 +344,8 @@ void Config_macros(GSimpleAction *action, GVariant *param, gpointer data)
 	    "Delete_shortcut",         G_CALLBACK(Delete_shortcut),
 	    "Capture_shortcut",        G_CALLBACK(Capture_shortcut),
 	    "Help_screen",             G_CALLBACK(Help_screen),
-	    "Save_shortcuts",          G_CALLBACK(Save_shortcuts),
-	    "gtk_window_close",        G_CALLBACK(gtk_window_close),
+	    "on_ok_clicked",           G_CALLBACK(on_ok_clicked),
+	    "on_cancel_clicked",       G_CALLBACK(on_cancel_clicked),
 	    NULL);
 
 	builder = gtk_builder_new();
@@ -360,8 +353,8 @@ void Config_macros(GSimpleAction *action, GVariant *param, gpointer data)
 	g_object_unref(scope);
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/macros_dialog.ui", NULL);
 
-	window  = GTK_WIDGET(gtk_builder_get_object(builder, "macros_window"));
-	listbox = GTK_WIDGET(gtk_builder_get_object(builder, "macros_listbox"));
+	window        = GTK_WIDGET(gtk_builder_get_object(builder, "macros_window"));
+	macro_listbox = GTK_WIDGET(gtk_builder_get_object(builder, "macros_listbox"));
 	g_object_unref(builder);
 
 	gtk_window_set_transient_for(GTK_WINDOW(window), GTK_WINDOW(Fenetre));
@@ -375,7 +368,8 @@ void Config_macros(GSimpleAction *action, GVariant *param, gpointer data)
 		for (i = 0; i < macros_count; i++)
 		{
 			row_box = create_macro_row(macros[i].shortcut, macros[i].action);
-			gtk_list_box_append(GTK_LIST_BOX(listbox), row_box);
+			gtk_list_box_append(GTK_LIST_BOX(macro_listbox), row_box);
+			g_object_unref(row_box);
 		}
 	}
 
