@@ -267,20 +267,24 @@
       <item>
         <attribute name="label" translatable="yes">_Copy</attribute>
         <attribute name="action">app.edit-copy</attribute>
+        <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;C</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">_Paste</attribute>
         <attribute name="action">app.edit-paste</attribute>
+        <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;V</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">_Find</attribute>
         <attribute name="action">app.edit-find</attribute>
+        <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;F</attribute>
       </item>
     </section>
     <section>
       <item>
         <attribute name="label" translatable="yes">Select _All</attribute>
         <attribute name="action">app.edit-select-all</attribute>
+        <attribute name="accel">&lt;Shift&gt;&lt;Control&gt;A</attribute>
       </item>
     </section>
   </menu>

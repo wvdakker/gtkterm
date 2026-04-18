@@ -263,43 +263,37 @@ static void hex_chars_change_state(GSimpleAction *a, GVariant *s, gpointer data)
 	set_view(HEXADECIMAL_VIEW);
 }
 
-/* Snapshot of accelerators read from the application after the UI is loaded.
- * Keys and values are both heap-allocated strings owned by the GHashTable. */
-static GHashTable *accel_snapshot = NULL; /* action → gchar** (NULL-terminated) */
-
-static void snapshot_accels(void)
-{
-	gchar **actions;
-	gchar **a;
-	accel_snapshot = g_hash_table_new_full(g_str_hash, g_str_equal,
-	                                       g_free, (GDestroyNotify)g_strfreev);
-	actions = gtk_application_list_action_descriptions(main_app);
-	for (a = actions; *a; a++) {
-		gchar **accels = gtk_application_get_accels_for_action(main_app, *a);
-		if (accels && accels[0])
-			g_hash_table_insert(accel_snapshot, g_strdup(*a), accels);
-		else
-			g_strfreev(accels);
-	}
-	g_strfreev(actions);
-}
+/* All application accelerators in one place.  Used both at startup to
+ * register them and in apply_hotkeys_disabled() to toggle them. */
+static const struct { const gchar *action; const gchar *accel; } app_accels[] = {
+	{ "app.clear-screen",       "<Shift><Control>L" },
+	{ "app.file-exit",          "<Shift><Control>Q" },
+	{ "app.edit-copy",          "<Shift><Control>C" },
+	{ "app.edit-paste",         "<Shift><Control>V" },
+	{ "app.edit-find",          "<Shift><Control>F" },
+	{ "app.edit-select-all",    "<Shift><Control>A" },
+	{ "app.config-port",        "<Shift><Control>S" },
+	{ "app.signals-send-break", "<Shift><Control>B" },
+	{ "app.signals-open-port",  "F5"                },
+	{ "app.signals-close-port", "F6"                },
+	{ "app.signals-dtr",        "F7"                },
+	{ "app.signals-rts",        "F8"                },
+	{ "app.help-shortcuts",     "<Control>question" },
+};
 
 static void apply_hotkeys_disabled(gboolean disabled)
 {
-	GHashTableIter iter;
-	gpointer key, val;
-	/* Lazy snapshot: taken on first call, after GTK has processed all
-	 * <attribute name="accel"> entries from the menu model. */
-	if (!accel_snapshot)
-		snapshot_accels();
+	guint i;
+
 	set_macros_shortcuts_enabled(!disabled);
-	g_hash_table_iter_init(&iter, accel_snapshot);
-	while (g_hash_table_iter_next(&iter, &key, &val)) {
+
+	for (i = 0; i < G_N_ELEMENTS(app_accels); i++) {
 		if (disabled) {
 			const char *empty[] = { NULL };
-			gtk_application_set_accels_for_action(main_app, key, empty);
+			gtk_application_set_accels_for_action(main_app, app_accels[i].action, empty);
 		} else {
-			gtk_application_set_accels_for_action(main_app, key, val);
+			const char *av[] = { app_accels[i].accel, NULL };
+			gtk_application_set_accels_for_action(main_app, app_accels[i].action, av);
 		}
 	}
 }
@@ -492,6 +486,7 @@ void create_main_window(GtkApplication *app)
 	GtkBuilder *builder;
 	GtkWidget *sb_placeholder;
 	GtkShortcutController *macro_ctrl;
+	guint i;
 
 	main_app = app;
 
@@ -524,6 +519,12 @@ void create_main_window(GtkApplication *app)
 
 	Fenetre = GTK_WIDGET(gtk_builder_get_object(builder, "main_window"));
 	gtk_window_set_application(GTK_WINDOW(Fenetre), GTK_APPLICATION(app));
+
+	/* Register all keyboard accelerators from the shared table. */
+	for (i = 0; i < G_N_ELEMENTS(app_accels); i++) {
+		const gchar *av[] = { app_accels[i].accel, NULL };
+		gtk_application_set_accels_for_action(app, app_accels[i].action, av);
+	}
 
 	gtk_icon_theme_add_resource_path(
 		gtk_icon_theme_get_for_display(gdk_display_get_default()),
@@ -890,12 +891,6 @@ void set_saved_data(GtkWidget *widget, gboolean direction)
 
 void interface_cleanup(void)
 {
-	if (accel_snapshot != NULL)
-	{
-		g_hash_table_destroy(accel_snapshot);
-		accel_snapshot = NULL;
-	}
-
 	if (hex_history != NULL)
 	{
 		g_list_free_full(hex_history, g_free);
