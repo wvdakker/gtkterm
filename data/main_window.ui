@@ -296,8 +296,6 @@
        ============================================================ -->
 
   <object class="GtkApplicationWindow" id="main_window">
-    <signal name="close-request" handler="gtk_widget_unparent"
-            object="popup_menu" swapped="yes"/>
     <child>
       <object class="GtkShortcutController" id="macro_shortcut_ctrl">
         <property name="scope">managed</property>
@@ -336,13 +334,8 @@
                 <property name="scroll-on-output">False</property>
                 <property name="scroll-on-keystroke">True</property>
                 <property name="backspace-binding">ascii-backspace</property>
+                <property name="context-menu">popup_menu</property>
                 <signal name="selection-changed" handler="update_copy_sensivity"/>
-                <child>
-                  <object class="GtkGestureClick">
-                    <property name="button">3</property>
-                    <signal name="pressed" handler="on_right_click_pressed" object="popup_menu"/>
-                  </object>
-                </child>
                 <child>
                   <object class="GtkEventControllerKey">
                     <signal name="key-pressed" handler="terminal_popup_key_cb" object="popup_menu"/>

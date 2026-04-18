@@ -46,7 +46,6 @@ GtkWidget *signals[6];
 static GtkWidget *Hex_Box;
 GtkWidget *searchBar;
 GtkWidget *Fenetre;
-static GtkWidget *popup_menu;
 static GtkApplication *main_app;
 GtkWidget *display = NULL;
 static gulong got_input_handler_id = 0;
@@ -459,17 +458,6 @@ void toggle_logging_sensitivity(gboolean currentlyLogging)
 	set_action_enabled("log-clear",         currentlyLogging);
 }
 
-/* Right-click popup */
-
-void on_right_click_pressed(GtkGestureClick *gesture, int n_press,
-                                   double x, double y, gpointer data)
-{
-	GtkPopoverMenu *pmenu = GTK_POPOVER_MENU(data);
-	GdkRectangle rect = { (int)x, (int)y, 1, 1 };
-	gtk_popover_set_pointing_to(GTK_POPOVER(pmenu), &rect);
-	gtk_popover_popup(GTK_POPOVER(pmenu));
-}
-
 gboolean terminal_popup_key_cb(GtkEventControllerKey *ctrl,
                                       guint keyval, guint keycode,
                                       GdkModifierType state, gpointer data)
@@ -524,7 +512,6 @@ void create_main_window(GtkApplication *app)
 	    "on_hex_key_pressed",         G_CALLBACK(on_hex_key_pressed),
 	    "on_dtr_clicked",             G_CALLBACK(on_dtr_clicked),
 	    "on_rts_clicked",             G_CALLBACK(on_rts_clicked),
-	    "on_right_click_pressed",     G_CALLBACK(on_right_click_pressed),
 	    "terminal_popup_key_cb",      G_CALLBACK(terminal_popup_key_cb),
 	    "update_copy_sensivity",      G_CALLBACK(update_copy_sensivity),
 	    "gtk_widget_unparent",        G_CALLBACK(gtk_widget_unparent),
@@ -563,10 +550,6 @@ void create_main_window(GtkApplication *app)
 	sb_placeholder = GTK_WIDGET(gtk_builder_get_object(builder, "search_bar_placeholder"));
 	searchBar = search_bar_new(GTK_WINDOW(Fenetre), VTE_TERMINAL(display));
 	gtk_box_append(GTK_BOX(sb_placeholder), GTK_WIDGET(searchBar));
-
-	/* Right-click popup — constructed from model declared in the builder */
-	popup_menu = GTK_WIDGET(gtk_builder_get_object(builder, "popup_menu"));
-	gtk_widget_set_parent(popup_menu, GTK_WIDGET(display));
 
 	macro_ctrl = GTK_SHORTCUT_CONTROLLER(
 	                gtk_builder_get_object(builder, "macro_shortcut_ctrl"));
