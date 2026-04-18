@@ -51,7 +51,7 @@ static void Select_config(gchar *title, GCallback on_ok)
 
 static void check_text_input_alnum(GtkEditable *editable, gchar *new_text,
                                    gint new_text_length, gint *position,
-                                   gpointer user_data)
+                                   gpointer user_data G_GNUC_UNUSED)
 {
 	check_text_input(editable, new_text, new_text_length, position, isalnum);
 }
@@ -94,10 +94,8 @@ static void on_overwrite_response(GObject *source, GAsyncResult *result, gpointe
 	g_free(data);
 }
 
-static void on_save_ok_clicked(GtkEditable *entry, GtkButton *btn)
+static void on_save_ok_clicked(GtkEditable *entry, GtkButton *btn G_GNUC_UNUSED)
 {
-	(void)btn;
-
 	static const char * const buttons[] = { "_Yes", "_Cancel", NULL };
 
 	const gchar *config_name = gtk_editable_get_text(GTK_EDITABLE(entry));
@@ -123,10 +121,8 @@ static void on_save_ok_clicked(GtkEditable *entry, GtkButton *btn)
 		really_save_config(config_name);
 }
 
-static void on_load_ok_clicked(GtkListBox *listbox, GtkButton *btn)
+static void on_load_ok_clicked(GtkListBox *listbox, GtkButton *btn G_GNUC_UNUSED)
 {
-	(void)btn;
-
 	GtkListBoxRow *row = gtk_list_box_get_selected_row(listbox);
 	if (row)
 	{
@@ -145,10 +141,8 @@ static void on_load_ok_clicked(GtkListBox *listbox, GtkButton *btn)
 	}
 }
 
-static void on_delete_ok_clicked(GtkListBox *listbox, GtkButton *btn)
+static void on_delete_ok_clicked(GtkListBox *listbox, GtkButton *btn G_GNUC_UNUSED)
 {
-	(void)btn;
-
 	GtkListBoxRow *row = gtk_list_box_get_selected_row(listbox);
 	if (row)
 	{
@@ -158,12 +152,12 @@ static void on_delete_ok_clicked(GtkListBox *listbox, GtkButton *btn)
 	}
 }
 
-void select_config_callback(GSimpleAction *action, GVariant *param, gpointer data)
+void select_config_callback(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	Select_config(_("Load configuration"), G_CALLBACK(on_load_ok_clicked));
 }
 
-void save_config_callback(GSimpleAction *action, GVariant *param, gpointer data)
+void save_config_callback(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	if (Fenetre)
 	{
@@ -178,7 +172,7 @@ void save_config_callback(GSimpleAction *action, GVariant *param, gpointer data)
 	Save_config_file();
 }
 
-void delete_config_callback(GSimpleAction *action, GVariant *param, gpointer data)
+void delete_config_callback(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	Select_config(_("Delete configuration"), G_CALLBACK(on_delete_ok_clicked));
 }

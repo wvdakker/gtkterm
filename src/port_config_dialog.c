@@ -42,12 +42,12 @@ static void apply_dd_custom_state(GtkDropDown *dd, GtkWidget *entry)
 	gtk_widget_set_sensitive(entry, custom);
 }
 
-static void on_port_dd_changed(GObject *obj, GParamSpec *pspec, gpointer unused)
+static void on_port_dd_changed(GObject *obj, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	apply_dd_custom_state(GTK_DROP_DOWN(obj), port_entry);
 }
 
-static void on_baud_dd_changed(GObject *obj, GParamSpec *pspec, gpointer unused)
+static void on_baud_dd_changed(GObject *obj, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	apply_dd_custom_state(GTK_DROP_DOWN(obj), baud_entry);
 }
@@ -90,7 +90,7 @@ static GtkStringList *build_baud_model(void)
 	return model;
 }
 
-static void on_port_ok_clicked(GtkButton *btn, gpointer unused)
+static void on_port_ok_clicked(GtkButton *btn, gpointer data G_GNUC_UNUSED)
 {
 	Lis_Config();
 	gtk_window_destroy(GTK_WINDOW(gtk_widget_get_root(GTK_WIDGET(btn))));
@@ -98,12 +98,12 @@ static void on_port_ok_clicked(GtkButton *btn, gpointer unused)
 
 static void check_baud_input(GtkEditable *editable, gchar *new_text,
                              gint new_text_length, gint *position,
-                             gpointer user_data)
+                             gpointer user_data G_GNUC_UNUSED)
 {
 	check_text_input(editable, new_text, new_text_length, position, isdigit);
 }
 
-static gint Grise_Degrise(GtkWidget *bouton, gpointer unused)
+static gint Grise_Degrise(GtkWidget *bouton, gpointer data G_GNUC_UNUSED)
 {
 	if(gtk_check_button_get_active(GTK_CHECK_BUTTON(bouton)))
 	{
@@ -118,7 +118,7 @@ static gint Grise_Degrise(GtkWidget *bouton, gpointer unused)
 	return FALSE;
 }
 
-void Config_Port_Fenetre(GSimpleAction *action, GVariant *param, gpointer data)
+void Config_Port_Fenetre(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	GtkBuilder *builder;
 	GtkWidget *Dialogue;

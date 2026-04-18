@@ -69,7 +69,7 @@ static void OpenLogFile(const gchar *filename)
 	}
 }
 
-static void on_log_file_response(GObject *source, GAsyncResult *result, gpointer data)
+static void on_log_file_response(GObject *source, GAsyncResult *result, gpointer data G_GNUC_UNUSED)
 {
 	GtkFileDialog *dialog;
 	GError *error;
@@ -97,7 +97,7 @@ static void on_log_file_response(GObject *source, GAsyncResult *result, gpointer
 	toggle_logging_pause_resume(Logging);
 }
 
-void logging_start(GSimpleAction *action, GVariant *param, gpointer data)
+void logging_start(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	GtkFileDialog *dialog = gtk_file_dialog_new();
 	gtk_file_dialog_set_title(dialog, _("Log to file"));
@@ -115,7 +115,7 @@ void logging_start(GSimpleAction *action, GVariant *param, gpointer data)
 	g_object_unref(dialog);
 }
 
-void logging_clear(GSimpleAction *action, GVariant *param, gpointer data)
+void logging_clear(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	if(LoggingFile == NULL)
 		return;
@@ -130,7 +130,7 @@ void logging_clear(GSimpleAction *action, GVariant *param, gpointer data)
 	}
 }
 
-void logging_pause_resume(GSimpleAction *action, GVariant *param, gpointer data)
+void logging_pause_resume(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	if(LoggingFile == NULL)
 	{
@@ -140,7 +140,7 @@ void logging_pause_resume(GSimpleAction *action, GVariant *param, gpointer data)
 	toggle_logging_pause_resume(Logging);
 }
 
-void logging_stop(GSimpleAction *action, GVariant *param, gpointer data)
+void logging_stop(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	if(LoggingFile == NULL)
 	{

@@ -23,7 +23,7 @@ void ConfigFlags(void)
 void check_text_input(GtkEditable *editable,
                       gchar       *new_text,
                       gint         new_text_length,
-                      gint        *position,
+                      gint        *position G_GNUC_UNUSED,
                       gpointer     user_data)
 {
 	int i;

@@ -36,7 +36,7 @@ void set_terminal_font_from_string(const gchar *s)
 	set_terminal_font(pango_font_description_from_string(s));
 }
 
-static void read_font_button(GObject *source, GParamSpec *pspec, gpointer data)
+static void read_font_button(GObject *source, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	const PangoFontDescription *desc =
 	    gtk_font_dialog_button_get_font_desc(GTK_FONT_DIALOG_BUTTON(source));
@@ -44,7 +44,7 @@ static void read_font_button(GObject *source, GParamSpec *pspec, gpointer data)
 		set_terminal_font(pango_font_description_copy(desc));
 }
 
-static gboolean cursor_block(GtkSwitch *ToggleSwitch, gboolean state, gpointer data)
+static gboolean cursor_block(GtkSwitch *ToggleSwitch G_GNUC_UNUSED, gboolean state, gpointer data G_GNUC_UNUSED)
 {
 	term_conf.block_cursor = state;
 	vte_terminal_set_cursor_shape(VTE_TERMINAL(display),
@@ -52,19 +52,19 @@ static gboolean cursor_block(GtkSwitch *ToggleSwitch, gboolean state, gpointer d
 	return FALSE;
 }
 
-static void config_fg_color(GObject *source, GParamSpec *pspec, gpointer data)
+static void config_fg_color(GObject *source, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	config_color(source, &term_conf.foreground_color,
 	             vte_terminal_set_color_foreground);
 }
 
-static void config_bg_color(GObject *source, GParamSpec *pspec, gpointer data)
+static void config_bg_color(GObject *source, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	config_color(source, &term_conf.background_color,
 	             vte_terminal_set_color_background);
 }
 
-static void scrollback_set(GtkAdjustment *Adjustment, gpointer data)
+static void scrollback_set(GtkAdjustment *Adjustment, gpointer data G_GNUC_UNUSED)
 {
 	term_conf.scrollback = (gint)gtk_adjustment_get_value(Adjustment);
 	vte_terminal_set_scrollback_lines(VTE_TERMINAL(display), term_conf.scrollback);
@@ -76,7 +76,7 @@ void clear_scrollback(void)
 	vte_terminal_set_scrollback_lines(VTE_TERMINAL(display), term_conf.scrollback);
 }
 
-void Config_Terminal(GSimpleAction *action, GVariant *param, gpointer data)
+void Config_Terminal(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	GtkBuilderCScope *scope;
 	GtkBuilder *builder;

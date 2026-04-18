@@ -50,7 +50,7 @@ static inline void device_monitor_handle(const char *action)
 		device_monitor_status(true);
 }
 
-void event_udev(GUdevClient *client, const gchar *action, GUdevDevice *device)
+void event_udev(GUdevClient *client G_GNUC_UNUSED, const gchar *action, GUdevDevice *device)
 {
 	const gchar *name;
 
@@ -66,13 +66,13 @@ void event_udev(GUdevClient *client, const gchar *action, GUdevDevice *device)
 		device_monitor_handle(action);
 }
 
-static void on_prepare_for_sleep(GDBusConnection *connection,
-                                  const gchar *sender_name,
-                                  const gchar *object_path,
-                                  const gchar *interface_name,
-                                  const gchar *signal_name,
+static void on_prepare_for_sleep(GDBusConnection *connection G_GNUC_UNUSED,
+                                  const gchar *sender_name G_GNUC_UNUSED,
+                                  const gchar *object_path G_GNUC_UNUSED,
+                                  const gchar *interface_name G_GNUC_UNUSED,
+                                  const gchar *signal_name G_GNUC_UNUSED,
                                   GVariant *parameters,
-                                  gpointer user_data)
+                                  gpointer user_data G_GNUC_UNUSED)
 {
 	gboolean going_to_sleep = FALSE;
 

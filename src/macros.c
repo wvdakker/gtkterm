@@ -68,9 +68,9 @@ macro_t *get_shortcuts(gsize *size)
 	return macros;
 }
 
-static gboolean macro_key_pressed(GtkEventControllerKey *controller,
-                                   guint keyval, guint keycode,
-                                   GdkModifierType state, gpointer unused)
+static gboolean macro_key_pressed(GtkEventControllerKey *controller G_GNUC_UNUSED,
+                                   guint keyval, guint keycode G_GNUC_UNUSED,
+                                   GdkModifierType state, gpointer data G_GNUC_UNUSED)
 {
 	guint i;
 
@@ -180,7 +180,7 @@ void macros_cleanup(void)
 
 /* ---- GtkListBox-based macro editor ---- */
 
-static void Add_shortcut(GtkWidget *button, gpointer unused)
+static void Add_shortcut(GtkWidget *button G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	GtkListBox *listbox = GTK_LIST_BOX(macro_listbox);
 	GListModel *children;
@@ -200,7 +200,7 @@ static void Add_shortcut(GtkWidget *button, gpointer unused)
 	g_object_unref(children);
 }
 
-static void Delete_shortcut(GtkWidget *button, gpointer unused)
+static void Delete_shortcut(GtkWidget *button G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	GtkListBox *listbox = GTK_LIST_BOX(macro_listbox);
 	GtkListBoxRow *row = gtk_list_box_get_selected_row(listbox);
@@ -208,7 +208,7 @@ static void Delete_shortcut(GtkWidget *button, gpointer unused)
 		gtk_list_box_remove(listbox, GTK_WIDGET(row));
 }
 
-static void Save_shortcuts(GtkWidget *button, gpointer unused)
+static void Save_shortcuts(GtkWidget *button G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	GtkListBox *listbox = GTK_LIST_BOX(macro_listbox);
 	GListModel *children;
@@ -249,8 +249,8 @@ static void Save_shortcuts(GtkWidget *button, gpointer unused)
 /* Capture shortcut: key-press event recorded via GtkEventControllerKey */
 
 static gboolean key_capture_pressed(GtkEventControllerKey *controller,
-                                    guint keyval, guint keycode,
-                                    GdkModifierType state, gpointer listbox_ptr)
+                                    guint keyval, guint keycode G_GNUC_UNUSED,
+                                    GdkModifierType state, gpointer listbox_ptr G_GNUC_UNUSED)
 {
 	GtkListBoxRow *row;
 	gchar *str;
@@ -285,7 +285,7 @@ static gboolean key_capture_pressed(GtkEventControllerKey *controller,
 	return TRUE;
 }
 
-static void Capture_shortcut(GtkWidget *button, gpointer unused)
+static void Capture_shortcut(GtkWidget *button G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	GtkEventController *ctrl = gtk_event_controller_key_new();
 
@@ -294,7 +294,7 @@ static void Capture_shortcut(GtkWidget *button, gpointer unused)
 	gtk_widget_add_controller(window, ctrl);
 }
 
-static void Help_screen(GtkWidget *button, gpointer unused)
+static void Help_screen(GtkWidget *button G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	GtkAlertDialog *Dialog = gtk_alert_dialog_new("%s",
 	    _("The \"action\" field of a macro is the data to be sent on the port. "
@@ -308,25 +308,25 @@ static void Help_screen(GtkWidget *button, gpointer unused)
 	g_object_unref(Dialog);
 }
 
-static void on_ok_clicked(GtkWidget *button, gpointer unused)
+static void on_ok_clicked(GtkWidget *button, gpointer data G_GNUC_UNUSED)
 {
 	Save_shortcuts(button, NULL);
 	gtk_window_close(GTK_WINDOW(window));
 }
 
-static void on_cancel_clicked(GtkWidget *button, gpointer unused)
+static void on_cancel_clicked(GtkWidget *button G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	gtk_window_close(GTK_WINDOW(window));
 }
 
-static gboolean on_macros_close_request(GtkWindow *win, gpointer data)
+static gboolean on_macros_close_request(GtkWindow *win G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	window = NULL;
 	macro_listbox = NULL;
 	return FALSE; /* allow default destruction */
 }
 
-void Config_macros(GSimpleAction *action, GVariant *param, gpointer data)
+void Config_macros(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	GtkBuilderCScope *scope;
 	GtkBuilder *builder;

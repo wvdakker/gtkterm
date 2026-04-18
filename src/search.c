@@ -34,7 +34,7 @@ typedef enum
 } FindDirection;
 
 /* Forward declarations */
-void search_direction_cb(GtkButton *btn, gpointer unused);
+void search_direction_cb(GtkButton *btn, gpointer data G_GNUC_UNUSED);
 
 static void entry_changed_callback(void)
 {
@@ -53,7 +53,7 @@ static void entry_changed_callback(void)
 	gtk_widget_set_sensitive(nextButton, sensitive);
 }
 
-static void search_callback(GtkWidget *widget, gpointer data)
+static void search_callback(GtkWidget *widget G_GNUC_UNUSED, gpointer data)
 {
 	FindDirection direction = (FindDirection)GPOINTER_TO_UINT(data);
 
@@ -85,9 +85,9 @@ static void search_callback(GtkWidget *widget, gpointer data)
 		vte_terminal_search_find_next(term);
 }
 
-static gboolean entry_key_press_cb(GtkEventControllerKey *ctrl,
-                                   guint keyval, guint keycode,
-                                   GdkModifierType state, gpointer user_data)
+static gboolean entry_key_press_cb(GtkEventControllerKey *ctrl G_GNUC_UNUSED,
+                                   guint keyval, guint keycode G_GNUC_UNUSED,
+                                   GdkModifierType state, gpointer user_data G_GNUC_UNUSED)
 {
 	guint mask = gtk_accelerator_get_default_mod_mask();
 	gboolean handled = FALSE;
@@ -147,7 +147,7 @@ GtkWidget *search_bar_new(GtkWindow *parent, VteTerminal *terminal)
 	return searchBar;
 }
 
-void search_direction_cb(GtkButton *btn, gpointer unused)
+void search_direction_cb(GtkButton *btn, gpointer data G_GNUC_UNUSED)
 {
 	const char *id = gtk_buildable_get_buildable_id(GTK_BUILDABLE(btn));
 	FindDirection dir = g_str_has_suffix(id, "prev_button") ? FIND_PREVIOUS : FIND_NEXT;

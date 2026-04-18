@@ -27,7 +27,7 @@
 #include <glib/gi18n.h>
 
 /* Global variables */
-static gint nb_car;
+static gssize nb_car;
 static gsize car_written;
 static gsize current_buffer_position;
 static gssize bytes_read;
@@ -143,7 +143,7 @@ static void show_transfer_dialog(const gchar *title)
 	gtk_window_present(GTK_WINDOW(Window));
 }
 
-static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer data)
+static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer data G_GNUC_UNUSED)
 {
 	gchar *fileName = finish_file_dialog(source, result, FALSE, _("Error opening file\n"));
 	if (!fileName)
@@ -161,7 +161,14 @@ static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer
 		current_buffer_position = 0;
 		bytes_read = 0;
 		nb_car = lseek(Fichier, 0L, SEEK_END);
-		lseek(Fichier, 0L, SEEK_SET);
+		if (nb_car == -1 || lseek(Fichier, 0L, SEEK_SET) == -1)
+		{
+			show_messagef(MSG_ERR, _("Cannot seek in file %s: %s\n"),
+			              fileName, g_strerror(errno));
+			close(Fichier);
+			Fichier = -1;
+			return;
+		}
 
 		show_transfer_dialog(msg);
 		add_input();
@@ -174,12 +181,12 @@ static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer
 	}
 }
 
-void send_raw_file(GSimpleAction *action, GVariant *param, gpointer data)
+void send_raw_file(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	run_file_dialog(_("Send RAW File"), FALSE, on_send_raw_response);
 }
 
-static gboolean ecriture(GIOChannel *src, GIOCondition cond, gpointer data)
+static gboolean ecriture(GIOChannel *src G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	static gchar buffer[BUFFER_EMISSION];
 	static gchar *current_buffer;
@@ -190,9 +197,9 @@ static gboolean ecriture(GIOChannel *src, GIOCondition cond, gpointer data)
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar),
 	                              (gfloat)car_written / (gfloat)nb_car);
 
-	if (car_written < nb_car)
+	if (car_written < (gsize)nb_car)
 	{
-		if (current_buffer_position == bytes_read)
+		if (current_buffer_position == (gsize)bytes_read)
 		{
 			bytes_read = read(Fichier, buffer, BUFFER_EMISSION);
 			current_buffer_position = 0;
@@ -257,7 +264,7 @@ static gboolean ecriture(GIOChannel *src, GIOCondition cond, gpointer data)
 	return G_SOURCE_CONTINUE;
 }
 
-gboolean timer(gpointer pointer)
+gboolean timer(gpointer pointer G_GNUC_UNUSED)
 {
 	if (waiting_for_timer == TRUE)
 	{
@@ -307,10 +314,9 @@ gint close_all(void)
 
 /* Used as close-request handler: do cleanup but do NOT call gtk_window_destroy,
  * since GTK destroys the window itself after close-request returns FALSE. */
-static gboolean on_file_transfer_close_request(GtkWindow *window, gpointer data)
+static gboolean on_file_transfer_close_request(GtkWindow *window G_GNUC_UNUSED,
+	gpointer data G_GNUC_UNUSED)
 {
-	(void)window;
-	(void)data;
 	remove_input();
 	waiting_for_char = FALSE;
 	waiting_for_timer = FALSE;
@@ -341,14 +347,14 @@ static void write_ascii_file(const char *data, gsize size)
 
 /* ---- Save RAW file ---- */
 
-static void on_save_raw_response(GObject *source, GAsyncResult *result, gpointer data)
+static void on_save_raw_response(GObject *source, GAsyncResult *result, gpointer data G_GNUC_UNUSED)
 {
 	gchar *fileName = finish_file_dialog(source, result, TRUE, _("File error\n"));
 	if (fileName)
 		save_to_file(fileName, write_file);
 }
 
-void save_raw_file(GSimpleAction *action, GVariant *param, gpointer data)
+void save_raw_file(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	run_file_dialog(_("Save RAW File"), TRUE, on_save_raw_response);
 }
@@ -356,14 +362,14 @@ void save_raw_file(GSimpleAction *action, GVariant *param, gpointer data)
 
 /* ---- Save ASCII file ---- */
 
-static void on_save_ascii_response(GObject *source, GAsyncResult *result, gpointer data)
+static void on_save_ascii_response(GObject *source, GAsyncResult *result, gpointer data G_GNUC_UNUSED)
 {
 	gchar *fileName = finish_file_dialog(source, result, TRUE, _("File error\n"));
 	if (fileName)
 		save_to_file(fileName, write_ascii_file);
 }
 
-void save_ascii_file(GSimpleAction *action, GVariant *param, gpointer data)
+void save_ascii_file(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	run_file_dialog(_("Save ASCII File"), TRUE, on_save_ascii_response);
 }

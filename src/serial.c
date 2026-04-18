@@ -56,7 +56,7 @@ gboolean callback_activated = FALSE;
 
 extern struct configuration_port config;
 
-static gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
+static gboolean Lis_port(GIOChannel* src G_GNUC_UNUSED, GIOCondition cond, gpointer data G_GNUC_UNUSED)
 {
 	gssize bytes_read;
 	static gchar c[BUFFER_RECEPTION];
@@ -107,7 +107,7 @@ static gboolean Lis_port(GIOChannel* src, GIOCondition cond, gpointer data)
 /* No-op SIGURG handler used to interrupt TIOCMIWAIT in the modem thread */
 static void modem_sigurg_noop(int sig) { (void)sig; }
 
-static gboolean update_modem_idle(gpointer user_data)
+static gboolean update_modem_idle(gpointer user_data G_GNUC_UNUSED)
 {
 	int stat;
 	if (serial_port_fd != -1 && ioctl(serial_port_fd, TIOCMGET, &stat) == 0)
@@ -115,7 +115,7 @@ static gboolean update_modem_idle(gpointer user_data)
 	return G_SOURCE_REMOVE;
 }
 
-static gboolean setup_modem_poll(gpointer user_data)
+static gboolean setup_modem_poll(gpointer user_data G_GNUC_UNUSED)
 {
 	if (modem_poll_source == 0 && serial_port_fd != -1) {
 		g_debug("modem status: TIOCMIWAIT not supported by driver, using %dms poll", POLL_DELAY);
