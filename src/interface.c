@@ -68,6 +68,7 @@ guint virt_col_pos = 0;
 /* Forward declarations */
 gboolean pop_message(gpointer user_data);
 static void Send_Hexadecimal(GtkWidget *widget, gpointer pointer);
+static void set_action_enabled(const char *name, gboolean enabled);
 void update_hex_history(GtkWidget *widget);
 void set_saved_data(GtkWidget *widget, gboolean direction);
 void show_control_signals(int stat);
@@ -78,32 +79,32 @@ gboolean on_hex_key_pressed(GtkEventControllerKey *ctrl,
                                     guint keyval, guint keycode,
                                     GdkModifierType state, gpointer user_data);
 
-static void file_exit_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void file_exit_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	g_application_quit(G_APPLICATION(main_app));
 }
 
-static void clear_screen_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void clear_screen_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	clear_buffer();
 }
 
-static void clear_scrollback_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void clear_scrollback_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	clear_scrollback();
 }
 
-static void edit_copy_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void edit_copy_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	vte_terminal_copy_clipboard_format(VTE_TERMINAL(display), VTE_FORMAT_TEXT);
 }
 
-static void edit_paste_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void edit_paste_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	vte_terminal_paste_clipboard(VTE_TERMINAL(display));
 }
 
-static void edit_find_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void edit_find_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	if (gtk_widget_is_visible(searchBar))
 		search_bar_hide(searchBar);
@@ -111,29 +112,29 @@ static void edit_find_cb(GSimpleAction *a, GVariant *p, gpointer data)
 		search_bar_show(searchBar);
 }
 
-static void edit_select_all_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void edit_select_all_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	vte_terminal_select_all(VTE_TERMINAL(display));
 }
 
-static void signals_send_break_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void signals_send_break_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	sendbreak();
 	Put_temp_message(_("Break signal sent!"), 800);
 }
 
-static void signals_toggle_DTR_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void signals_toggle_DTR_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	Set_signals(0);
 }
 
-static void signals_toggle_RTS_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void signals_toggle_RTS_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	Set_signals(1);
 }
 
-static void on_signal_label_clicked(GtkGestureClick *gesture, int n_press,
-                                    double x, double y, gpointer data)
+static void on_signal_label_clicked(GtkGestureClick *gesture G_GNUC_UNUSED, int n_press G_GNUC_UNUSED,
+                                    double x G_GNUC_UNUSED, double y G_GNUC_UNUSED, gpointer data)
 {
 	int param = GPOINTER_TO_INT(data);
 	/* RTS is managed by the driver under HW flow control (flux==2) or RS485 (flux==3) */
@@ -143,28 +144,28 @@ static void on_signal_label_clicked(GtkGestureClick *gesture, int n_press,
 }
 
 static void on_dtr_clicked(GtkGestureClick *gesture, int n_press,
-                           double x, double y, gpointer unused)
+                           double x, double y, gpointer data G_GNUC_UNUSED)
 {
 	on_signal_label_clicked(gesture, n_press, x, y, GINT_TO_POINTER(0));
 }
 
 static void on_rts_clicked(GtkGestureClick *gesture, int n_press,
-                           double x, double y, gpointer unused)
+                           double x, double y, gpointer data G_GNUC_UNUSED)
 {
 	on_signal_label_clicked(gesture, n_press, x, y, GINT_TO_POINTER(1));
 }
 
-static void signals_close_port_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void signals_close_port_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	interface_close_port();
 }
 
-static void signals_open_port_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void signals_open_port_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	interface_open_port();
 }
 
-static void help_shortcuts_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void help_shortcuts_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	GtkBuilder *builder = gtk_builder_new_from_resource("/org/gtk/gtkterm/shortcuts_window.ui");
 	GtkWidget *win = GTK_WIDGET(gtk_builder_get_object(builder, "shortcuts_window"));
@@ -173,7 +174,7 @@ static void help_shortcuts_cb(GSimpleAction *a, GVariant *p, gpointer data)
 	g_object_unref(builder);
 }
 
-static void help_about_cb(GSimpleAction *a, GVariant *p, gpointer data)
+static void help_about_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	static const gchar *authors[] = {
 		"Julien Schimtt",
@@ -205,57 +206,57 @@ static void help_about_cb(GSimpleAction *a, GVariant *p, gpointer data)
 
 /* Toggle / radio change-state callbacks */
 
-static void echo_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+static void echo_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
 	config.echo = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 }
 
-static void autoreconnect_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+static void autoreconnect_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
 	config.autoreconnect_enabled = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 }
 
-static void crlfauto_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+static void crlfauto_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
 	config.crlfauto = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 }
 
-static void esc_clear_screen_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+static void esc_clear_screen_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
 	config.esc_clear_screen = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 }
 
-static void timestamp_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+static void timestamp_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
 	config.timestamp = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 }
 
-static void view_index_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+static void view_index_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
 	show_index = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 	set_view(HEXADECIMAL_VIEW);
 }
 
-static void view_send_hex_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+static void view_send_hex_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
 	g_simple_action_set_state(a, s);
 	gtk_widget_set_visible(Hex_Box, g_variant_get_boolean(s));
 }
 
-static void view_mode_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+static void view_mode_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
 	const gchar *mode = g_variant_get_string(s, NULL);
 	g_simple_action_set_state(a, s);
 	set_view(g_str_equal(mode, "hex") ? HEXADECIMAL_VIEW : ASCII_VIEW);
 }
 
-static void hex_chars_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+static void hex_chars_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
 	const gchar *val = g_variant_get_string(s, NULL);
 	g_simple_action_set_state(a, s);
@@ -286,6 +287,7 @@ static void apply_hotkeys_disabled(gboolean disabled)
 	guint i;
 
 	set_macros_shortcuts_enabled(!disabled);
+	set_action_enabled("macros", !disabled);
 
 	for (i = 0; i < G_N_ELEMENTS(app_accels); i++) {
 		if (disabled) {
@@ -298,7 +300,7 @@ static void apply_hotkeys_disabled(gboolean disabled)
 	}
 }
 
-static void disable_hotkeys_change_state(GSimpleAction *a, GVariant *s, gpointer data)
+static void disable_hotkeys_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
 	config.disable_hotkeys = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
@@ -307,47 +309,47 @@ static void disable_hotkeys_change_state(GSimpleAction *a, GVariant *s, gpointer
 
 /* Normal action entries table */
 static const GActionEntry app_actions[] = {
-	{ "file-exit",          file_exit_cb },
-	{ "clear-screen",       clear_screen_cb },
-	{ "clear-scrollback",   clear_scrollback_cb },
-	{ "send-raw-file",      send_raw_file },
-	{ "save-raw-file",      save_raw_file },
-	{ "save-ascii-file",    save_ascii_file },
-	{ "edit-copy",          edit_copy_cb },
-	{ "edit-paste",         edit_paste_cb },
-	{ "edit-find",          edit_find_cb },
-	{ "edit-select-all",    edit_select_all_cb },
-	{ "log-to-file",        logging_start },
-	{ "log-pause-resume",   logging_pause_resume },
-	{ "log-stop",           logging_stop },
-	{ "log-clear",          logging_clear },
-	{ "config-port",        Config_Port_Fenetre },
-	{ "config-terminal",    Config_Terminal },
-	{ "macros",             Config_macros },
-	{ "select-config",      select_config_callback },
-	{ "save-config",        save_config_callback },
-	{ "delete-config",      delete_config_callback },
-	{ "signals-send-break", signals_send_break_cb },
-	{ "signals-open-port",  signals_open_port_cb },
-	{ "signals-close-port", signals_close_port_cb },
-	{ "signals-dtr",        signals_toggle_DTR_cb },
-	{ "signals-rts",        signals_toggle_RTS_cb },
-	{ "help-shortcuts",     help_shortcuts_cb },
-	{ "help-about",         help_about_cb },
-	/* Stateful toggles (NULL activate, type, initial state, change-state) */
-	{ "local-echo",         NULL, NULL, "false", echo_change_state },
-	{ "autoreconnect",      NULL, NULL, "false", autoreconnect_change_state },
-	{ "crlfauto",           NULL, NULL, "false", crlfauto_change_state },
-	{ "esc-clear-screen",   NULL, NULL, "false", esc_clear_screen_change_state },
-	{ "timestamp",          NULL, NULL, "false", timestamp_change_state },
-	{ "view-index",         NULL, NULL, "false", view_index_change_state },
-	{ "view-send-hex",      NULL, NULL, "false", view_send_hex_change_state },
+	{ .name = "file-exit",          .activate = file_exit_cb          },
+	{ .name = "clear-screen",       .activate = clear_screen_cb       },
+	{ .name = "clear-scrollback",   .activate = clear_scrollback_cb   },
+	{ .name = "send-raw-file",      .activate = send_raw_file         },
+	{ .name = "save-raw-file",      .activate = save_raw_file         },
+	{ .name = "save-ascii-file",    .activate = save_ascii_file       },
+	{ .name = "edit-copy",          .activate = edit_copy_cb          },
+	{ .name = "edit-paste",         .activate = edit_paste_cb         },
+	{ .name = "edit-find",          .activate = edit_find_cb          },
+	{ .name = "edit-select-all",    .activate = edit_select_all_cb    },
+	{ .name = "log-to-file",        .activate = logging_start         },
+	{ .name = "log-pause-resume",   .activate = logging_pause_resume  },
+	{ .name = "log-stop",           .activate = logging_stop          },
+	{ .name = "log-clear",          .activate = logging_clear         },
+	{ .name = "config-port",        .activate = Config_Port_Fenetre   },
+	{ .name = "config-terminal",    .activate = Config_Terminal       },
+	{ .name = "macros",             .activate = Config_macros         },
+	{ .name = "select-config",      .activate = select_config_callback },
+	{ .name = "save-config",        .activate = save_config_callback  },
+	{ .name = "delete-config",      .activate = delete_config_callback },
+	{ .name = "signals-send-break", .activate = signals_send_break_cb },
+	{ .name = "signals-open-port",  .activate = signals_open_port_cb  },
+	{ .name = "signals-close-port", .activate = signals_close_port_cb },
+	{ .name = "signals-dtr",        .activate = signals_toggle_DTR_cb },
+	{ .name = "signals-rts",        .activate = signals_toggle_RTS_cb },
+	{ .name = "help-shortcuts",     .activate = help_shortcuts_cb     },
+	{ .name = "help-about",         .activate = help_about_cb         },
+	/* Stateful toggles */
+	{ .name = "local-echo",       .state = "false", .change_state = echo_change_state           },
+	{ .name = "autoreconnect",    .state = "false", .change_state = autoreconnect_change_state  },
+	{ .name = "crlfauto",         .state = "false", .change_state = crlfauto_change_state       },
+	{ .name = "esc-clear-screen", .state = "false", .change_state = esc_clear_screen_change_state },
+	{ .name = "timestamp",        .state = "false", .change_state = timestamp_change_state      },
+	{ .name = "view-index",       .state = "false", .change_state = view_index_change_state     },
+	{ .name = "view-send-hex",    .state = "false", .change_state = view_send_hex_change_state  },
 	/* Stateful radio actions */
-	{ "view-mode",          NULL, "s",  "'ascii'", view_mode_change_state },
-	{ "hex-chars",          NULL, "s",  "'16'",    hex_chars_change_state },
+	{ .name = "view-mode", .parameter_type = "s", .state = "'ascii'", .change_state = view_mode_change_state },
+	{ .name = "hex-chars", .parameter_type = "s", .state = "'16'",    .change_state = hex_chars_change_state },
 	/* Simple action used only for enabling/disabling the hex-chars submenu */
-	{ "hex-chars-submenu",  NULL },
-	{ "disable-hotkeys",    NULL, NULL, "false", disable_hotkeys_change_state },
+	{ .name = "hex-chars-submenu" },
+	{ .name = "disable-hotkeys",  .state = "false", .change_state = disable_hotkeys_change_state },
 };
 
 
@@ -389,7 +391,7 @@ void Set_hotkeys_disabled(gboolean disabled)
 	apply_hotkeys_disabled(disabled);
 }
 
-static gboolean reenable_commit_cb(gpointer data)
+static gboolean reenable_commit_cb(gpointer data G_GNUC_UNUSED)
 {
 	if (--pending_reenable == 0 && got_input_handler_id && display)
 		g_signal_handler_unblock(display, got_input_handler_id);
@@ -439,7 +441,7 @@ void set_view(guint type)
 	g_timeout_add(50, reenable_commit_cb, NULL);
 }
 
-void toggle_logging_pause_resume(gboolean currentlyLogging)
+void toggle_logging_pause_resume(gboolean currentlyLogging G_GNUC_UNUSED)
 {
 	/* Label changes are not straightforward with GMenu; just no-op */
 }
@@ -452,8 +454,8 @@ void toggle_logging_sensitivity(gboolean currentlyLogging)
 	set_action_enabled("log-clear",         currentlyLogging);
 }
 
-gboolean terminal_popup_key_cb(GtkEventControllerKey *ctrl,
-                                      guint keyval, guint keycode,
+gboolean terminal_popup_key_cb(GtkEventControllerKey *ctrl G_GNUC_UNUSED,
+                                      guint keyval, guint keycode G_GNUC_UNUSED,
                                       GdkModifierType state, gpointer data)
 {
 	if (keyval == GDK_KEY_Menu ||
@@ -672,7 +674,8 @@ gssize send_serial(const gchar *string, gsize len)
 	return bytes_written;
 }
 
-static void Got_Input(VteTerminal *widget, gchar *text, guint length, gpointer ptr)
+static void Got_Input(VteTerminal *widget G_GNUC_UNUSED, gchar *text,
+	guint length, gpointer data G_GNUC_UNUSED)
 {
 	if (config.esc_clear_screen && length >= 1 && text[0] == 0x1b)
 	{
@@ -683,7 +686,7 @@ static void Got_Input(VteTerminal *widget, gchar *text, guint length, gpointer p
 		send_serial(text, length);
 }
 
-void update_copy_sensivity(VteTerminal *terminal, gpointer data)
+void update_copy_sensivity(VteTerminal *terminal, gpointer data G_GNUC_UNUSED)
 {
 	gboolean can_copy = vte_terminal_get_has_selection(VTE_TERMINAL(terminal));
 	set_action_enabled("edit-copy", can_copy);
@@ -702,7 +705,7 @@ void show_control_signals(int stat)
 	gtk_widget_set_opacity(signals[4], (stat & TIOCM_RTS) ? 1.0 : 0.3);
 }
 
-gboolean control_signals_read(gpointer user_data)
+gboolean control_signals_read(gpointer user_data G_GNUC_UNUSED)
 {
 	int state = lis_sig();
 	if (state >= 0)
@@ -760,7 +763,7 @@ void show_messagef(gint type_msg, const gchar *fmt, ...)
 	g_free(msg);
 }
 
-static void Send_Hexadecimal(GtkWidget *widget, gpointer pointer)
+static void Send_Hexadecimal(GtkWidget *widget, gpointer data G_GNUC_UNUSED)
 {
 	guint i;
 	gchar *message, **tokens, *buff;
@@ -807,7 +810,7 @@ void Put_temp_message(const gchar *text, guint time)
 	g_timeout_add(time, pop_message, NULL);
 }
 
-gboolean pop_message(gpointer user_data)
+gboolean pop_message(gpointer user_data G_GNUC_UNUSED)
 {
 	gtk_label_set_text(GTK_LABEL(StatusBar), "");
 	return FALSE;
@@ -821,8 +824,9 @@ void clear_display(void)
 }
 
 gboolean on_hex_key_pressed(GtkEventControllerKey *ctrl,
-                            guint keyval, guint keycode,
-                            GdkModifierType state, gpointer user_data)
+                            guint keyval, guint keycode G_GNUC_UNUSED,
+                            GdkModifierType state G_GNUC_UNUSED,
+							gpointer user_data G_GNUC_UNUSED)
 {
 	GtkWidget *widget = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(ctrl));
 
