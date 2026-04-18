@@ -154,38 +154,28 @@ static int port_priority(const char *path)
 static int compare_seminum(const void *a, const void *b)
 {
 	const char    *sa = a, *sb = b;
-	char          *ea, *eb;
-	unsigned long  na, nb;
-	unsigned char  ca, cb;
-	gboolean       da, db;
 	int            pa = port_priority(sa), pb = port_priority(sb);
 
 	if (pa != pb)
 		return pa - pb;
 
-	while ((ca = *sa))
+	while (*sa && *sb)
 	{
-		cb = *sb;
-		if (!cb) return 1;
-
-		da = isdigit(ca);
-		db = isdigit(cb);
-
-		if (da) {
-			if (!db) return -1;
-			na = strtoul(sa, &ea, 10);
-			nb = strtoul(sb, &eb, 10);
-			if (na != nb) return na < nb ? -1 : 1;
-			if ((ea - sa) != (eb - sb))
-				return (ea - sa) < (eb - sb) ? -1 : 1;
-			sa = ea; sb = eb;
-		} else {
-			if (db) return 1;
-			if (ca != cb) return (int)ca - (int)cb;
+		if (isdigit((unsigned char)*sa) && isdigit((unsigned char)*sb))
+		{
+			unsigned long na = strtoul(sa, (char **)&sa, 10);
+			unsigned long nb = strtoul(sb, (char **)&sb, 10);
+			if (na != nb)
+				return na < nb ? -1 : 1;
+		}
+		else
+		{
+			if (*sa != *sb)
+				return (unsigned char)*sa - (unsigned char)*sb;
 			sa++; sb++;
 		}
 	}
-	return *sb != 0;
+	return (unsigned char)*sa - (unsigned char)*sb;
 }
 
 /* ------------------------------------------------------------------ */
@@ -217,7 +207,7 @@ static int is_serial_port(const char *path, const struct device_path *dp)
 /* Public API                                                          */
 /* ------------------------------------------------------------------ */
 
-GPtrArray *serial_find_ports(gchar **no_ports_msg)
+GPtrArray *serial_find_ports(void)
 {
 	const struct device_path *device_paths = get_device_paths();
 	const struct device_path *devp;
@@ -247,7 +237,7 @@ GPtrArray *serial_find_ports(gchar **no_ports_msg)
 		guint i = 1;
 		while (i < ports->len)
 		{
-			if (compare_seminum(ports->pdata[i - 1], ports->pdata[i]) == 0)
+			if (g_str_equal(ports->pdata[i - 1], ports->pdata[i]))
 			{
 				g_free(ports->pdata[i]);
 				g_ptr_array_remove_index(ports, i);
@@ -255,35 +245,6 @@ GPtrArray *serial_find_ports(gchar **no_ports_msg)
 			else
 				i++;
 		}
-	}
-
-	if (!ports->len && no_ports_msg)
-	{
-		/* Build list of searched patterns for the error message */
-		const struct device_path *dp;
-		gchar *str, *p, *ep;
-		gsize len = 1;
-
-		for (dp = device_paths; dp->pat; dp++)
-			len += strlen(dp->pat) + 2;
-
-		str = p = g_malloc(len);
-		ep = str + len - 1;
-		for (dp = device_paths; dp->pat; dp++)
-		{
-			*p++ = '\t';
-			p += g_strlcpy(p, dp->pat, ep - p);
-			*p++ = '\n';
-		}
-		*p = '\0';
-
-		*no_ports_msg = g_strdup_printf(
-		    _("No serial devices found!\n"
-		      "\n"
-		      "Searched the following device path patterns:\n"
-		      "%s\n"
-		      "Enter a different device path in the 'Port' box.\n"), str);
-		g_free(str);
 	}
 
 	free_device_paths(device_paths);

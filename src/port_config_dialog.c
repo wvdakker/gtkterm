@@ -14,6 +14,8 @@
 static GtkEditable   *Entry;
 static GtkEditable   *port_entry;
 static GtkEditable   *baud_entry;
+static GtkDropDown   *port_dd;
+static GtkDropDown   *baud_dd;
 static GtkDropDown   *parity_dd;
 static GtkDropDown   *bits_dd;
 static GtkDropDown   *stopbits_dd;
@@ -24,11 +26,16 @@ static GtkSpinButton *rts_before_spin;
 static GtkSpinButton *rts_after_spin;
 static GtkExpander   *Expander;
 
-static void apply_dd_custom_state(GtkDropDown *dd, GtkEditable *entry)
+static gboolean dd_is_other(GtkDropDown *dd)
 {
-	guint n    = g_list_model_get_n_items(gtk_drop_down_get_model(dd));
-	guint sel  = gtk_drop_down_get_selected(dd);
-	gboolean custom = (sel == n - 1);
+	guint n = g_list_model_get_n_items(gtk_drop_down_get_model(dd));
+	return n > 0 && gtk_drop_down_get_selected(dd) == n - 1;
+}
+
+static void apply_dd_custom_state(GtkDropDown *dd)
+{
+	GtkEditable *entry = (dd == port_dd) ? port_entry : baud_entry;
+	gboolean custom = dd_is_other(dd);
 	if (custom) {
 		gtk_expander_set_expanded(Expander, TRUE);
 		gtk_widget_grab_focus(GTK_WIDGET(entry));
@@ -42,62 +49,79 @@ static void apply_dd_custom_state(GtkDropDown *dd, GtkEditable *entry)
 	gtk_widget_set_sensitive(GTK_WIDGET(entry), custom);
 }
 
-static void on_port_dd_changed(GObject *obj, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+static void on_dd_changed(GObject *obj, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	apply_dd_custom_state(GTK_DROP_DOWN(obj), port_entry);
+	apply_dd_custom_state(GTK_DROP_DOWN(obj));
 }
 
-static void on_baud_dd_changed(GObject *obj, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+static void setup_dd(GtkDropDown *dd, GtkStringList *model, guint index,
+                     const char *custom_text)
 {
-	apply_dd_custom_state(GTK_DROP_DOWN(obj), baud_entry);
+	GtkEditable *entry = (dd == port_dd) ? port_entry : baud_entry;
+
+	gtk_drop_down_set_model(dd, G_LIST_MODEL(model));
+	g_object_unref(model);
+	gtk_drop_down_set_selected(dd, index);
+
+	if (dd_is_other(dd))
+		gtk_editable_set_text(entry, custom_text);
+	apply_dd_custom_state(dd);
 }
 
-static GtkStringList *build_port_model(int *port_index_out)
+static GtkStringList *build_port_model(guint *port_index_out)
 {
 	GtkStringList *model;
 	GPtrArray     *ports;
-	gchar         *no_ports_msg;
 	guint          idx;
-	guint          j;
 
-	no_ports_msg = NULL;
-	ports = serial_find_ports(&no_ports_msg);
-	if (no_ports_msg)
+	ports = serial_find_ports();
+
+	/* Determine which entry to pre-select:
+	 *  - port found in discovered list      → use its index
+	 *  - port not in list but node exists   → "Other..." (explicit custom)
+	 *  - port configured but gone from sys  → warn, fall back to first port (0)
+	 *  - nothing configured                 → first port (0) */
+	*port_index_out = 0;
+	if (config.port[0] != '\0')
 	{
-		show_message(MSG_WRN, no_ports_msg);
-		g_free(no_ports_msg);
+		if (g_ptr_array_find_with_equal_func(ports, config.port,
+		                                     g_str_equal, &idx))
+			*port_index_out = idx;
+		else if (g_file_test(config.port, G_FILE_TEST_EXISTS))
+			*port_index_out = ports->len; /* index of "Other..." */
+		else
+			show_messagef(MSG_WRN,
+			    _("Configured port \"%s\" is no longer available."),
+			    config.port);
 	}
-
-	/* Default to "Other..." (-1) if port not in list */
-	*port_index_out = -1;
-	if (config.port[0] != '\0' &&
-	    g_ptr_array_find_with_equal_func(ports, config.port,
-	                                     (GEqualFunc)g_str_equal, &idx))
-		*port_index_out = (int)idx;
 
 	g_ptr_array_add(ports, NULL);
 	model = gtk_string_list_new((const char * const *)ports->pdata);
-	g_ptr_array_remove_index(ports, ports->len - 1);
+	g_ptr_array_set_free_func(ports, g_free);
+	g_ptr_array_free(ports, TRUE);
 
 	gtk_string_list_append(model, _("Other..."));
-
-	for (j = 0; j < ports->len; j++)
-		g_free(ports->pdata[j]);
-	g_ptr_array_free(ports, TRUE);
 
 	return model;
 }
 
-static GtkStringList *build_baud_model(void)
+static GtkStringList *build_baud_model(guint *baud_index_out)
 {
-	unsigned int i;
 	GtkStringList *model = gtk_string_list_new(NULL);
+	guint i;
+	int   idx;
+	gchar  buf[21]; /* UINT64_MAX - 20 digits + NUL */
+
 	for (i = 0; i < baudrate_count; i++)
 	{
-		g_autofree gchar *s = g_strdup_printf("%u", baudrate_list[i].baud);
-		gtk_string_list_append(model, s);
+		g_snprintf(buf, sizeof(buf), "%u", baudrate_list[i].baud);
+		gtk_string_list_append(model, buf);
 	}
 	gtk_string_list_append(model, _("Custom..."));
+
+	/* Select matching baud rate, or "Custom..." if not in list */
+	idx = baudrate_find_index(config.vitesse);
+	*baud_index_out = (idx >= 0) ? (guint)idx : baudrate_count;
 	return model;
 }
 
@@ -130,14 +154,10 @@ void Config_Port_Fenetre(GSimpleAction *action G_GNUC_UNUSED,
 {
 	GtkBuilder       *builder;
 	GtkWindow        *Dialogue;
-	GtkDropDown      *port_dd, *baud_dd;
-	int               speed_index;
-	int               port_index;
 	GtkBuilderCScope *scope;
-	GtkStringList    *port_model;
-	GtkStringList    *baud_model;
-	gboolean          custom;
-	g_autofree gchar *baud_string = NULL;
+	GtkStringList    *m;
+	guint            idx;
+	gchar            baud_buf[21]; /* UINT64_MAX = 20 digits + NUL */
 
 	scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
 	gtk_builder_cscope_add_callback_symbols(scope,
@@ -145,8 +165,8 @@ void Config_Port_Fenetre(GSimpleAction *action G_GNUC_UNUSED,
 	    "gtk_window_destroy",  G_CALLBACK(gtk_window_destroy),
 	    "check_baud_input",    G_CALLBACK(check_baud_input),
 	    "Grise_Degrise",       G_CALLBACK(Grise_Degrise),
-	    "on_port_dd_changed",  G_CALLBACK(on_port_dd_changed),
-	    "on_baud_dd_changed",  G_CALLBACK(on_baud_dd_changed),
+	    "on_port_dd_changed",  G_CALLBACK(on_dd_changed),
+	    "on_baud_dd_changed",  G_CALLBACK(on_dd_changed),
 	    NULL);
 	builder = gtk_builder_new();
 	gtk_builder_set_scope(builder, GTK_BUILDER_SCOPE(scope));
@@ -197,41 +217,13 @@ void Config_Port_Fenetre(GSimpleAction *action G_GNUC_UNUSED,
 		gtk_check_button_set_active(wait_char_check, TRUE);
 	}
 
-	/* Build port dropdown dynamically */
-	port_model = build_port_model(&port_index);
-	gtk_drop_down_set_model(port_dd, G_LIST_MODEL(port_model));
-	g_object_unref(port_model);
-	gtk_drop_down_set_selected(port_dd,
-	    port_index >= 0 ? (guint)port_index
-	                    : g_list_model_get_n_items(gtk_drop_down_get_model(port_dd)) - 1);
+	/* Build port and baud dropdowns dynamically */
+	m = build_port_model(&idx);
+	setup_dd(port_dd, m, idx, config.port);
 
-	/* Build baud rate dropdown dynamically */
-	if (!config.vitesse)
-		config.vitesse = DEFAULT_SPEED;
-	speed_index = baudrate_find_index(config.vitesse);
-	baud_model = build_baud_model();
-	gtk_drop_down_set_model(baud_dd, G_LIST_MODEL(baud_model));
-	g_object_unref(baud_model);
-	gtk_drop_down_set_selected(baud_dd,
-	    speed_index >= 0 ? (guint)speed_index : baudrate_count);
-
-	/* Wire port dropdown → custom port entry */
-	custom = (port_index < 0);
-	if (config.port[0] != '\0')
-		gtk_editable_set_text(port_entry, config.port);
-	gtk_editable_set_editable(port_entry, custom);
-	gtk_widget_set_sensitive(GTK_WIDGET(port_entry), custom);
-	if (custom)
-		gtk_expander_set_expanded(Expander, TRUE);
-
-	/* Wire baud dropdown → custom baud entry */
-	custom = (speed_index < 0);
-	baud_string = g_strdup_printf("%u", config.vitesse);
-	gtk_editable_set_text(baud_entry, baud_string);
-	gtk_editable_set_editable(baud_entry, custom);
-	gtk_widget_set_sensitive(GTK_WIDGET(baud_entry), custom);
-	if (custom)
-		gtk_expander_set_expanded(Expander, TRUE);
+	m = build_baud_model(&idx);
+	g_snprintf(baud_buf, sizeof(baud_buf), "%u", config.vitesse);
+	setup_dd(baud_dd, m, idx, baud_buf);
 
 	gtk_window_present(Dialogue);
 }

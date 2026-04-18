@@ -16,6 +16,6 @@
  * allocated human-readable message string listing the patterns that
  * were searched (caller must g_free it).
  */
-GPtrArray *serial_find_ports(gchar **no_ports_msg);
+GPtrArray *serial_find_ports(void);
 
 #endif /* PORT_LIST_H_ */
