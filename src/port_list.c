@@ -242,6 +242,21 @@ GPtrArray *serial_find_ports(gchar **no_ports_msg)
 
 	g_ptr_array_sort_values(ports, compare_seminum);
 
+	/* Remove duplicates (sort guarantees identical paths are adjacent) */
+	{
+		guint i = 1;
+		while (i < ports->len)
+		{
+			if (compare_seminum(ports->pdata[i - 1], ports->pdata[i]) == 0)
+			{
+				g_free(ports->pdata[i]);
+				g_ptr_array_remove_index(ports, i);
+			}
+			else
+				i++;
+		}
+	}
+
 	if (!ports->len && no_ports_msg)
 	{
 		/* Build list of searched patterns for the error message */
