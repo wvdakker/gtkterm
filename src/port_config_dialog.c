@@ -199,8 +199,11 @@ void Config_Port_Fenetre(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_
 	/* Build port dropdown dynamically */
 	{
 		GtkStringList *port_model = build_port_model(ports, &port_index);
-		for (guint j = 0; j < ports->len; j++)
+		guint j;
+
+		for (j = 0; j < ports->len; j++)
 			g_free(ports->pdata[j]);
+
 		g_ptr_array_free(ports, TRUE);
 		gtk_drop_down_set_model(GTK_DROP_DOWN(port_dd), G_LIST_MODEL(port_model));
 		g_object_unref(port_model);

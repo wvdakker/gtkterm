@@ -129,10 +129,12 @@ static const struct device_path *get_device_paths(void)
 
 static void free_device_paths(const struct device_path *paths)
 {
+	const struct device_path *dpp;
+
 	if (paths == default_device_paths)
 		return;
 
-	for (const struct device_path *dpp = paths; dpp->pat; dpp++)
+	for (dpp = paths; dpp->pat; dpp++)
 		g_free((void *)dpp->pat);
 
 	g_free((void *)paths);
@@ -218,9 +220,10 @@ static int is_serial_port(const char *path, const struct device_path *dp)
 GPtrArray *serial_find_ports(gchar **no_ports_msg)
 {
 	const struct device_path *device_paths = get_device_paths();
+	const struct device_path *devp;
 	GPtrArray                *ports        = g_ptr_array_new();
 
-	for (const struct device_path *devp = device_paths; devp->pat; devp++)
+	for (devp = device_paths; devp->pat; devp++)
 	{
 		glob_t   gl;
 		char   **filep;

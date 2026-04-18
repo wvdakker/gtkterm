@@ -335,7 +335,8 @@ static void write_ascii_file(const char *data, gsize size)
 {
 	char *cleanbuff = g_malloc(size);
 	gsize newsize = 0;
-	for (gsize x = 0; x < size; ++x)
+	gsize x;
+	for (x = 0; x < size; ++x)
 	{
 		if (data[x] > 0x1F || data[x] == 0x0A || data[x] == 0x0D)
 			cleanbuff[newsize++] = data[x];

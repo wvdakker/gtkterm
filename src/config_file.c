@@ -209,6 +209,7 @@ static void Copy_configuration(GKeyFile *kf, const gchar *section)
 	gchar   *font_raw, *font_quoted;
 	macro_t *macros;
 	gsize    size;
+	gsize    ci;
 
 	g_key_file_set_string( kf, section, "port",                     config.port);
 	g_key_file_set_integer(kf, section, "speed",                    (gint)config.vitesse);
@@ -241,13 +242,14 @@ static void Copy_configuration(GKeyFile *kf, const gchar *section)
 	{
 		const gchar **macro_strs = g_new(const gchar *, size);
 		gchar       **alloc      = g_new(gchar *, size);
-		for (guint i = 0; i < size; i++)
+		guint i;
+		for (i = 0; i < size; i++)
 		{
 			alloc[i]      = g_strdup_printf("%s::%s", macros[i].shortcut, macros[i].action);
 			macro_strs[i] = alloc[i];
 		}
 		g_key_file_set_string_list(kf, section, "macros", macro_strs, size);
-		for (guint i = 0; i < size; i++)
+		for (i = 0; i < size; i++)
 			g_free(alloc[i]);
 		g_free(alloc);
 		g_free(macro_strs);
@@ -261,7 +263,7 @@ static void Copy_configuration(GKeyFile *kf, const gchar *section)
 	g_key_file_set_integer(kf, section, "term_scrollback",         term_conf.scrollback);
 	g_key_file_set_boolean(kf, section, "term_visual_bell",        term_conf.visual_bell);
 
-	for (gsize ci = 0; ci < G_N_ELEMENTS(color_fields); ci++)
+	for (ci = 0; ci < G_N_ELEMENTS(color_fields); ci++)
 	{
 		g_autofree gchar *_s = g_strdup_printf("%.4f", *color_fields[ci].val);
 		g_key_file_set_string(kf, section, color_fields[ci].key, _s);
@@ -360,7 +362,8 @@ gint Load_configuration_from_file(const gchar *config_name)
 	{
 		macro_t *macros = g_new(macro_t, n_macros);
 		gsize n = 0;
-		for (gsize mi = 0; mi < n_macros; mi++)
+		gsize mi;
+		for (mi = 0; mi < n_macros; mi++)
 		{
 			gchar *sep = strstr(macro_vals[mi], "::");
 			if (sep)
