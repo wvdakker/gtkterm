@@ -495,20 +495,8 @@ gchar **config_get_sections(void)
 /* Bootstrap: ensure a [default] section exists                       */
 /* ------------------------------------------------------------------ */
 
-gint Check_configuration_file(void)
+void Check_configuration_file(void)
 {
 	Hard_default_configuration();
-
-	if (!config_section_exists("default"))
-	{
-		if (!Save_configuration_to_file("default"))
-			return -1;
-
-		show_messagef(MSG_WRN,
-		    _("Configuration file (%s) with\n[default] configuration has been created.\n"),
-		    config_path);
-		return 1;
-	}
-
-	return Load_configuration_from_file("default") == -1 ? -1 : 0;
+	Load_configuration_from_file("default");
 }

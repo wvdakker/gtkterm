@@ -33,7 +33,7 @@ gboolean     Save_configuration_to_file(const gchar *config_name);
 /* Load, verify and check configuration */
 gint     Load_configuration_from_file(const gchar *config_name);
 void     Verify_configuration(void);
-gint     Check_configuration_file(void);
+	void     Check_configuration_file(void);
 gboolean config_section_exists(const gchar *config_name);
 gchar  **config_get_sections(void);
 gboolean config_delete_section(const gchar *config_name);

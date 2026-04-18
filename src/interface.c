@@ -583,6 +583,30 @@ void create_main_window(GtkApplication *app)
 
 	install_macro_shortcut_controller(macro_ctrl);
 
+	if (term_conf.window_width > 0 && term_conf.window_height > 0)
+	{
+		int w = term_conf.window_width;
+		int h = term_conf.window_height;
+		GdkDisplay *gdk_disp = gdk_display_get_default();
+		if (gdk_disp)
+		{
+			GListModel *monitors = gdk_display_get_monitors(gdk_disp);
+			if (monitors && g_list_model_get_n_items(monitors) > 0)
+			{
+				GdkMonitor *monitor = g_list_model_get_item(monitors, 0);
+				if (monitor)
+				{
+					GdkRectangle workarea;
+					gdk_monitor_get_geometry(monitor, &workarea);
+					w = CLAMP(w, 100, workarea.width);
+					h = CLAMP(h, 100, workarea.height);
+					g_object_unref(monitor);
+				}
+			}
+		}
+		gtk_window_set_default_size(GTK_WINDOW(Fenetre), w, h);
+	}
+
 	gtk_widget_set_visible(Fenetre, TRUE);
 }
 
