@@ -249,8 +249,6 @@ void Config_Port_Fenetre(GSimpleAction *action, GVariant *param, gpointer data)
 
 void Lis_Config(void)
 {
-
-	gchar *message;
 	struct configuration_port prev_config = config;
 
 	g_strlcpy(config.port,
@@ -287,8 +285,5 @@ void Lis_Config(void)
 		Config_port();
 	ConfigFlags();
 
-	message = get_port_string();
-	Set_status_message(message);
-	Set_window_title(message);
-	g_free(message);
+	update_port_status();
 }

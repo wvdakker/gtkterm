@@ -617,7 +617,7 @@ void initialize_hexadecimal_display(void)
 	blank_data[bytes_per_line * 3 + 5] = 0;
 }
 
-void put_hexadecimal(const gchar *string, size_t size)
+void put_hexadecimal(const gchar *string, gsize size)
 {
 	static gchar data[128];
 	static gchar data_byte[16];
@@ -674,32 +674,32 @@ void put_hexadecimal(const gchar *string, size_t size)
 	}
 }
 
-void put_text(const gchar *string, size_t size)
+void put_text(const gchar *string, gsize size)
 {
 	log_chars(string, (guint)size);
 	vte_terminal_feed(VTE_TERMINAL(display), string, (gssize)size);
 }
 
-gint send_serial(gchar *string, gint len)
+gssize send_serial(const gchar *string, gsize len)
 {
-	ssize_t bytes_written = Send_chars(string, len);
+	gssize bytes_written = Send_chars(string, len);
 	if (bytes_written > 0)
 	{
 		if (config.echo)
-			put_chars(string, (size_t)bytes_written, config.crlfauto);
+			put_chars(string, (gsize)bytes_written, config.crlfauto);
 	}
-	return (gint)bytes_written;
+	return bytes_written;
 }
 
 static void Got_Input(VteTerminal *widget, gchar *text, guint length, gpointer ptr)
 {
-	if (config.esc_clear_screen && length >= 1 && (guchar)text[0] == 0x1b)
+	if (config.esc_clear_screen && length >= 1 && text[0] == 0x1b)
 	{
 		clear_buffer();
 		clear_display();
-		return;
 	}
-	send_serial(text, (gint)length);
+	else
+		send_serial(text, length);
 }
 
 void update_copy_sensivity(VteTerminal *terminal, gpointer data)
@@ -729,9 +729,12 @@ gboolean control_signals_read(gpointer user_data)
 	return TRUE;
 }
 
-void Set_status_message(gchar *msg)
+void update_port_status(void)
 {
-	gtk_label_set_text(GTK_LABEL(StatusBar), msg ? msg : "");
+	gchar *message = get_port_string();
+	gtk_label_set_text(GTK_LABEL(StatusBar), message ? message : "");
+	Set_window_title(message);
+	g_free(message);
 }
 
 void Set_window_title(const gchar *msg)
@@ -743,24 +746,14 @@ void Set_window_title(const gchar *msg)
 
 void interface_open_port(void)
 {
-	gchar *message;
-
 	Config_port();
-	message = get_port_string();
-	Set_status_message(message);
-	Set_window_title(message);
-	g_free(message);
+	update_port_status();
 }
 
 void interface_close_port(void)
 {
-	gchar *message;
-
 	Close_port();
-	message = get_port_string();
-	Set_status_message(message);
-	Set_window_title(message);
-	g_free(message);
+	update_port_status();
 }
 
 void show_message(gint type_msg, const gchar *message)
@@ -827,10 +820,10 @@ static void Send_Hexadecimal(GtkWidget *widget, gpointer pointer)
 	g_strfreev(tokens);
 }
 
-void Put_temp_message(const gchar *text, gint time)
+void Put_temp_message(const gchar *text, guint time)
 {
 	gtk_label_set_text(GTK_LABEL(StatusBar), text ? text : "");
-	g_timeout_add((guint)time, pop_message, NULL);
+	g_timeout_add(time, pop_message, NULL);
 }
 
 gboolean pop_message(gpointer user_data)

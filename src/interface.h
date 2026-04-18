@@ -25,9 +25,9 @@
 
 void create_main_window(GtkApplication *app);
 void initialize_hexadecimal_display(void);
-void Set_status_message(gchar *);
-void put_text(const gchar *, size_t);
-void put_hexadecimal(const gchar *, size_t);
+void update_port_status(void);
+void put_text(const gchar *, gsize);
+void put_hexadecimal(const gchar *, gsize);
 void Set_local_echo(gboolean);
 void Set_hotkeys_disabled(gboolean);
 void show_message(gint type_msg, const gchar *message);
@@ -38,8 +38,8 @@ void Set_crlfauto(gboolean crlfauto);
 void Set_autoreconnect_enabled(gboolean autoreconnect_enabled);
 void Set_esc_clear_screen(gboolean esc_clear_screen);
 void Set_timestamp(gboolean timestamp);
-gint send_serial(gchar *, gint);
-void Put_temp_message(const gchar *, gint);
+gssize send_serial(const gchar *, gsize);
+void Put_temp_message(const gchar *, guint);
 void Set_window_title(const gchar *msg);
 void interface_close_port(void);
 void interface_open_port(void);

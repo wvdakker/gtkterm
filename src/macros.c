@@ -80,7 +80,7 @@ static void shortcut_callback(gpointer *number)
 	g_autofree gchar *msg;
 
 	expanded = g_strcompress(macros[(gintptr)number].action);
-	send_serial(expanded, (gint)strlen(expanded));
+	send_serial(expanded, strlen(expanded));
 
 	msg = g_strdup_printf(_("Macro \"%s\" sent!"), macros[(gintptr)number].shortcut);
 	Put_temp_message(msg, 800);

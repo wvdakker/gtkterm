@@ -69,10 +69,7 @@ static void activate(GtkApplication *app, gpointer user_data)
 	Config_port();
 	ConfigFlags();
 
-	message = get_port_string();
-	Set_window_title(message);
-	Set_status_message(message);
-	g_free(message);
+	update_port_status();
 
 	set_view(ASCII_VIEW);
 
