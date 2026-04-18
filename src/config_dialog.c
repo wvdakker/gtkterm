@@ -79,46 +79,36 @@ static void Save_config_file(void)
 	gtk_window_present(dialog);
 }
 
-static void really_save_config(const gchar *data)
-{
-	if (!Save_configuration_to_file(data))
-		return;
-	show_messagef(MSG_WRN, _("Configuration [%s] saved\n"), data);
-}
-
 static void on_overwrite_response(GObject *source, GAsyncResult *result, gpointer data)
 {
 	int response = gtk_alert_dialog_choose_finish(GTK_ALERT_DIALOG(source), result, NULL);
 	if (response == 0)
-		really_save_config(data);
+		Save_configuration_to_file(data);
 	g_free(data);
 }
 
 static void on_save_ok_clicked(GtkEditable *entry, GtkButton *btn G_GNUC_UNUSED)
 {
-	static const char * const buttons[] = { "_Yes", "_Cancel", NULL };
-
 	const gchar *config_name = gtk_editable_get_text(GTK_EDITABLE(entry));
 
-	if (config_section_exists(config_name))
+	if (config_section_exists(config_name) && !g_str_equal(config_name, "default"))
 	{
-		g_autofree gchar *alert_msg = g_strdup_printf(
+		static const char * const buttons[] = { "_Yes", "_Cancel", NULL };
+		g_autofree gchar *msg = g_strdup_printf(
 		    _("Section [%s] already exists.\n\nDo you want to overwrite it ?"),
 		    config_name);
 
-		GtkAlertDialog *alert = gtk_alert_dialog_new("%s", alert_msg);
-
+		GtkAlertDialog *alert = gtk_alert_dialog_new("%s", msg);
 		gtk_alert_dialog_set_modal(alert, TRUE);
 		gtk_alert_dialog_set_buttons(alert, buttons);
 		gtk_alert_dialog_set_default_button(alert, 0);
 		gtk_alert_dialog_set_cancel_button(alert, 1);
-
 		gtk_alert_dialog_choose(alert, GTK_WINDOW(Fenetre), NULL,
 		                        on_overwrite_response, g_strdup(config_name));
 		g_object_unref(alert);
 	}
 	else
-		really_save_config(config_name);
+		Save_configuration_to_file(config_name);
 }
 
 static void on_load_ok_clicked(GtkListBox *listbox, GtkButton *btn G_GNUC_UNUSED)
