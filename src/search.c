@@ -21,11 +21,11 @@
 
 static GtkWindow *parentWindow;
 static VteTerminal *term;
-static GtkWidget *searchBar;
+static GtkSearchBar *searchBar;
 static GtkWidget *prevButton;
 static GtkWidget *nextButton;
 static VteRegex *regex;
-static GtkWidget *entry;
+static GtkEditable *entry;
 
 typedef enum
 {
@@ -46,7 +46,7 @@ static void entry_changed_callback(void)
 		regex = NULL;
 	}
 
-	if (gtk_editable_get_text(GTK_EDITABLE(entry))[0] != '\0')
+	if (gtk_editable_get_text(entry)[0] != '\0')
 		sensitive = TRUE;
 
 	gtk_widget_set_sensitive(prevButton, sensitive);
@@ -59,7 +59,7 @@ static void search_callback(GtkWidget *widget G_GNUC_UNUSED, gpointer data)
 
 	if (regex == NULL)
 	{
-		const gchar *pattern = gtk_editable_get_text(GTK_EDITABLE(entry));
+		const gchar *pattern = gtk_editable_get_text(entry);
 		GError *error = NULL;
 		regex = vte_regex_new_for_search(pattern,
 		                                 (gssize)strlen(pattern),
@@ -96,7 +96,7 @@ static gboolean entry_key_press_cb(GtkEventControllerKey *ctrl G_GNUC_UNUSED,
 	{
 		if (keyval == GDK_KEY_Escape)
 		{
-			search_bar_hide(searchBar);
+			search_bar_hide(GTK_WIDGET(searchBar));
 			handled = TRUE;
 		}
 	}
@@ -134,17 +134,17 @@ GtkWidget *search_bar_new(GtkWindow *parent, VteTerminal *terminal)
 	g_object_unref(scope);
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/search_bar.ui", NULL);
 
-	searchBar   = GTK_WIDGET(gtk_builder_get_object(builder, "search_bar"));
-	entry       = GTK_WIDGET(gtk_builder_get_object(builder, "search_entry"));
+	searchBar   = GTK_SEARCH_BAR(gtk_builder_get_object(builder, "search_bar"));
+	entry       = GTK_EDITABLE(gtk_builder_get_object(builder, "search_entry"));
 	prevButton  = GTK_WIDGET(gtk_builder_get_object(builder, "search_prev_button"));
 	nextButton  = GTK_WIDGET(gtk_builder_get_object(builder, "search_next_button"));
 
-	gtk_search_bar_connect_entry(GTK_SEARCH_BAR(searchBar), GTK_EDITABLE(entry));
+	gtk_search_bar_connect_entry(searchBar, entry);
 
 	g_object_ref(searchBar);
 	g_object_unref(builder);
 
-	return searchBar;
+	return GTK_WIDGET(searchBar);
 }
 
 void search_direction_cb(GtkButton *btn, gpointer data G_GNUC_UNUSED)
@@ -157,8 +157,8 @@ void search_direction_cb(GtkButton *btn, gpointer data G_GNUC_UNUSED)
 void search_bar_show(GtkWidget *self)
 {
 	gtk_widget_set_visible(self, TRUE);
-	gtk_search_bar_set_search_mode(GTK_SEARCH_BAR(searchBar), TRUE);
-	gtk_widget_grab_focus(entry);
+	gtk_search_bar_set_search_mode(searchBar, TRUE);
+	gtk_widget_grab_focus(GTK_WIDGET(entry));
 }
 
 void search_bar_hide(GtkWidget *self)
@@ -166,7 +166,7 @@ void search_bar_hide(GtkWidget *self)
 	gtk_widget_set_visible(self, FALSE);
 	if (term)
 		vte_terminal_search_set_regex(term, NULL, 0);
-	gtk_search_bar_set_search_mode(GTK_SEARCH_BAR(searchBar), FALSE);
+	gtk_search_bar_set_search_mode(searchBar, FALSE);
 
 	if (regex != NULL)
 	{

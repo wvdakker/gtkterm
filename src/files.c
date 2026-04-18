@@ -31,11 +31,11 @@ static gssize nb_car;
 static gsize car_written;
 static gsize current_buffer_position;
 static gssize bytes_read;
-static GtkWidget *ProgressBar;
+static GtkProgressBar *ProgressBar;
 static gint Fichier = -1;
 static guint callback_handler;
 gchar *fic_defaut = NULL;
-static GtkWidget *Window;
+static GtkWindow *Window;
 gboolean waiting_for_char = FALSE;
 static gboolean waiting_for_timer = FALSE;
 static gboolean input_running = FALSE;
@@ -135,12 +135,12 @@ static void show_transfer_dialog(const gchar *title)
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/file_transfer_dialog.ui", NULL);
 	g_object_unref(scope);
 
-	Window      = GTK_WIDGET(gtk_builder_get_object(builder, "file_transfer_window"));
-	ProgressBar = GTK_WIDGET(gtk_builder_get_object(builder, "file_transfer_progress"));
+	Window      = GTK_WINDOW(gtk_builder_get_object(builder, "file_transfer_window"));
+	ProgressBar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "file_transfer_progress"));
 
-	gtk_window_set_title(GTK_WINDOW(Window), title);
+	gtk_window_set_title(Window, title);
 	g_object_unref(builder);
-	gtk_window_present(GTK_WINDOW(Window));
+	gtk_window_present(Window);
 }
 
 static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer data G_GNUC_UNUSED)
@@ -194,7 +194,7 @@ static gboolean ecriture(GIOChannel *src G_GNUC_UNUSED, GIOCondition cond G_GNUC
 	gssize bytes_written;
 	gchar *car;
 
-	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar),
+	gtk_progress_bar_set_fraction(ProgressBar, 
 	                              (gfloat)car_written / (gfloat)nb_car);
 
 	if (car_written < (gsize)nb_car)
@@ -242,7 +242,7 @@ static gboolean ecriture(GIOChannel *src G_GNUC_UNUSED, GIOCondition cond G_GNUC
 		current_buffer_position += (gsize)bytes_written;
 		current_buffer += bytes_written;
 
-		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ProgressBar),
+		gtk_progress_bar_set_fraction(ProgressBar,
 		                              (gfloat)car_written / (gfloat)nb_car);
 
 		if (config.delai != 0 && *car == LINE_FEED)
@@ -307,7 +307,7 @@ gint close_all(void)
 	gtk_label_set_text(GTK_LABEL(StatusBar), "");
 	close(Fichier);
 	Fichier = -1;
-	gtk_window_destroy(GTK_WINDOW(Window));
+	gtk_window_destroy(Window);
 
 	return FALSE;
 }
