@@ -35,12 +35,7 @@
 #include <config.h>
 #include <glib/gi18n.h>
 
-typedef struct {
-	int argc;
-	char **argv;
-} AppData;
-
-static void on_shutdown(GtkApplication *app, gpointer user_data)
+static void on_shutdown(GtkApplication *app G_GNUC_UNUSED, gpointer user_data G_GNUC_UNUSED)
 {
 	delete_buffer();
 	Close_port();
@@ -52,19 +47,13 @@ static void on_shutdown(GtkApplication *app, gpointer user_data)
 	files_cleanup();
 }
 
-static void activate(GtkApplication *app, gpointer user_data)
+static void activate(GtkApplication *app, gpointer user_data G_GNUC_UNUSED)
 {
-	AppData *data = user_data;
-
 	create_buffer();
 
 	create_main_window(app);
-
-	if(read_command_line(data->argc, data->argv) < 0)
-	{
-		g_application_quit(G_APPLICATION(app));
-		return;
-	}
+	Verify_configuration();
+	interface_apply_term_config();
 
 	Config_port();
 	ConfigFlags();
@@ -80,19 +69,22 @@ static void activate(GtkApplication *app, gpointer user_data)
 
 int main(int argc, char *argv[])
 {
-	AppData data = {argc, argv};
 	GtkApplication *app;
 	int status;
 
 	config_file_init();
+
 	Check_configuration_file();
+	if (read_command_line(argc, argv) < 0)
+		return 0;
+
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset(PACKAGE, "UTF-8");
 	textdomain(PACKAGE);
 
 	app = gtk_application_new("org.gtk.gtkterm", G_APPLICATION_DEFAULT_FLAGS);
 	g_application_set_resource_base_path(G_APPLICATION(app), "/org/gtk/gtkterm");
-	g_signal_connect(app, "activate", G_CALLBACK(activate), &data);
+	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 	g_signal_connect(app, "shutdown", G_CALLBACK(on_shutdown), NULL);
 
 	status = g_application_run(G_APPLICATION(app), 0, NULL);

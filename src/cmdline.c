@@ -26,7 +26,6 @@
 #include "cmdline.h"
 #include "files.h"
 #include "auto_config.h"
-#include "interface.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
@@ -64,7 +63,7 @@ int read_command_line(int argc, char **argv)
 	int c;
 	int option_index = 0;
 
-	static struct option long_options[] =
+	static const struct option long_options[] =
 	{
 		{"speed", 1, 0, 's'},
 		{"parity", 1, 0, 'a'},
@@ -84,8 +83,36 @@ int read_command_line(int argc, char **argv)
 		{0, 0, 0, 0}
 	};
 
-	/* need a working configuration file ! */
-	Check_configuration_file();
+	/*
+	 * Pre-scan for -c/--config so the named section is loaded as the base
+	 * *before* any other CLI overrides are applied on top of it.
+	 * Check_configuration_file() (which loads "default") has already been
+	 * called in main() — do not call it again here.
+	 * Use getopt_long itself to handle all argument forms correctly
+	 * (-c val, -cval, --config val, --config=val).
+	 */
+	{
+		int saved_optind = optind;
+		int saved_opterr = opterr;
+		int preopt;
+
+		optind = 1;
+		opterr = 0; /* suppress "unknown option" noise during pre-scan */
+
+		while ((preopt = getopt_long(argc, argv, "s:a:t:b:f:p:w:d:r:heLc:x:y:",
+		                             long_options, &option_index)) != -1)
+		{
+			if (preopt == 'c')
+			{
+				if (Load_configuration_from_file(optarg) == -1)
+				g_printerr(_("No section \"%s\" in configuration file\n"), optarg);
+				break; /* only the first -c matters */
+			}
+		}
+
+		optind = saved_optind;
+		opterr = saved_opterr;
+	}
 
 	while(1)
 	{
@@ -97,10 +124,7 @@ int read_command_line(int argc, char **argv)
 		switch(c)
 		{
 		case 'c':
-			if (Load_configuration_from_file(optarg) == -1)
-				show_messagef(MSG_ERR, _("No section \"%s\" in configuration file\n"), optarg);
-			else
-				interface_apply_term_config();
+			/* Already handled in the pre-scan above; skip here. */
 			break;
 
 		case 's':
@@ -172,6 +196,5 @@ int read_command_line(int argc, char **argv)
 			return -1;
 		}
 	}
-	Verify_configuration();
 	return 0;
 }
