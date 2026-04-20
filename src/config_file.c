@@ -171,7 +171,7 @@ static void Hard_default_configuration(void)
 	term_conf.disable_hotkeys = FALSE;
 
 	g_free(term_conf.font);
-	term_conf.font = NULL;  /* Will be set in Verify_configuration */
+	term_conf.font = g_strdup(DEFAULT_FONT);
 	term_conf.block_cursor = TRUE;
 	term_conf.rows = 80;
 	term_conf.columns = 25;
@@ -225,7 +225,7 @@ static void Copy_configuration(GKeyFile *kf, const gchar *section)
 	g_key_file_set_boolean(kf, section, "timestamp",                term_conf.timestamp);
 	g_key_file_set_boolean(kf, section, "disable_hotkeys",          term_conf.disable_hotkeys);
 
-	font_quoted = g_shell_quote(term_conf.font ? term_conf.font : DEFAULT_FONT);
+	font_quoted = g_shell_quote(term_conf.font);
 	g_key_file_set_string(kf, section, "font", font_quoted);
 	g_free(font_quoted);
 
@@ -292,8 +292,6 @@ static void Verify_configuration(void)
 	if (config.rs485_rts_time_after_transmit < 0 || config.rs485_rts_time_after_transmit > 500)
 		config.rs485_rts_time_after_transmit = DEFAULT_DELAY_RS485;
 
-	if (term_conf.font == NULL)
-		term_conf.font = g_strdup(DEFAULT_FONT);
 }
 
 /* ------------------------------------------------------------------ */
@@ -366,10 +364,13 @@ gint Load_configuration_from_file(const gchar *config_name)
 
 	s = g_key_file_get_string(kf, config_name, "font", NULL);
 	if (s) {
-		/* Old gtkterm stored font with literal shell-quote chars; unquote if needed. */
+		/* Old gtkterm stored font with literal shell-quote chars; unquote if needed.
+		 * If unquoting fails (malformed value), keep the hard default. */
 		gchar *font_str = g_shell_unquote(s, NULL);
-		term_conf.font = g_strdup(font_str ? font_str : s);
-		g_free(font_str);
+		if (font_str) {
+			g_free(term_conf.font);
+			term_conf.font = font_str;
+		}
 		g_free(s);
 	}
 
