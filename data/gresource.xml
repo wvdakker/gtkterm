@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
 	<gresource prefix="/org/gtk/gtkterm">
+		<file compressed="true">about_dialog.ui</file>
 		<file compressed="true">config_terminal_dialog.ui</file>
 		<file compressed="true">main_window.ui</file>
 		<file compressed="true">macros_dialog.ui</file>

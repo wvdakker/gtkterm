@@ -176,32 +176,12 @@ static void help_shortcuts_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC
 
 static void help_about_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	static const gchar *authors[] = {
-		"Julien Schimtt",
-		"Zach Davis",
-		"Florian Euchner",
-		"Stephan Enderlein",
-		"Kevin Picot",
-		NULL
-	};
-	const gchar *comments_program = _("GTKTerm is a simple GTK+ terminal used to communicate with the serial port.");
+	GtkBuilder *builder = gtk_builder_new_from_resource("/org/gtk/gtkterm/about_dialog.ui");
+	GtkAboutDialog *dlg = GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_dialog"));
+	g_object_unref(builder);
 
-	gchar *comments = g_strdup_printf("%s\n\n%s", RELEASE_DATE, comments_program);
-	GdkTexture *logo_texture = gdk_texture_new_from_resource("/org/gtk/gtkterm/icons/256x256/apps/gtkterm.png");
-
-	gtk_show_about_dialog(GTK_WINDOW(Fenetre),
-	                      "program-name", "GTKTerm",
-	                      "version", VERSION,
-	                      "comments", comments,
-	                      "copyright", "Copyright © Julien Schimtt",
-	                      "authors", authors,
-	                      "website", "https://github.com/Jeija/gtkterm",
-	                      "website-label", "https://github.com/Jeija/gtkterm",
-	                      "license-type", GTK_LICENSE_LGPL_3_0,
-	                      "logo", logo_texture,
-	                      NULL);
-	if (logo_texture) g_object_unref(logo_texture);
-	g_free(comments);
+	gtk_window_set_transient_for(GTK_WINDOW(dlg), GTK_WINDOW(Fenetre));
+	gtk_window_present(GTK_WINDOW(dlg));
 }
 
 /* Toggle / radio change-state callbacks */

@@ -1,7 +1,21 @@
 gnome = import('gnome')
 
+# About dialog UI — substitute @VERSION@ and @RELEASE_DATE@ at build time
+about_config = configuration_data()
+about_config.set('VERSION', meson.project_version())
+about_config.set('RELEASE_DATE', release_date)
+
+about_ui = configure_file(
+	input: 'about_dialog.ui.in',
+	output: 'about_dialog.ui',
+	configuration: about_config,
+)
+
 # Glade UI files
-gresources = gnome.compile_resources('resource', 'gresource.xml', source_dir: '.')
+gresources = gnome.compile_resources('resource', 'gresource.xml',
+	source_dir: ['.', meson.current_build_dir()],
+	dependencies: [about_ui],
+)
 
 # Desktop file
 desktop_config = configuration_data()

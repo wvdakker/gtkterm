@@ -1,7 +1,7 @@
 project(
 	'gtkterm',
 	'c',
-	version: '1.3.1',
+	version: '2.0.0',
 	meson_version : '>= 1.0.0'
 )
 
@@ -22,9 +22,10 @@ add_project_arguments('-D_GNU_SOURCE=1',
 
 # Configure GTKTerm
 conf = configuration_data()
+release_date = 'April 2026'
 conf.set_quoted('VERSION', meson.project_version())
 conf.set_quoted('PACKAGE', meson.project_name())
-conf.set_quoted('RELEASE_DATE', 'May 2024')
+conf.set_quoted('RELEASE_DATE', release_date)
 conf.set_quoted('LOCALEDIR', localedir)
 
 cc = meson.get_compiler('c')
