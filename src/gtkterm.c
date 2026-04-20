@@ -17,7 +17,6 @@
 /***********************************************************************/
 
 #include <gtk/gtk.h>
-#include <signal.h>
 
 #include "interface.h"
 #include "serial.h"
@@ -25,7 +24,6 @@
 #include "cmdline.h"
 #include "buffer.h"
 #include "macros.h"
-#include "auto_config.h"
 #include "config_file.h"
 #include "device_monitor.h"
 #include "user_signals.h"

@@ -23,7 +23,6 @@
 #include "serial.h"
 #include "buffer.h"
 
-#include <config.h>
 #include <glib/gi18n.h>
 
 /* Global variables */

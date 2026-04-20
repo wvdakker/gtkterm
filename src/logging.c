@@ -24,7 +24,6 @@
 #include "buffer.h"
 #include "logging.h"
 
-#include <config.h>
 #include <glib/gi18n.h>
 
 #define MAX_WRITE_ATTEMPTS 5
