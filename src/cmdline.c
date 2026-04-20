@@ -25,12 +25,9 @@
 #include "config_file.h"
 #include "cmdline.h"
 #include "files.h"
-#include "auto_config.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
-
-extern struct configuration_port config;
 
 void display_help(void)
 {
@@ -178,12 +175,12 @@ int read_command_line(int argc, char **argv)
 			break;
 
 		case 'e':
-			config.echo = TRUE;
-			break;
+		term_conf.echo = TRUE;
+		break;
 
-		case 'L':
-			config.disable_port_lock = TRUE;
-			break;
+	case 'L':
+		config.disable_port_lock = TRUE;
+		break;
 
 		case 'x':
 			config.rs485_rts_time_before_transmit = atoi(optarg);

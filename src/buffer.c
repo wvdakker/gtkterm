@@ -22,7 +22,6 @@
 #include "buffer.h"
 #include "serial.h"
 
-#include <config.h>
 #include <glib/gi18n.h>
 #include <time.h>
 
@@ -66,7 +65,7 @@ static unsigned int insert_timestamp(char *buf_out)
 {
 	unsigned int size = 0;
 
-	if (config.timestamp)
+	if (term_conf.timestamp)
 	{
 		struct timespec ts;
 		struct tm tm;
@@ -89,7 +88,7 @@ void put_chars(const char *chars, gsize size, gboolean crlf_auto)
 	const char *characters;
 
 	/* If the auto CR LF mode on, read the buffer to add \r before \n */
-	if(crlf_auto || config.timestamp)
+	if(crlf_auto || term_conf.timestamp)
 	{
 		int i, out_size = 0;
 
@@ -155,7 +154,7 @@ void put_chars(const char *chars, gsize size, gboolean crlf_auto)
 		// converted newline characters
 		chars = out_buffer;
 		size = out_size;
-	} // if(crlf_auto || config.timestamp)
+	} // if(crlf_auto || term_conf.timestamp)
 
 	if(buffer == NULL)
 	{

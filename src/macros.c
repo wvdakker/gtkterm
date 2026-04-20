@@ -18,14 +18,13 @@
 #include "interface.h"
 #include "macros.h"
 
-#include <config.h>
 #include <glib/gi18n.h>
 
 
 static macro_t *macros = NULL;
 static gsize macros_count = 0;
 static GtkWindow *window = NULL;
-static GtkListBox *macro_listbox = NULL;
+static GtkListBox *listbox = NULL;
 
 /* Capture-phase key controller on the main window */
 static GtkEventController *macro_key_ctrl = NULL;
@@ -182,16 +181,15 @@ void macros_cleanup(void)
 
 static void Add_shortcut(GtkWidget *button G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	GtkListBox *listbox = macro_listbox;
 	GListModel *children;
 	GtkListBoxRow *new_row;
+	GtkWidget *new_widget;
 	guint n;
 
-	{
-		GtkWidget *new_widget = create_macro_row("None", "");
-		gtk_list_box_append(listbox, new_widget);
-		g_object_unref(new_widget);
-	}
+	new_widget = create_macro_row("None", "");
+	gtk_list_box_append(listbox, new_widget);
+	g_object_unref(new_widget);
+
 	children = gtk_widget_observe_children(GTK_WIDGET(listbox));
 	n = g_list_model_get_n_items(children);
 	new_row = gtk_list_box_get_row_at_index(listbox, n - 1);
@@ -202,15 +200,14 @@ static void Add_shortcut(GtkWidget *button G_GNUC_UNUSED, gpointer data G_GNUC_U
 
 static void Delete_shortcut(GtkWidget *button G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	GtkListBox *listbox = macro_listbox;
 	GtkListBoxRow *row = gtk_list_box_get_selected_row(listbox);
+
 	if (row)
 		gtk_list_box_remove(listbox, GTK_WIDGET(row));
 }
 
 static void Save_shortcuts(GtkWidget *button G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	GtkListBox *listbox = macro_listbox;
 	GListModel *children;
 	macro_t *new_macros;
 	guint n;
@@ -271,7 +268,7 @@ static gboolean key_capture_pressed(GtkEventControllerKey *controller,
 		break;
 	}
 
-	row = gtk_list_box_get_selected_row(macro_listbox);
+	row = gtk_list_box_get_selected_row(listbox);
 	if (row)
 	{
 		str = gtk_accelerator_name(keyval,
@@ -322,7 +319,7 @@ static void on_cancel_clicked(GtkWidget *button G_GNUC_UNUSED, gpointer data G_G
 static gboolean on_macros_close_request(GtkWindow *win G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	window = NULL;
-	macro_listbox = NULL;
+	listbox = NULL;
 	return FALSE; /* allow default destruction */
 }
 
@@ -353,8 +350,8 @@ void Config_macros(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_U
 	g_object_unref(scope);
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/macros_dialog.ui", NULL);
 
-	window        = GTK_WINDOW(gtk_builder_get_object(builder, "macros_window"));
-	macro_listbox = GTK_LIST_BOX(gtk_builder_get_object(builder, "macros_listbox"));
+	window  = GTK_WINDOW(gtk_builder_get_object(builder, "macros_window"));
+	listbox = GTK_LIST_BOX(gtk_builder_get_object(builder, "macros_listbox"));
 	g_object_unref(builder);
 
 	gtk_window_set_transient_for(window, GTK_WINDOW(Fenetre));
@@ -368,7 +365,7 @@ void Config_macros(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_U
 		for (i = 0; i < macros_count; i++)
 		{
 			row_box = create_macro_row(macros[i].shortcut, macros[i].action);
-			gtk_list_box_append(macro_listbox, row_box);
+			gtk_list_box_append(listbox, row_box);
 			g_object_unref(row_box);
 		}
 	}

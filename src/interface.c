@@ -34,7 +34,6 @@
 #include "interface.h"
 #include "buffer.h"
 #include "macros.h"
-#include "auto_config.h"
 #include "logging.h"
 #include "device_monitor.h"
 
@@ -47,7 +46,7 @@ static GtkWidget *Hex_Box;
 GtkWidget *searchBar;
 GtkWidget *Fenetre;
 static GtkApplication *main_app;
-GtkWidget *display = NULL;
+VteTerminal *display = NULL;
 static gulong got_input_handler_id = 0;
 /* Nesting counter: >0 means the commit handler is blocked.
  * Incremented by set_view(), decremented by the 50ms unblock timeout.
@@ -96,12 +95,12 @@ static void clear_scrollback_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GN
 
 static void edit_copy_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	vte_terminal_copy_clipboard_format(VTE_TERMINAL(display), VTE_FORMAT_TEXT);
+	vte_terminal_copy_clipboard_format(display, VTE_FORMAT_TEXT);
 }
 
 static void edit_paste_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	vte_terminal_paste_clipboard(VTE_TERMINAL(display));
+	vte_terminal_paste_clipboard(display);
 }
 
 static void edit_find_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
@@ -114,7 +113,7 @@ static void edit_find_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUS
 
 static void edit_select_all_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	vte_terminal_select_all(VTE_TERMINAL(display));
+	vte_terminal_select_all(display);
 }
 
 static void signals_send_break_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
@@ -188,31 +187,31 @@ static void help_about_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNU
 
 static void echo_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
-	config.echo = g_variant_get_boolean(s);
+	term_conf.echo = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 }
 
 static void autoreconnect_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
-	config.autoreconnect_enabled = g_variant_get_boolean(s);
+	term_conf.autoreconnect_enabled = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 }
 
 static void crlfauto_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
-	config.crlfauto = g_variant_get_boolean(s);
+	term_conf.crlfauto = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 }
 
 static void esc_clear_screen_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
-	config.esc_clear_screen = g_variant_get_boolean(s);
+	term_conf.esc_clear_screen = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 }
 
 static void timestamp_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
-	config.timestamp = g_variant_get_boolean(s);
+	term_conf.timestamp = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
 }
 
@@ -282,9 +281,9 @@ static void apply_hotkeys_disabled(gboolean disabled)
 
 static void disable_hotkeys_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
-	config.disable_hotkeys = g_variant_get_boolean(s);
+	term_conf.disable_hotkeys = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
-	apply_hotkeys_disabled(config.disable_hotkeys);
+	apply_hotkeys_disabled(term_conf.disable_hotkeys);
 }
 
 /* Normal action entries table */
@@ -358,15 +357,15 @@ static void set_string_action(const char *name, const char *value)
 		                          g_variant_new_string(value));
 }
 
-void Set_local_echo(gboolean v)            { config.echo                  = v; set_bool_action("local-echo",       v); }
-void Set_crlfauto(gboolean v)              { config.crlfauto              = v; set_bool_action("crlfauto",         v); }
-void Set_autoreconnect_enabled(gboolean v) { config.autoreconnect_enabled = v; set_bool_action("autoreconnect",    v); }
-void Set_esc_clear_screen(gboolean v)      { config.esc_clear_screen      = v; set_bool_action("esc-clear-screen", v); }
-void Set_timestamp(gboolean v)             { config.timestamp             = v; set_bool_action("timestamp",        v); }
+void Set_local_echo(gboolean v)            { term_conf.echo                  = v; set_bool_action("local-echo",       v); }
+void Set_crlfauto(gboolean v)              { term_conf.crlfauto              = v; set_bool_action("crlfauto",         v); }
+void Set_autoreconnect_enabled(gboolean v) { term_conf.autoreconnect_enabled = v; set_bool_action("autoreconnect",    v); }
+void Set_esc_clear_screen(gboolean v)      { term_conf.esc_clear_screen      = v; set_bool_action("esc-clear-screen", v); }
+void Set_timestamp(gboolean v)             { term_conf.timestamp             = v; set_bool_action("timestamp",        v); }
 
 void Set_hotkeys_disabled(gboolean disabled)
 {
-	config.disable_hotkeys = disabled;
+	term_conf.disable_hotkeys = disabled;
 	set_bool_action("disable-hotkeys", disabled);
 	apply_hotkeys_disabled(disabled);
 }
@@ -449,15 +448,23 @@ gboolean terminal_popup_key_cb(GtkEventControllerKey *ctrl G_GNUC_UNUSED,
 
 void interface_apply_term_config(void)
 {
+	PangoFontDescription *desc;
+
 	if (!display)
 		return;
-	vte_terminal_set_size(VTE_TERMINAL(display), term_conf.rows, term_conf.columns);
-	vte_terminal_set_scrollback_lines(VTE_TERMINAL(display), term_conf.scrollback);
-	vte_terminal_set_color_foreground(VTE_TERMINAL(display), &term_conf.foreground_color);
-	vte_terminal_set_color_background(VTE_TERMINAL(display), &term_conf.background_color);
-	vte_terminal_set_cursor_shape(VTE_TERMINAL(display),
+
+	vte_terminal_set_size(display, term_conf.rows, term_conf.columns);
+	vte_terminal_set_scrollback_lines(display, term_conf.scrollback);
+	vte_terminal_set_color_foreground(display, &term_conf.foreground_color);
+	vte_terminal_set_color_background(display, &term_conf.background_color);
+	vte_terminal_set_cursor_shape(display,
 	    term_conf.block_cursor ? VTE_CURSOR_SHAPE_BLOCK : VTE_CURSOR_SHAPE_IBEAM);
-	gtk_widget_queue_draw(display);
+
+	desc = pango_font_description_from_string(term_conf.font);
+	vte_terminal_set_font(display, desc);
+	pango_font_description_free(desc);
+
+	gtk_widget_queue_draw(GTK_WIDGET(display));
 }
 
 /* ---- Main window creation ---- */
@@ -524,13 +531,13 @@ void create_main_window(GtkApplication *app)
 	signals[0]      = GTK_WIDGET(gtk_builder_get_object(builder, "signal_ri"));
 
 	/* VTE terminal */
-	display = GTK_WIDGET(gtk_builder_get_object(builder, "display"));
+	display = VTE_TERMINAL(gtk_builder_get_object(builder, "display"));
 
 	clear_display();
 
 	/* Search bar — inserted into its placeholder box */
 	sb_placeholder = GTK_WIDGET(gtk_builder_get_object(builder, "search_bar_placeholder"));
-	searchBar = search_bar_new(GTK_WINDOW(Fenetre), VTE_TERMINAL(display));
+	searchBar = search_bar_new(GTK_WINDOW(Fenetre), display);
 	gtk_box_append(GTK_BOX(sb_placeholder), GTK_WIDGET(searchBar));
 
 	g_object_unref(builder);
@@ -539,12 +546,12 @@ void create_main_window(GtkApplication *app)
 
 	toggle_logging_sensitivity(FALSE);
 
-	got_input_handler_id = g_signal_connect_after(GTK_WIDGET(display), "commit",
+	got_input_handler_id = g_signal_connect_after(display, "commit",
 	                                              G_CALLBACK(Got_Input), NULL);
 
 	g_timeout_add(POLL_DELAY, control_signals_read, NULL);
 
-	install_macro_shortcut_controller(display);
+	install_macro_shortcut_controller(GTK_WIDGET(display));
 
 	if (term_conf.window_width > 0 && term_conf.window_height > 0)
 	{
@@ -603,33 +610,33 @@ void put_hexadecimal(const gchar *string, gsize size)
 				if (virt_col_pos == 0)
 				{
 					sprintf(data, "%6u: ", total_bytes);
-					vte_terminal_feed(VTE_TERMINAL(display), data, strlen(data));
+					vte_terminal_feed(display, data, strlen(data));
 				}
 			}
 
 			sprintf(data_byte, "%02X ", (guchar)string[i]);
 			log_chars(data_byte, 3);
-			vte_terminal_feed(VTE_TERMINAL(display), data_byte, 3);
+			vte_terminal_feed(display, data_byte, 3);
 
 			avance = (bytes_per_line - virt_col_pos) * 3 + virt_col_pos + 2;
 			sprintf(data_byte, "%c[%uC", 27, avance);
-			vte_terminal_feed(VTE_TERMINAL(display), data_byte, strlen(data_byte));
+			vte_terminal_feed(display, data_byte, strlen(data_byte));
 
 			ascii[0] = (string[i] > 0x1F) ? string[i] : '.';
-			vte_terminal_feed(VTE_TERMINAL(display), ascii, 1);
+			vte_terminal_feed(display, ascii, 1);
 
 			sprintf(data_byte, "%c[%uD", 27, avance + 1U);
-			vte_terminal_feed(VTE_TERMINAL(display), data_byte, strlen(data_byte));
+			vte_terminal_feed(display, data_byte, strlen(data_byte));
 
 			if (virt_col_pos == bytes_per_line / 2 - 1)
-				vte_terminal_feed(VTE_TERMINAL(display), "- ", strlen("- "));
+				vte_terminal_feed(display, "- ", strlen("- "));
 
 			virt_col_pos++;
 			i++;
 
 			if (virt_col_pos == bytes_per_line)
 			{
-				vte_terminal_feed(VTE_TERMINAL(display), "\r\n", 2);
+				vte_terminal_feed(display, "\r\n", 2);
 				total_bytes += virt_col_pos;
 				virt_col_pos = 0;
 			}
@@ -640,7 +647,7 @@ void put_hexadecimal(const gchar *string, gsize size)
 void put_text(const gchar *string, gsize size)
 {
 	log_chars(string, (guint)size);
-	vte_terminal_feed(VTE_TERMINAL(display), string, (gssize)size);
+	vte_terminal_feed(display, string, (gssize)size);
 }
 
 gssize send_serial(const gchar *string, gsize len)
@@ -648,8 +655,8 @@ gssize send_serial(const gchar *string, gsize len)
 	gssize bytes_written = Send_chars(string, len);
 	if (bytes_written > 0)
 	{
-		if (config.echo)
-			put_chars(string, (gsize)bytes_written, config.crlfauto);
+		if (term_conf.echo)
+			put_chars(string, (gsize)bytes_written, term_conf.crlfauto);
 	}
 	return bytes_written;
 }
@@ -657,7 +664,7 @@ gssize send_serial(const gchar *string, gsize len)
 static void Got_Input(VteTerminal *widget G_GNUC_UNUSED, gchar *text,
 	guint length, gpointer data G_GNUC_UNUSED)
 {
-	if (config.esc_clear_screen && length >= 1 && text[0] == 0x1b)
+	if (term_conf.esc_clear_screen && length >= 1 && text[0] == 0x1b)
 	{
 		clear_buffer();
 		clear_display();
@@ -800,7 +807,7 @@ void clear_display(void)
 {
 	initialize_hexadecimal_display();
 	if (display)
-		vte_terminal_reset(VTE_TERMINAL(display), TRUE, TRUE);
+		vte_terminal_reset(display, TRUE, TRUE);
 }
 
 gboolean on_hex_key_pressed(GtkEventControllerKey *ctrl,

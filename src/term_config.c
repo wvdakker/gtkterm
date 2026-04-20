@@ -1,5 +1,4 @@
 #include <gtk/gtk.h>
-#include <ctype.h>
 
 #include "term_config.h"
 #include "config_file.h"
@@ -7,11 +6,11 @@
 
 void ConfigFlags(void)
 {
-	Set_crlfauto(config.crlfauto);
-	Set_autoreconnect_enabled(config.autoreconnect_enabled);
-	Set_esc_clear_screen(config.esc_clear_screen);
-	Set_timestamp(config.timestamp);
-	Set_hotkeys_disabled(config.disable_hotkeys);
+	Set_crlfauto(term_conf.crlfauto);
+	Set_autoreconnect_enabled(term_conf.autoreconnect_enabled);
+	Set_esc_clear_screen(term_conf.esc_clear_screen);
+	Set_timestamp(term_conf.timestamp);
+	Set_hotkeys_disabled(term_conf.disable_hotkeys);
 }
 
 /**

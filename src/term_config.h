@@ -36,13 +36,7 @@ struct configuration_port
 	gint rs485_rts_time_before_transmit;
 	gint rs485_rts_time_after_transmit;
 	gchar car;                   // caractere attendre
-	gboolean echo;               // echo local
-	gboolean crlfauto;           // line feed auto
-	gboolean autoreconnect_enabled;	// enable autoreconnect
-	gboolean esc_clear_screen;   // clear screen when receive ESC char ('\x1b' - 27)
-	gboolean timestamp;
 	gboolean disable_port_lock;
-	gboolean disable_hotkeys;
 };
 
 typedef struct
@@ -54,9 +48,15 @@ typedef struct
 	gboolean visual_bell;
 	GdkRGBA foreground_color;
 	GdkRGBA background_color;
-	PangoFontDescription *font_desc;
+	gchar *font;
 	gint window_width;
 	gint window_height;
+	gboolean echo;                      // local echo
+	gboolean crlfauto;                  // line feed auto
+	gboolean autoreconnect_enabled;     // enable autoreconnect
+	gboolean esc_clear_screen;          // clear screen when receive ESC char ('\x1b' - 27)
+	gboolean timestamp;                 // display timestamps
+	gboolean disable_hotkeys;           // disable hotkeys
 } display_config_t;
 
 

@@ -16,6 +16,7 @@
 #define WIDGETS_H_
 
 #include <gtk/gtk.h>
+#include <vte/vte.h>
 
 #define MSG_WRN 0
 #define MSG_ERR 1
@@ -53,7 +54,7 @@ void toggle_logging_sensitivity(gboolean currentlyLogging);
 
 extern GtkWidget *Fenetre;
 extern GtkWidget *StatusBar;
-extern GtkWidget *display;
+extern VteTerminal *display;
 
 #endif
 

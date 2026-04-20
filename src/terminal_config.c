@@ -7,58 +7,46 @@
 #include "interface.h"
 #include "terminal_config.h"
 
-extern GtkWidget *display;
-
-static void config_color(GObject *source,
+static void config_color(GtkColorDialogButton *source,
                          GdkRGBA *dest,
                          void (*vte_set)(VteTerminal *, const GdkRGBA *))
 {
 	const GdkRGBA *c;
 
-	c = gtk_color_dialog_button_get_rgba(GTK_COLOR_DIALOG_BUTTON(source));
+	c = gtk_color_dialog_button_get_rgba(source);
 	if (!c) return;
 	*dest = *c;
 
-	vte_set(VTE_TERMINAL(display), dest);
-	gtk_widget_queue_draw(display);
+	vte_set(display, dest);
+	gtk_widget_queue_draw(GTK_WIDGET(display));
 }
 
-void set_terminal_font(PangoFontDescription *desc)
-{
-	pango_font_description_free(term_conf.font_desc);
-	term_conf.font_desc = desc;
-	if (display)
-		vte_terminal_set_font(VTE_TERMINAL(display), term_conf.font_desc);
-}
-
-void set_terminal_font_from_string(const gchar *s)
-{
-	set_terminal_font(pango_font_description_from_string(s));
-}
-
-static void read_font_button(GObject *source, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+static void read_font_button(GtkFontDialogButton *source, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	const PangoFontDescription *desc =
-	    gtk_font_dialog_button_get_font_desc(GTK_FONT_DIALOG_BUTTON(source));
-	if (desc)
-		set_terminal_font(pango_font_description_copy(desc));
+	    gtk_font_dialog_button_get_font_desc(source);
+	if (desc) {
+		g_free(term_conf.font);
+		term_conf.font = pango_font_description_to_string(desc);
+		vte_terminal_set_font(display, desc);
+	}
 }
 
 static gboolean cursor_block(GtkSwitch *ToggleSwitch G_GNUC_UNUSED, gboolean state, gpointer data G_GNUC_UNUSED)
 {
 	term_conf.block_cursor = state;
-	vte_terminal_set_cursor_shape(VTE_TERMINAL(display),
+	vte_terminal_set_cursor_shape(display,
 	    term_conf.block_cursor ? VTE_CURSOR_SHAPE_BLOCK : VTE_CURSOR_SHAPE_IBEAM);
 	return FALSE;
 }
 
-static void config_fg_color(GObject *source, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+static void config_fg_color(GtkColorDialogButton *source, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	config_color(source, &term_conf.foreground_color,
 	             vte_terminal_set_color_foreground);
 }
 
-static void config_bg_color(GObject *source, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+static void config_bg_color(GtkColorDialogButton *source, GParamSpec *pspec G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	config_color(source, &term_conf.background_color,
 	             vte_terminal_set_color_background);
@@ -67,25 +55,26 @@ static void config_bg_color(GObject *source, GParamSpec *pspec G_GNUC_UNUSED, gp
 static void scrollback_set(GtkAdjustment *Adjustment, gpointer data G_GNUC_UNUSED)
 {
 	term_conf.scrollback = (gint)gtk_adjustment_get_value(Adjustment);
-	vte_terminal_set_scrollback_lines(VTE_TERMINAL(display), term_conf.scrollback);
+	vte_terminal_set_scrollback_lines(display, term_conf.scrollback);
 }
 
 void clear_scrollback(void)
 {
-	vte_terminal_set_scrollback_lines(VTE_TERMINAL(display), 0);
-	vte_terminal_set_scrollback_lines(VTE_TERMINAL(display), term_conf.scrollback);
+	vte_terminal_set_scrollback_lines(display, 0);
+	vte_terminal_set_scrollback_lines(display, term_conf.scrollback);
 }
 
 void Config_Terminal(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	GtkBuilderCScope *scope;
-	GtkBuilder *builder;
-	GtkWidget *dialog;
-	GtkWidget *cfg_terminal_font;
-	GtkAdjustment *cfg_scrollback_lines;
-	GtkWidget *cfg_block_cursor;
-	GtkWidget *cfg_text_color;
-	GtkWidget *cfg_background_color;
+	GtkBuilderCScope     *scope;
+	GtkBuilder           *builder;
+	GtkWindow            *dialog;
+	GtkFontDialogButton  *cfg_terminal_font;
+	GtkAdjustment        *cfg_scrollback_lines;
+	GtkSwitch            *cfg_block_cursor;
+	GtkColorDialogButton *cfg_text_color;
+	GtkColorDialogButton *cfg_background_color;
+	PangoFontDescription *desc;
 
 	scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
 	gtk_builder_cscope_add_callback_symbols(scope,
@@ -102,24 +91,27 @@ void Config_Terminal(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC
 	g_object_unref(scope);
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/config_terminal_dialog.ui", NULL);
 
-	dialog = GTK_WIDGET(gtk_builder_get_object(builder, "dialog"));
-	gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(Fenetre));
+	dialog = GTK_WINDOW(gtk_builder_get_object(builder, "dialog"));
+	gtk_window_set_transient_for(dialog, GTK_WINDOW(Fenetre));
 
-	cfg_terminal_font = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_terminal_font"));
-	gtk_font_dialog_button_set_font_desc(GTK_FONT_DIALOG_BUTTON(cfg_terminal_font), term_conf.font_desc);
+	cfg_terminal_font = GTK_FONT_DIALOG_BUTTON(gtk_builder_get_object(builder, "cfg_terminal_font"));
+
+	desc = pango_font_description_from_string(term_conf.font);
+	gtk_font_dialog_button_set_font_desc(cfg_terminal_font, desc);
+	pango_font_description_free(desc);
 
 	cfg_scrollback_lines = GTK_ADJUSTMENT(gtk_builder_get_object(builder, "cfg_scrollback_lines"));
 	gtk_adjustment_set_value(cfg_scrollback_lines, term_conf.scrollback);
 
-	cfg_block_cursor = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_block_cursor"));
-	gtk_switch_set_active(GTK_SWITCH(cfg_block_cursor), term_conf.block_cursor);
+	cfg_block_cursor = GTK_SWITCH(gtk_builder_get_object(builder, "cfg_block_cursor"));
+	gtk_switch_set_active(cfg_block_cursor, term_conf.block_cursor);
 
-	cfg_text_color = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_text_color"));
-	gtk_color_dialog_button_set_rgba(GTK_COLOR_DIALOG_BUTTON(cfg_text_color), &term_conf.foreground_color);
+	cfg_text_color = GTK_COLOR_DIALOG_BUTTON(gtk_builder_get_object(builder, "cfg_text_color"));
+	gtk_color_dialog_button_set_rgba(cfg_text_color, &term_conf.foreground_color);
 
-	cfg_background_color = GTK_WIDGET(gtk_builder_get_object(builder, "cfg_background_color"));
-	gtk_color_dialog_button_set_rgba(GTK_COLOR_DIALOG_BUTTON(cfg_background_color), &term_conf.background_color);
+	cfg_background_color = GTK_COLOR_DIALOG_BUTTON(gtk_builder_get_object(builder, "cfg_background_color"));
+	gtk_color_dialog_button_set_rgba(cfg_background_color, &term_conf.background_color);
 	g_object_unref(builder);
 
-	gtk_window_present(GTK_WINDOW(dialog));
+	gtk_window_present(dialog);
 }

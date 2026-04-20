@@ -35,6 +35,7 @@
 #include "interface.h"
 #include "files.h"
 #include "buffer.h"
+#include "config_file.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
@@ -53,8 +54,6 @@ static guint modem_poll_source = 0;
 static pthread_t modem_tid = 0;
 static int modem_watch_fd = -1;
 gboolean callback_activated = FALSE;
-
-extern struct configuration_port config;
 
 static gboolean Lis_port(GIOChannel* src G_GNUC_UNUSED, GIOCondition cond, gpointer data G_GNUC_UNUSED)
 {
@@ -77,7 +76,7 @@ static gboolean Lis_port(GIOChannel* src G_GNUC_UNUSED, GIOCondition cond, gpoin
 		bytes_read = read(serial_port_fd, c, BUFFER_RECEPTION);
 		if(bytes_read > 0)
 		{
-			put_chars(c, (gsize)bytes_read, config.crlfauto);
+			put_chars(c, (gsize)bytes_read, term_conf.crlfauto);
 
 			if(config.car != -1 && waiting_for_char == TRUE)
 			{
@@ -361,7 +360,7 @@ gboolean Config_port(void)
 
 	callback_activated = TRUE;
 
-	Set_local_echo(config.echo);
+	Set_local_echo(term_conf.echo);
 
 	return TRUE;
 }

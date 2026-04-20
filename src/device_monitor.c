@@ -21,8 +21,7 @@
 #include "serial.h"
 #include "interface.h"
 #include "term_config.h"
-
-extern struct configuration_port config;
+#include "config_file.h"
 
 /* True when the port was closed because the system is going to sleep,
  * so we know to reopen it on resume regardless of autoreconnect_enabled. */
@@ -34,7 +33,7 @@ static GDBusConnection *system_bus = NULL;
 static inline void device_monitor_status(const bool connected)
 {
 	if (connected) {
-		if (config.autoreconnect_enabled || suspended_while_open) {
+		if (term_conf.autoreconnect_enabled || suspended_while_open) {
 			suspended_while_open = FALSE;
 			interface_open_port();
 		}

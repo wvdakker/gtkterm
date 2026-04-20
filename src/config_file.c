@@ -27,6 +27,10 @@
 
 #define CONFIGURATION_FILENAME ".gtktermrc"
 
+/* Default terminal colors */
+static const GdkRGBA DEFAULT_FOREGROUND_COLOR = {0.66f, 0.66f, 0.66f, 1.0f};
+static const GdkRGBA DEFAULT_BACKGROUND_COLOR = {0.0f, 0.0f, 0.0f, 1.0f};
+
 /* Module-private globals */
 static gchar             *config_path;
 
@@ -111,14 +115,6 @@ static gboolean kf_get_bool(GKeyFile *kf, const gchar *section,
 	return val;
 }
 
-static void Selec_couleur(GdkRGBA *color, gfloat R, gfloat G, gfloat B, gfloat A)
-{
-	color->red   = R;
-	color->green = G;
-	color->blue  = B;
-	color->alpha = A;
-}
-
 /* ------------------------------------------------------------------ */
 /* Initialisation                                                      */
 /* ------------------------------------------------------------------ */
@@ -145,8 +141,8 @@ void config_file_free(void)
 {
 	g_free(config_path);
 	config_path = NULL;
-	pango_font_description_free(term_conf.font_desc);
-	term_conf.font_desc = NULL;
+	g_free(term_conf.font);
+	term_conf.font = NULL;
 }
 
 /* ------------------------------------------------------------------ */
@@ -165,24 +161,25 @@ static void Hard_default_configuration(void)
 	config.rs485_rts_time_before_transmit = DEFAULT_DELAY_RS485;
 	config.rs485_rts_time_after_transmit = DEFAULT_DELAY_RS485;
 	config.car = DEFAULT_CHAR;
-	config.echo = DEFAULT_ECHO;
-	config.crlfauto = FALSE;
-	config.autoreconnect_enabled = FALSE;
-	config.esc_clear_screen = FALSE;
-	config.timestamp = FALSE;
 	config.disable_port_lock = FALSE;
-	config.disable_hotkeys = FALSE;
 
-	set_terminal_font_from_string(DEFAULT_FONT);
+	term_conf.echo = DEFAULT_ECHO;
+	term_conf.crlfauto = FALSE;
+	term_conf.autoreconnect_enabled = FALSE;
+	term_conf.esc_clear_screen = FALSE;
+	term_conf.timestamp = FALSE;
+	term_conf.disable_hotkeys = FALSE;
 
+	g_free(term_conf.font);
+	term_conf.font = NULL;  /* Will be set in Verify_configuration */
 	term_conf.block_cursor = TRUE;
 	term_conf.rows = 80;
 	term_conf.columns = 25;
 	term_conf.scrollback = DEFAULT_SCROLLBACK;
 	term_conf.visual_bell = TRUE;
 
-	Selec_couleur(&term_conf.foreground_color, 0.66f, 0.66f, 0.66f, 1.0f);
-	Selec_couleur(&term_conf.background_color, 0, 0, 0, 1.0);
+	term_conf.foreground_color = DEFAULT_FOREGROUND_COLOR;
+	term_conf.background_color = DEFAULT_BACKGROUND_COLOR;
 }
 
 /* ------------------------------------------------------------------ */
@@ -206,7 +203,7 @@ static void Copy_configuration(GKeyFile *kf, const gchar *section)
 		{ "term_background_blue",  &term_conf.background_color.blue  },
 		{ "term_background_alpha", &term_conf.background_color.alpha },
 	};
-	gchar   *font_raw, *font_quoted;
+	gchar   *font_quoted;
 	macro_t *macros;
 	gsize    size;
 	gsize    ci;
@@ -221,21 +218,16 @@ static void Copy_configuration(GKeyFile *kf, const gchar *section)
 	g_key_file_set_integer(kf, section, "wait_char",                config.car);
 	g_key_file_set_integer(kf, section, "rs485_rts_time_before_tx", config.rs485_rts_time_before_transmit);
 	g_key_file_set_integer(kf, section, "rs485_rts_time_after_tx",  config.rs485_rts_time_after_transmit);
-	g_key_file_set_boolean(kf, section, "echo",                     config.echo);
-	g_key_file_set_boolean(kf, section, "crlfauto",                 config.crlfauto);
-	g_key_file_set_boolean(kf, section, "autoreconnect_enabled",    config.autoreconnect_enabled);
-	g_key_file_set_boolean(kf, section, "esc_clear_screen",         config.esc_clear_screen);
-	g_key_file_set_boolean(kf, section, "timestamp",                config.timestamp);
-	g_key_file_set_boolean(kf, section, "disable_hotkeys",          config.disable_hotkeys);
+	g_key_file_set_boolean(kf, section, "echo",                     term_conf.echo);
+	g_key_file_set_boolean(kf, section, "crlfauto",                 term_conf.crlfauto);
+	g_key_file_set_boolean(kf, section, "autoreconnect_enabled",    term_conf.autoreconnect_enabled);
+	g_key_file_set_boolean(kf, section, "esc_clear_screen",         term_conf.esc_clear_screen);
+	g_key_file_set_boolean(kf, section, "timestamp",                term_conf.timestamp);
+	g_key_file_set_boolean(kf, section, "disable_hotkeys",          term_conf.disable_hotkeys);
 
-	font_raw = term_conf.font_desc
-	    ? pango_font_description_to_string(term_conf.font_desc)
-	    : NULL;
-
-	font_quoted = g_shell_quote(font_raw ?: DEFAULT_FONT);
+	font_quoted = g_shell_quote(term_conf.font ? term_conf.font : DEFAULT_FONT);
 	g_key_file_set_string(kf, section, "font", font_quoted);
 	g_free(font_quoted);
-	g_free(font_raw);
 
 	macros = get_shortcuts(&size);
 	if (size > 0)
@@ -300,8 +292,8 @@ static void Verify_configuration(void)
 	if (config.rs485_rts_time_after_transmit < 0 || config.rs485_rts_time_after_transmit > 500)
 		config.rs485_rts_time_after_transmit = DEFAULT_DELAY_RS485;
 
-	if (term_conf.font_desc == NULL)
-		set_terminal_font_from_string(DEFAULT_FONT);
+	if (term_conf.font == NULL)
+		term_conf.font = g_strdup(DEFAULT_FONT);
 }
 
 /* ------------------------------------------------------------------ */
@@ -365,18 +357,18 @@ gint Load_configuration_from_file(const gchar *config_name)
 	config.rs485_rts_time_after_transmit =
 	    g_key_file_get_integer(kf, config_name, "rs485_rts_time_after_tx", NULL);
 
-	config.echo                  = kf_get_bool(kf, config_name, "echo",                  FALSE);
-	config.crlfauto              = kf_get_bool(kf, config_name, "crlfauto",              FALSE);
-	config.autoreconnect_enabled = kf_get_bool(kf, config_name, "autoreconnect_enabled", FALSE);
-	config.esc_clear_screen      = kf_get_bool(kf, config_name, "esc_clear_screen",      FALSE);
-	config.timestamp             = kf_get_bool(kf, config_name, "timestamp",             FALSE);
-	config.disable_hotkeys       = kf_get_bool(kf, config_name, "disable_hotkeys",       FALSE);
+	term_conf.echo                  = kf_get_bool(kf, config_name, "echo",                  FALSE);
+	term_conf.crlfauto              = kf_get_bool(kf, config_name, "crlfauto",              FALSE);
+	term_conf.autoreconnect_enabled = kf_get_bool(kf, config_name, "autoreconnect_enabled", FALSE);
+	term_conf.esc_clear_screen      = kf_get_bool(kf, config_name, "esc_clear_screen",      FALSE);
+	term_conf.timestamp             = kf_get_bool(kf, config_name, "timestamp",             FALSE);
+	term_conf.disable_hotkeys       = kf_get_bool(kf, config_name, "disable_hotkeys",       FALSE);
 
 	s = g_key_file_get_string(kf, config_name, "font", NULL);
 	if (s) {
 		/* Old gtkterm stored font with literal shell-quote chars; unquote if needed. */
 		gchar *font_str = g_shell_unquote(s, NULL);
-		set_terminal_font_from_string(font_str ? font_str : s);
+		term_conf.font = g_strdup(font_str ? font_str : s);
 		g_free(font_str);
 		g_free(s);
 	}
@@ -436,8 +428,8 @@ gint Load_configuration_from_file(const gchar *config_name)
 		term_conf.columns = 25;
 		term_conf.scrollback = DEFAULT_SCROLLBACK;
 		term_conf.visual_bell = FALSE;
-		Selec_couleur(&term_conf.foreground_color, 0.66f, 0.66f, 0.66f, 1.0f);
-		Selec_couleur(&term_conf.background_color, 0, 0, 0, 1.0f);
+		term_conf.foreground_color = DEFAULT_FOREGROUND_COLOR;
+		term_conf.background_color = DEFAULT_BACKGROUND_COLOR;
 	}
 
 	v = g_key_file_get_integer(kf, config_name, "window_width",  NULL);

@@ -5,7 +5,5 @@
 
 void Config_Terminal(GSimpleAction *action, GVariant *param, gpointer data);
 void clear_scrollback(void);
-void set_terminal_font(PangoFontDescription *desc);
-void set_terminal_font_from_string(const gchar *s);
 
 #endif /* TERMINAL_CONFIG_H_ */
