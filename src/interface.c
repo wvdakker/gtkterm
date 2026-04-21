@@ -576,14 +576,16 @@ void create_main_window(GtkApplication *app)
 void initialize_hexadecimal_display(void)
 {
 	total_bytes = 0;
-	memset(blank_data, ' ', 128);
-	blank_data[bytes_per_line * 3 + 5] = 0;
 }
 
 void put_hexadecimal(const gchar *string, gsize size)
 {
-	static gchar data[128];
-	static gchar data_byte[16];
+	/* Accumulate an entire line (or partial line) into one buffer and call
+	 * vte_terminal_feed() once per line instead of 4-6 times per byte.
+	 * log_chars() is also called once per line (hex portion only).
+	 * Worst case with bytes_per_line=32, show_index=TRUE: ~530 bytes. */
+	static gchar line_buf[1024];
+	static gchar log_buf[128];   /* bytes_per_line (max 32) × 3 chars each */
 	size_t i = 0;
 
 	if (size == 0)
@@ -591,49 +593,47 @@ void put_hexadecimal(const gchar *string, gsize size)
 
 	while (i < size)
 	{
-		data[0] = 0;
+		gsize line_len = 0;
+		gsize log_len  = 0;
+
+		if (show_index && virt_col_pos == 0)
+			line_len += (gsize)sprintf(line_buf + line_len, "%6u: ", total_bytes);
 
 		while (virt_col_pos < bytes_per_line && i < size)
 		{
-			guint avance = 0;
-			gchar ascii[1];
+			guint avance = (bytes_per_line - virt_col_pos) * 3 + virt_col_pos + 2;
 
-			if (show_index)
-			{
-				if (virt_col_pos == 0)
-				{
-					sprintf(data, "%6u: ", total_bytes);
-					vte_terminal_feed(display, data, strlen(data));
-				}
-			}
+			/* Format hex byte; copy to log accumulator */
+			sprintf(line_buf + line_len, "%02X ", (guchar)string[i]);
+			log_buf[log_len++] = line_buf[line_len];
+			log_buf[log_len++] = line_buf[line_len + 1];
+			log_buf[log_len++] = line_buf[line_len + 2];
+			line_len += 3;
 
-			sprintf(data_byte, "%02X ", (guchar)string[i]);
-			log_chars(data_byte, 3);
-			vte_terminal_feed(display, data_byte, 3);
-
-			avance = (bytes_per_line - virt_col_pos) * 3 + virt_col_pos + 2;
-			sprintf(data_byte, "%c[%uC", 27, avance);
-			vte_terminal_feed(display, data_byte, strlen(data_byte));
-
-			ascii[0] = (string[i] > 0x1F) ? string[i] : '.';
-			vte_terminal_feed(display, ascii, 1);
-
-			sprintf(data_byte, "%c[%uD", 27, avance + 1U);
-			vte_terminal_feed(display, data_byte, strlen(data_byte));
+			/* Jump right to ASCII column, write char, jump back */
+			line_len += (gsize)sprintf(line_buf + line_len, "\033[%uC", avance);
+			line_buf[line_len++] = (string[i] > 0x1F) ? string[i] : '.';
+			line_len += (gsize)sprintf(line_buf + line_len, "\033[%uD", avance + 1U);
 
 			if (virt_col_pos == bytes_per_line / 2 - 1)
-				vte_terminal_feed(display, "- ", strlen("- "));
+			{
+				line_buf[line_len++] = '-';
+				line_buf[line_len++] = ' ';
+			}
 
 			virt_col_pos++;
 			i++;
-
-			if (virt_col_pos == bytes_per_line)
-			{
-				vte_terminal_feed(display, "\r\n", 2);
-				total_bytes += virt_col_pos;
-				virt_col_pos = 0;
-			}
 		}
+
+		if (virt_col_pos == bytes_per_line)
+		{
+			line_buf[line_len++] = '\r';
+			line_buf[line_len++] = '\n';
+			total_bytes += bytes_per_line;
+			virt_col_pos = 0;
+		}
+
+		vte_terminal_feed(display, line_buf, (gssize)line_len);
 	}
 }
 
