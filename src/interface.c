@@ -54,8 +54,8 @@ static gulong got_input_handler_id = 0;
  * 50 ms one, so only one source is ever queued at a time. */
 static guint reenable_source = 0;
 
-GList *hex_history = NULL;
-GList *current_hex = NULL;
+static GQueue hex_history = G_QUEUE_INIT;
+static GList *current_hex = NULL;
 
 /* Variables for hexadecimal display */
 static guint bytes_per_line = 16;
@@ -835,9 +835,9 @@ void update_hex_history(GtkWidget *widget)
 		return;
 
 	if (current_hex && g_strcmp0((const gchar *)current_hex->data, text) == 0)
-		hex_history = g_list_remove(hex_history, current_hex->data);
+		g_queue_delete_link(&hex_history, current_hex);
 
-	hex_history = g_list_append(hex_history, g_strdup(text));
+	g_queue_push_tail(&hex_history, g_strdup(text));
 	current_hex = NULL;
 }
 
@@ -845,13 +845,13 @@ void set_saved_data(GtkWidget *widget, gboolean direction)
 {
 	const gchar *text = "";
 
-	if (!hex_history)
+	if (g_queue_is_empty(&hex_history))
 		return;
 
 	if (direction)
 	{
 		if (!current_hex)
-			current_hex = g_list_last(hex_history);
+			current_hex = hex_history.tail;
 		else if (current_hex->prev)
 			current_hex = current_hex->prev;
 		else
@@ -876,10 +876,7 @@ void set_saved_data(GtkWidget *widget, gboolean direction)
 
 void interface_cleanup(void)
 {
-	if (hex_history != NULL)
-	{
-		g_list_free_full(hex_history, g_free);
-		hex_history = NULL;
-		current_hex = NULL;
-	}
+	g_queue_clear_full(&hex_history, g_free);
+	g_queue_clear(&hex_history);
+	current_hex = NULL;
 }
