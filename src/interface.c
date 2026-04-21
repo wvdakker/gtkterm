@@ -575,7 +575,8 @@ void create_main_window(GtkApplication *app)
 
 void initialize_hexadecimal_display(void)
 {
-	total_bytes = 0;
+	total_bytes  = 0;
+	virt_col_pos = 0;
 }
 
 void put_hexadecimal(const gchar *string, gsize size)
@@ -697,9 +698,9 @@ void update_port_status(void)
 
 void Set_window_title(const gchar *msg)
 {
-	gchar *header = g_strdup_printf("GTKTerm - %s", msg);
+	gchar header[256];
+	g_snprintf(header, sizeof(header), "GTKTerm - %s", msg ? msg : "");
 	gtk_window_set_title(Fenetre, header);
-	g_free(header);
 }
 
 void interface_open_port(void)
@@ -785,14 +786,19 @@ static void Send_Hexadecimal(GtkWidget *widget, gpointer data G_GNUC_UNUSED)
 
 void Put_temp_message(const gchar *text, guint time)
 {
+	static guint temp_msg_source = 0;
+	if (temp_msg_source)
+		g_source_remove(temp_msg_source);
 	gtk_label_set_text(GTK_LABEL(StatusBar), text ? text : "");
-	g_timeout_add(time, pop_message, NULL);
+	temp_msg_source = g_timeout_add(time, pop_message, &temp_msg_source);
 }
 
-gboolean pop_message(gpointer user_data G_GNUC_UNUSED)
+gboolean pop_message(gpointer user_data)
 {
+	if (user_data)
+		*(guint *)user_data = 0;
 	gtk_label_set_text(GTK_LABEL(StatusBar), "");
-	return FALSE;
+	return G_SOURCE_REMOVE;
 }
 
 void clear_display(void)
