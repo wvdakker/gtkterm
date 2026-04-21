@@ -153,7 +153,9 @@ static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer
 	{
 		g_free(fic_defaut);
 		fic_defaut = fileName;
-		g_autofree gchar *msg = g_strdup_printf(_("%s: transfer in progress..."), fileName);
+		/* Single concurrent transfer; static avoids a heap alloc on every send. */
+		static gchar msg[4096 + 48];
+		g_snprintf(msg, sizeof(msg), _("%s: transfer in progress..."), fileName);
 
 		gtk_label_set_text(GTK_LABEL(StatusBar), msg);
 		car_written = 0;
@@ -332,16 +334,25 @@ void write_file(const char *data, gsize size)
 
 static void write_ascii_file(const char *data, gsize size)
 {
-	char *cleanbuff = g_malloc(size);
+	/* Use a static chunk buffer to avoid a heap allocation up to BUFFER_SIZE
+	 * (128 KB) on every save.  Flush when full; stdio buffers the fwrites. */
+	static char cleanbuff[4096];
 	gsize newsize = 0;
 	gsize x;
 	for (x = 0; x < size; ++x)
 	{
 		if (data[x] > 0x1F || data[x] == 0x0A || data[x] == 0x0D)
+		{
 			cleanbuff[newsize++] = data[x];
+			if (newsize == sizeof(cleanbuff))
+			{
+				fwrite(cleanbuff, newsize, 1, Fic);
+				newsize = 0;
+			}
+		}
 	}
-	fwrite(cleanbuff, newsize, 1, Fic);
-	g_free(cleanbuff);
+	if (newsize > 0)
+		fwrite(cleanbuff, newsize, 1, Fic);
 }
 
 

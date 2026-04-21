@@ -28,7 +28,7 @@ void Set_signals(guint);
 void Close_port(void);
 void sendbreak(void);
 unsigned int set_port_baudrate(unsigned int, int);
-gchar* get_port_string(void);
+const gchar *get_port_string(void);
 int lis_sig(void);
 
 struct baudrate {

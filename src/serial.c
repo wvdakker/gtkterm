@@ -444,42 +444,30 @@ void sendbreak(void)
 		tcsendbreak(serial_port_fd, 0);
 }
 
-gchar* get_port_string(void)
+const gchar *get_port_string(void)
 {
-	gchar* msg;
+	static gchar buf[64];
 	gchar parity;
 
 	if(serial_port_fd == -1)
-	{
-		msg = g_strdup(_("No open port"));
-	}
-	else
-	{
-		// 0: none, 1: odd, 2: even
-		switch(config.parite)
-		{
-		case 0:
-			parity = 'N';
-			break;
-		case 1:
-			parity = 'O';
-			break;
-		case 2:
-			parity = 'E';
-			break;
-		default:
-			parity = 'N';
-		}
+		return _("No open port");
 
-		/* "GtkTerm: device  baud-bits-parity-stops"  */
-		msg = g_strdup_printf("%.15s  %u-%d-%c-%d",
-		                      config.port,
-		                      serial_port_speed,
-		                      config.bits,
-		                      parity,
-		                      config.stops
-		                     );
+	// 0: none, 1: odd, 2: even
+	switch(config.parite)
+	{
+	case 1:
+		parity = 'O';
+		break;
+	case 2:
+		parity = 'E';
+		break;
+	default:
+		parity = 'N';
 	}
 
-	return msg;
+	/* "device  baud-bits-parity-stops" */
+	g_snprintf(buf, sizeof(buf), "%.15s  %u-%d-%c-%d",
+	           config.port, serial_port_speed,
+	           config.bits, parity, config.stops);
+	return buf;
 }
