@@ -33,7 +33,6 @@ void create_shortcuts(macro_t *, gsize);
 macro_t *get_shortcuts(gsize *);
 void install_macro_shortcut_controller(GtkWidget *win);
 void set_macros_shortcuts_enabled(gboolean enabled);
-void macros_cleanup(void);
 
 #endif
 

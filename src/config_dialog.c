@@ -39,7 +39,7 @@ static void Select_config(gchar *title, GCallback on_ok)
 	g_object_unref(builder);
 
 	gtk_window_set_title(dialog, title);
-	gtk_window_set_transient_for(dialog, GTK_WINDOW(Fenetre));
+	gtk_window_set_transient_for(dialog, Fenetre);
 
 	groups = config_get_sections();
 	for (g = groups; *g; g++)
@@ -75,7 +75,7 @@ static void Save_config_file(void)
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/save_config_dialog.ui", NULL);
 
 	dialog = GTK_WINDOW(gtk_builder_get_object(builder, "save_config_window"));
-	gtk_window_set_transient_for(dialog, GTK_WINDOW(Fenetre));
+	gtk_window_set_transient_for(dialog, Fenetre);
 	gtk_window_present(dialog);
 }
 
@@ -103,7 +103,7 @@ static void on_save_ok_clicked(GtkEditable *entry, GtkButton *btn G_GNUC_UNUSED)
 		gtk_alert_dialog_set_buttons(alert, buttons);
 		gtk_alert_dialog_set_default_button(alert, 0);
 		gtk_alert_dialog_set_cancel_button(alert, 1);
-		gtk_alert_dialog_choose(alert, GTK_WINDOW(Fenetre), NULL,
+		gtk_alert_dialog_choose(alert, Fenetre, NULL,
 		                        on_overwrite_response, g_strdup(config_name));
 		g_object_unref(alert);
 	}

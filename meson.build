@@ -2,7 +2,8 @@ project(
 	'gtkterm',
 	'c',
 	version: '2.0.0',
-	meson_version : '>= 1.0.0'
+	meson_version : '>= 1.0.0',
+	default_options : ['b_lto=true']
 )
 
 # Find dependencies

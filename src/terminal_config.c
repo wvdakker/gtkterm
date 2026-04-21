@@ -92,7 +92,7 @@ void Config_Terminal(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/config_terminal_dialog.ui", NULL);
 
 	dialog = GTK_WINDOW(gtk_builder_get_object(builder, "dialog"));
-	gtk_window_set_transient_for(dialog, GTK_WINDOW(Fenetre));
+	gtk_window_set_transient_for(dialog, Fenetre);
 
 	cfg_terminal_font = GTK_FONT_DIALOG_BUTTON(gtk_builder_get_object(builder, "cfg_terminal_font"));
 

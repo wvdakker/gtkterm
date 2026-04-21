@@ -52,7 +52,7 @@ gboolean control_signals_read(gpointer user_data);
 void toggle_logging_pause_resume(gboolean currentlyLogging);
 void toggle_logging_sensitivity(gboolean currentlyLogging);
 
-extern GtkWidget *Fenetre;
+extern GtkWindow *Fenetre;
 extern GtkWidget *StatusBar;
 extern VteTerminal *display;
 

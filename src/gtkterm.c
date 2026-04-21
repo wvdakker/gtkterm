@@ -38,7 +38,7 @@ static void on_shutdown(GtkApplication *app G_GNUC_UNUSED, gpointer user_data G_
 	delete_buffer();
 	Close_port();
 	device_monitor_stop();
-	macros_cleanup();
+	remove_shortcuts();
 	logging_cleanup();
 	interface_cleanup();
 	config_file_free();

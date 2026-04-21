@@ -112,9 +112,9 @@ static void run_file_dialog(const gchar *title, gboolean is_save,
 	}
 
 	if (is_save)
-		gtk_file_dialog_save(dialog, GTK_WINDOW(Fenetre), NULL, callback, NULL);
+		gtk_file_dialog_save(dialog, Fenetre, NULL, callback, NULL);
 	else
-		gtk_file_dialog_open(dialog, GTK_WINDOW(Fenetre), NULL, callback, NULL);
+		gtk_file_dialog_open(dialog, Fenetre, NULL, callback, NULL);
 	g_object_unref(dialog);
 }
 

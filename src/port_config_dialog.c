@@ -191,7 +191,7 @@ void Config_Port_Fenetre(GSimpleAction *action G_GNUC_UNUSED,
 
 	g_object_unref(builder);
 
-	gtk_window_set_transient_for(Dialogue, GTK_WINDOW(Fenetre));
+	gtk_window_set_transient_for(Dialogue, Fenetre);
 
 	/* Set initial values for static dropdowns and spin buttons */
 	gtk_drop_down_set_selected(parity_dd,

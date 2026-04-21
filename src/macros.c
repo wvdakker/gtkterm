@@ -152,31 +152,6 @@ void remove_shortcuts(void)
 	macros_count = 0;
 }
 
-void macros_cleanup(void)
-{
-	guint i;
-
-	/* Free macro string data. Do NOT touch macro_ctrl here — the
-	 * GtkShortcutController belongs to the main window which is already
-	 * destroyed by the time on_shutdown() runs. */
-	if (macros != NULL)
-	{
-		for (i = 0; i < macros_count; i++)
-		{
-			g_free(macros[i].shortcut);
-			g_free(macros[i].action);
-			g_free(macros[i].expanded);
-		}
-		g_free(macros);
-		macros = NULL;
-		macros_count = 0;
-	}
-
-	/* macro_key_ctrl is owned by the window widget and will be
-	 * destroyed with it. Just clear our reference. */
-	macro_key_ctrl = NULL;
-}
-
 /* ---- GtkListBox-based macro editor ---- */
 
 static void Add_shortcut(GtkWidget *button G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
@@ -354,7 +329,7 @@ void Config_macros(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_U
 	listbox = GTK_LIST_BOX(gtk_builder_get_object(builder, "macros_listbox"));
 	g_object_unref(builder);
 
-	gtk_window_set_transient_for(window, GTK_WINDOW(Fenetre));
+	gtk_window_set_transient_for(window, Fenetre);
 
 	/* Populate from existing macros */
 	if (macros != NULL)

@@ -44,7 +44,7 @@ GtkWidget *StatusBar;
 GtkWidget *signals[6];
 static GtkWidget *Hex_Box;
 GtkWidget *searchBar;
-GtkWidget *Fenetre;
+GtkWindow *Fenetre;
 static GtkApplication *main_app;
 VteTerminal *display = NULL;
 static gulong got_input_handler_id = 0;
@@ -132,26 +132,16 @@ static void signals_toggle_RTS_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_
 	Set_signals(1);
 }
 
-static void on_signal_label_clicked(GtkGestureClick *gesture G_GNUC_UNUSED, int n_press G_GNUC_UNUSED,
-                                    double x G_GNUC_UNUSED, double y G_GNUC_UNUSED, gpointer data)
+static void on_dtr_clicked(GtkGestureClick *gesture G_GNUC_UNUSED, int n_press G_GNUC_UNUSED,
+                           double x G_GNUC_UNUSED, double y G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	int param = GPOINTER_TO_INT(data);
-	/* RTS is managed by the driver under HW flow control (flux==2) or RS485 (flux==3) */
-	if (param == 1 && (config.flux == 2 || config.flux == 3))
-		return;
-	Set_signals(param);
+	Set_signals(0);
 }
 
-static void on_dtr_clicked(GtkGestureClick *gesture, int n_press,
-                           double x, double y, gpointer data G_GNUC_UNUSED)
+static void on_rts_clicked(GtkGestureClick *gesture G_GNUC_UNUSED, int n_press G_GNUC_UNUSED,
+                           double x G_GNUC_UNUSED, double y G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	on_signal_label_clicked(gesture, n_press, x, y, GINT_TO_POINTER(0));
-}
-
-static void on_rts_clicked(GtkGestureClick *gesture, int n_press,
-                           double x, double y, gpointer data G_GNUC_UNUSED)
-{
-	on_signal_label_clicked(gesture, n_press, x, y, GINT_TO_POINTER(1));
+	Set_signals(1);
 }
 
 static void signals_close_port_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
@@ -167,9 +157,10 @@ static void signals_open_port_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_G
 static void help_shortcuts_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
 	GtkBuilder *builder = gtk_builder_new_from_resource("/org/gtk/gtkterm/shortcuts_window.ui");
-	GtkWidget *win = GTK_WIDGET(gtk_builder_get_object(builder, "shortcuts_window"));
-	gtk_window_set_transient_for(GTK_WINDOW(win), GTK_WINDOW(Fenetre));
-	gtk_window_present(GTK_WINDOW(win));
+	GtkWindow *win = GTK_WINDOW(gtk_builder_get_object(builder, "shortcuts_window"));
+
+	gtk_window_set_transient_for(win, Fenetre);
+	gtk_window_present(win);
 	g_object_unref(builder);
 }
 
@@ -179,7 +170,7 @@ static void help_about_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNU
 	GtkAboutDialog *dlg = GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_dialog"));
 	g_object_unref(builder);
 
-	gtk_window_set_transient_for(GTK_WINDOW(dlg), GTK_WINDOW(Fenetre));
+	gtk_window_set_transient_for(GTK_WINDOW(dlg), Fenetre);
 	gtk_window_present(GTK_WINDOW(dlg));
 }
 
@@ -506,8 +497,8 @@ void create_main_window(GtkApplication *app)
 	g_object_unref(scope);
 	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/main_window.ui", NULL);
 
-	Fenetre = GTK_WIDGET(gtk_builder_get_object(builder, "main_window"));
-	gtk_window_set_application(GTK_WINDOW(Fenetre), GTK_APPLICATION(app));
+	Fenetre = GTK_WINDOW(gtk_builder_get_object(builder, "main_window"));
+	gtk_window_set_application(Fenetre, GTK_APPLICATION(app));
 
 	/* Register all keyboard accelerators from the shared table. */
 	for (i = 0; i < G_N_ELEMENTS(app_accels); i++) {
@@ -538,8 +529,8 @@ void create_main_window(GtkApplication *app)
 
 	/* Search bar — inserted into its placeholder box */
 	sb_placeholder = GTK_WIDGET(gtk_builder_get_object(builder, "search_bar_placeholder"));
-	searchBar = search_bar_new(GTK_WINDOW(Fenetre), display);
-	gtk_box_append(GTK_BOX(sb_placeholder), GTK_WIDGET(searchBar));
+	searchBar = search_bar_new(Fenetre, display);
+	gtk_box_append(GTK_BOX(sb_placeholder), searchBar);
 
 	g_object_unref(builder);
 
@@ -556,9 +547,10 @@ void create_main_window(GtkApplication *app)
 
 	if (term_conf.window_width > 0 && term_conf.window_height > 0)
 	{
+		GdkDisplay *gdk_disp = gdk_display_get_default();
 		int w = term_conf.window_width;
 		int h = term_conf.window_height;
-		GdkDisplay *gdk_disp = gdk_display_get_default();
+
 		if (gdk_disp)
 		{
 			GListModel *monitors = gdk_display_get_monitors(gdk_disp);
@@ -575,10 +567,10 @@ void create_main_window(GtkApplication *app)
 				}
 			}
 		}
-		gtk_window_set_default_size(GTK_WINDOW(Fenetre), w, h);
+		gtk_window_set_default_size(Fenetre, w, h);
 	}
 
-	gtk_widget_set_visible(Fenetre, TRUE);
+	gtk_widget_set_visible(GTK_WIDGET(Fenetre), TRUE);
 }
 
 void initialize_hexadecimal_display(void)
@@ -676,7 +668,7 @@ static void Got_Input(VteTerminal *widget G_GNUC_UNUSED, gchar *text,
 
 void update_copy_sensivity(VteTerminal *terminal, gpointer data G_GNUC_UNUSED)
 {
-	gboolean can_copy = vte_terminal_get_has_selection(VTE_TERMINAL(terminal));
+	gboolean can_copy = vte_terminal_get_has_selection(terminal);
 	set_action_enabled("edit-copy", can_copy);
 }
 
@@ -712,7 +704,7 @@ void update_port_status(void)
 void Set_window_title(const gchar *msg)
 {
 	gchar *header = g_strdup_printf("GTKTerm - %s", msg);
-	gtk_window_set_title(GTK_WINDOW(Fenetre), header);
+	gtk_window_set_title(Fenetre, header);
 	g_free(header);
 }
 
@@ -737,7 +729,7 @@ void show_message(gint type_msg, const gchar *message)
 
 	dialog = gtk_alert_dialog_new("%s", message);
 	gtk_alert_dialog_set_modal(dialog, TRUE);
-	gtk_alert_dialog_show(dialog, GTK_WINDOW(Fenetre));
+	gtk_alert_dialog_show(dialog, Fenetre);
 	g_object_unref(dialog);
 }
 
@@ -835,7 +827,7 @@ void update_hex_history(GtkWidget *widget)
 {
 	const gchar *text = gtk_editable_get_text(GTK_EDITABLE(widget));
 
-	if (g_strcmp0(text, "") == 0)
+	if (*text == '\0')
 		return;
 
 	if (current_hex && g_strcmp0((const gchar *)current_hex->data, text) == 0)
