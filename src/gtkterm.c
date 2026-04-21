@@ -71,7 +71,8 @@ int main(int argc, char *argv[])
 
 	config_file_init();
 
-	Check_configuration_file();
+	if (Load_configuration_from_file("default") == -1)
+		Hard_default_configuration(); /* first run: no config file yet */
 	if (read_command_line(argc, argv) < 0)
 		return 0;
 

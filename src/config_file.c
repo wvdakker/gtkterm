@@ -144,7 +144,7 @@ void config_file_free(void)
 /* Defaults                                                            */
 /* ------------------------------------------------------------------ */
 
-static void Hard_default_configuration(void)
+void Hard_default_configuration(void)
 {
 	strcpy(config.port, DEFAULT_PORT);
 	config.vitesse = DEFAULT_SPEED;
@@ -480,8 +480,4 @@ gchar **config_get_sections(void)
 /* Bootstrap: ensure a [default] section exists                       */
 /* ------------------------------------------------------------------ */
 
-void Check_configuration_file(void)
-{
-	Hard_default_configuration();
-	Load_configuration_from_file("default");
-}
+
