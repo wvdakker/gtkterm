@@ -98,20 +98,15 @@ static gfloat kf_get_color(GKeyFile *kf, const gchar *section,
 	return CLAMP(val, 0.0f, 1.0f);
 }
 
-/* GKeyFile-compatible boolean: accepts True/False/Yes/No/1/0 (case-insensitive) */
+/* GKeyFile boolean: delegates to g_key_file_get_boolean() which handles
+ * true/false/yes/no/1/0 case-insensitively. Returns default_val if the
+ * key is absent or the value is unrecognised. */
 static gboolean kf_get_bool(GKeyFile *kf, const gchar *section,
                             const gchar *key, gboolean default_val)
 {
-	gboolean val;
-	gchar *s = g_key_file_get_string(kf, section, key, NULL);
-	if (!s)
-		return default_val;
-	val = default_val;
-	if (!g_ascii_strcasecmp(s, "true")  || !g_ascii_strcasecmp(s, "yes") || !strcmp(s, "1"))
-		val = TRUE;
-	else if (!g_ascii_strcasecmp(s, "false") || !g_ascii_strcasecmp(s, "no") || !strcmp(s, "0"))
-		val = FALSE;
-	g_free(s);
+	GError   *err = NULL;
+	gboolean  val = g_key_file_get_boolean(kf, section, key, &err);
+	if (err) { g_clear_error(&err); return default_val; }
 	return val;
 }
 
