@@ -84,7 +84,8 @@ void put_chars(const char *chars, gsize size, gboolean crlf_auto)
 {
 	// buffer must still be valid after cr conversion or adding timestamp
 	// only pointer is copied below
-	char out_buffer[(BUFFER_RECEPTION*2) + TIMESTAMP_SIZE];
+	// Called only from GLib main-loop callbacks (single-threaded), so static is safe.
+	static char out_buffer[(BUFFER_RECEPTION*2) + TIMESTAMP_SIZE];
 	const char *characters;
 
 	/* If the auto CR LF mode on, read the buffer to add \r before \n */
