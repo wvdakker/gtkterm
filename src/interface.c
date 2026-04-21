@@ -59,7 +59,6 @@ GList *current_hex = NULL;
 
 /* Variables for hexadecimal display */
 static guint bytes_per_line = 16;
-static gchar blank_data[128];
 static guint total_bytes;
 static gboolean show_index = FALSE;
 guint virt_col_pos = 0;
