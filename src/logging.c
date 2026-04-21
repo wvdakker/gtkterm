@@ -32,14 +32,18 @@ static gboolean	  Logging;
 static gchar     *LoggingFileName = NULL;
 static FILE      *LoggingFile = NULL;
 static gchar     *logfile_default = NULL;
+static guint      log_unflushed = 0;  /* bytes written since last fflush */
+
+#define LOG_FLUSH_THRESHOLD 4096
 
 static void close_log_file(void)
 {
 	if(LoggingFile != NULL)
 	{
-		fclose(LoggingFile);
+		fclose(LoggingFile);  /* fclose() flushes */
 		LoggingFile = NULL;
 	}
+	log_unflushed = 0;
 	Logging = FALSE;
 	g_free(LoggingFileName);
 	LoggingFileName = NULL;
@@ -121,6 +125,7 @@ void logging_clear(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_U
 
 	//Reopening with "w" will truncate the file
 	LoggingFile = freopen(LoggingFileName, "w", LoggingFile);
+	log_unflushed = 0;
 
 	if (LoggingFile == NULL)
 	{
@@ -159,9 +164,7 @@ void log_chars(const gchar *chars, guint size)
 
 	/* if we are not logging exit */
 	if(LoggingFile == NULL || Logging == FALSE)
-	{
 		return;
-	}
 
 	while (bytesWritten < size)
 	{
@@ -175,7 +178,14 @@ void log_chars(const gchar *chars, guint size)
 		}
 	}
 
-	fflush(LoggingFile);
+	/* Flush only when enough data has accumulated; fclose() will flush the
+	 * remainder when logging stops or the app exits cleanly. */
+	log_unflushed += bytesWritten;
+	if (log_unflushed >= LOG_FLUSH_THRESHOLD)
+	{
+		fflush(LoggingFile);
+		log_unflushed = 0;
+	}
 }
 
 void logging_cleanup(void)
