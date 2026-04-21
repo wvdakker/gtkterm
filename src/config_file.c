@@ -227,19 +227,14 @@ static void Copy_configuration(GKeyFile *kf, const gchar *section)
 	macros = get_shortcuts(&size);
 	if (size > 0)
 	{
-		const gchar **macro_strs = g_new(const gchar *, size);
-		gchar       **alloc      = g_new(gchar *, size);
+		gchar **alloc = g_new(gchar *, size);
 		guint i;
 		for (i = 0; i < size; i++)
-		{
-			alloc[i]      = g_strdup_printf("%s::%s", macros[i].shortcut, macros[i].action);
-			macro_strs[i] = alloc[i];
-		}
-		g_key_file_set_string_list(kf, section, "macros", macro_strs, size);
+			alloc[i] = g_strdup_printf("%s::%s", macros[i].shortcut, macros[i].action);
+		g_key_file_set_string_list(kf, section, "macros", (const gchar **)alloc, size);
 		for (i = 0; i < size; i++)
 			g_free(alloc[i]);
 		g_free(alloc);
-		g_free(macro_strs);
 	}
 	else
 		g_key_file_remove_key(kf, section, "macros", NULL);
