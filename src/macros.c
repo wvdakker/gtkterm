@@ -84,7 +84,7 @@ static gboolean macro_key_pressed(GtkEventControllerKey *controller G_GNUC_UNUSE
 		{
 			g_autofree gchar *msg;
 
-			send_serial(macros[i].expanded, strlen(macros[i].expanded));
+			send_serial(macros[i].expanded, macros[i].expanded_len);
 			msg = g_strdup_printf(_("Macro \"%s\" sent!"), macros[i].shortcut);
 			Put_temp_message(msg, 800);
 			return TRUE;
@@ -126,7 +126,8 @@ void create_shortcuts(macro_t *macro, gsize size)
 	{
 		macro[i].keyval   = 0;
 		macro[i].mods     = 0;
-		macro[i].expanded = g_strcompress(macro[i].action);
+		macro[i].expanded     = g_strcompress(macro[i].action);
+		macro[i].expanded_len = strlen(macro[i].expanded);
 		gtk_accelerator_parse(macro[i].shortcut, &macro[i].keyval, &macro[i].mods);
 	}
 

@@ -22,6 +22,7 @@ typedef struct
 	gchar          *shortcut;
 	gchar          *action;
 	gchar          *expanded;
+	gsize           expanded_len;  /* cached strlen(expanded) */
 	guint           keyval;
 	GdkModifierType mods;
 }
