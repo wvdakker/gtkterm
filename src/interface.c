@@ -48,11 +48,11 @@ GtkWindow *Fenetre;
 static GtkApplication *main_app;
 VteTerminal *display = NULL;
 static gulong got_input_handler_id = 0;
-/* Nesting counter: >0 means the commit handler is blocked.
- * Incremented by set_view(), decremented by the 50ms unblock timeout.
- * Using a counter (not a bool) ensures rapid set_view() calls don't
- * unblock prematurely. */
-static guint pending_reenable = 0;
+/* Cancel-and-reschedule handle for the commit-handler unblock timeout.
+ * Non-zero while a set_view() call has the Got_Input handler blocked.
+ * Each set_view() cancels any pending timeout and reschedules a fresh
+ * 50 ms one, so only one source is ever queued at a time. */
+static guint reenable_source = 0;
 
 GList *hex_history = NULL;
 GList *current_hex = NULL;
@@ -362,7 +362,8 @@ void Set_shortcuts_disabled(gboolean disabled)
 
 static gboolean reenable_commit_cb(gpointer data G_GNUC_UNUSED)
 {
-	if (--pending_reenable == 0 && got_input_handler_id && display)
+	reenable_source = 0;
+	if (got_input_handler_id && display)
 		g_signal_handler_unblock(display, got_input_handler_id);
 	return G_SOURCE_REMOVE;
 }
@@ -375,11 +376,13 @@ void set_view(guint type)
 	 * sequences (DSR, XTGETTCAP, etc.) in the replayed buffer regardless.
 	 * g_signal_handler_block() silences Got_Input at the signal level.
 	 * A 50ms timeout (>> VTE_DISPLAY_TIMEOUT=1ms) guarantees the unblock
-	 * fires after all of VTE's async processing rounds. A counter handles
-	 * rapid back-to-back set_view() calls safely. */
-	if (pending_reenable == 0 && got_input_handler_id && display)
+	 * fires after all of VTE's async processing rounds. Cancel-and-reschedule
+	 * on rapid back-to-back calls keeps exactly one pending timeout. */
+	if (reenable_source == 0 && got_input_handler_id && display)
 		g_signal_handler_block(display, got_input_handler_id);
-	pending_reenable++;
+	if (reenable_source)
+		g_source_remove(reenable_source);
+	reenable_source = g_timeout_add(50, reenable_commit_cb, NULL);
 
 	clear_display();
 	set_clear_func(clear_display);
@@ -399,15 +402,12 @@ void set_view(guint type)
 		set_action_enabled("hex-chars",         TRUE);
 		set_action_enabled("hex-chars-submenu", TRUE);
 		total_bytes = 0;
-		virt_col_pos = 0;
 		set_display_func(put_hexadecimal);
 		break;
 	default:
 		set_display_func(NULL);
 	}
 	write_buffer();
-
-	g_timeout_add(50, reenable_commit_cb, NULL);
 }
 
 void toggle_logging_pause_resume(gboolean currentlyLogging G_GNUC_UNUSED)
@@ -690,10 +690,9 @@ void show_control_signals(int stat)
 
 void update_port_status(void)
 {
-	gchar *message = get_port_string();
-	gtk_label_set_text(GTK_LABEL(StatusBar), message ? message : "");
+	const gchar *message = get_port_string();
+	gtk_label_set_text(GTK_LABEL(StatusBar), message);
 	Set_window_title(message);
-	g_free(message);
 }
 
 void Set_window_title(const gchar *msg)
