@@ -633,6 +633,8 @@ void put_hexadecimal(const gchar *string, gsize size)
 			virt_col_pos = 0;
 		}
 
+		if (log_len > 0)
+			log_chars(log_buf, (guint)log_len);
 		vte_terminal_feed(display, line_buf, (gssize)line_len);
 	}
 }
