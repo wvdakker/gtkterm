@@ -114,6 +114,16 @@ static gboolean update_modem_idle(gpointer user_data G_GNUC_UNUSED)
 	return G_SOURCE_REMOVE;
 }
 
+/* Poll modem status via lis_sig(); used as a GLib timeout source when
+ * TIOCMIWAIT is not supported by the driver. */
+static gboolean control_signals_read(gpointer user_data G_GNUC_UNUSED)
+{
+	int state = lis_sig();
+	if (state >= 0)
+		show_control_signals(state);
+	return TRUE;
+}
+
 static gboolean setup_modem_poll(gpointer user_data G_GNUC_UNUSED)
 {
 	if (modem_poll_source == 0 && serial_port_fd != -1) {

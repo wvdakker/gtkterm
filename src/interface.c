@@ -73,7 +73,6 @@ void set_saved_data(GtkWidget *widget, gboolean direction);
 void show_control_signals(int stat);
 void update_copy_sensivity(VteTerminal *terminal, gpointer data);
 static void Got_Input(VteTerminal *widget, gchar *text, guint length, gpointer ptr);
-gboolean control_signals_read(gpointer user_data);
 gboolean on_hex_key_pressed(GtkEventControllerKey *ctrl,
                                     guint keyval, guint keycode,
                                     GdkModifierType state, gpointer user_data);
@@ -541,7 +540,9 @@ void create_main_window(GtkApplication *app)
 	got_input_handler_id = g_signal_connect_after(display, "commit",
 	                                              G_CALLBACK(Got_Input), NULL);
 
-	g_timeout_add(POLL_DELAY, control_signals_read, NULL);
+	/* Modem signal monitoring is owned entirely by serial.c:
+	 * Config_port() reads the initial state, and then either uses the
+	 * TIOCMIWAIT event-driven thread or falls back to a poll timer. */
 
 	install_macro_shortcut_controller(GTK_WIDGET(display));
 
@@ -685,14 +686,6 @@ void show_control_signals(int stat)
 	gtk_widget_set_opacity(signals[4], (stat & TIOCM_RTS) ? 1.0 : 0.3);
 }
 
-gboolean control_signals_read(gpointer user_data G_GNUC_UNUSED)
-{
-	int state = lis_sig();
-	if (state >= 0)
-		show_control_signals(state);
-	return TRUE;
-}
-
 void update_port_status(void)
 {
 	gchar *message = get_port_string();
@@ -736,8 +729,13 @@ void show_message(gint type_msg, const gchar *message)
 void show_messagef(gint type_msg, const gchar *fmt, ...)
 {
 	va_list args;
+	gchar *msg;
+
+	if (type_msg != MSG_ERR && type_msg != MSG_WRN)
+		return;
+
 	va_start(args, fmt);
-	gchar *msg = g_strdup_vprintf(fmt, args);
+	msg = g_strdup_vprintf(fmt, args);
 	va_end(args);
 	show_message(type_msg, msg);
 	g_free(msg);
