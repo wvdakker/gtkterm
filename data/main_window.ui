@@ -126,8 +126,8 @@
           <attribute name="action">app.macros</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Disable _hotkeys</attribute>
-          <attribute name="action">app.disable-hotkeys</attribute>
+          <attribute name="label" translatable="yes">Disable _shortcuts</attribute>
+          <attribute name="action">app.disable-shortcuts</attribute>
         </item>
       </section>
       <section>

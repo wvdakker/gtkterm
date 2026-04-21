@@ -244,7 +244,7 @@ static void hex_chars_change_state(GSimpleAction *a, GVariant *s, gpointer data 
 }
 
 /* All application accelerators in one place.  Used both at startup to
- * register them and in apply_hotkeys_disabled() to toggle them. */
+ * register them and in apply_shortcuts_disabled() to toggle them. */
 static const struct { const gchar *action; const gchar *accel; } app_accels[] = {
 	{ "app.clear-screen",       "<Shift><Control>L" },
 	{ "app.file-exit",          "<Shift><Control>Q" },
@@ -261,12 +261,13 @@ static const struct { const gchar *action; const gchar *accel; } app_accels[] = 
 	{ "app.help-shortcuts",     "<Control>question" },
 };
 
-static void apply_hotkeys_disabled(gboolean disabled)
+static void apply_shortcuts_disabled(gboolean disabled)
 {
 	guint i;
 
 	set_macros_shortcuts_enabled(!disabled);
 	set_action_enabled("macros", !disabled);
+	set_action_enabled("help-shortcuts", !disabled);
 
 	for (i = 0; i < G_N_ELEMENTS(app_accels); i++) {
 		if (disabled) {
@@ -279,11 +280,11 @@ static void apply_hotkeys_disabled(gboolean disabled)
 	}
 }
 
-static void disable_hotkeys_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
+static void disable_shortcuts_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
-	term_conf.disable_hotkeys = g_variant_get_boolean(s);
+	term_conf.disable_shortcuts = g_variant_get_boolean(s);
 	g_simple_action_set_state(a, s);
-	apply_hotkeys_disabled(term_conf.disable_hotkeys);
+	apply_shortcuts_disabled(term_conf.disable_shortcuts);
 }
 
 /* Normal action entries table */
@@ -328,7 +329,7 @@ static const GActionEntry app_actions[] = {
 	{ .name = "hex-chars", .parameter_type = "s", .state = "'16'",    .change_state = hex_chars_change_state },
 	/* Simple action used only for enabling/disabling the hex-chars submenu */
 	{ .name = "hex-chars-submenu" },
-	{ .name = "disable-hotkeys",  .state = "false", .change_state = disable_hotkeys_change_state },
+	{ .name = "disable-shortcuts", .state = "false", .change_state = disable_shortcuts_change_state },
 };
 
 
@@ -363,11 +364,11 @@ void Set_autoreconnect_enabled(gboolean v) { term_conf.autoreconnect_enabled = v
 void Set_esc_clear_screen(gboolean v)      { term_conf.esc_clear_screen      = v; set_bool_action("esc-clear-screen", v); }
 void Set_timestamp(gboolean v)             { term_conf.timestamp             = v; set_bool_action("timestamp",        v); }
 
-void Set_hotkeys_disabled(gboolean disabled)
+void Set_shortcuts_disabled(gboolean disabled)
 {
-	term_conf.disable_hotkeys = disabled;
-	set_bool_action("disable-hotkeys", disabled);
-	apply_hotkeys_disabled(disabled);
+	term_conf.disable_shortcuts = disabled;
+	set_bool_action("disable-shortcuts", disabled);
+	apply_shortcuts_disabled(disabled);
 }
 
 static gboolean reenable_commit_cb(gpointer data G_GNUC_UNUSED)

@@ -56,7 +56,7 @@ typedef struct
 	gboolean autoreconnect_enabled;     // enable autoreconnect
 	gboolean esc_clear_screen;          // clear screen when receive ESC char ('\x1b' - 27)
 	gboolean timestamp;                 // display timestamps
-	gboolean disable_hotkeys;           // disable hotkeys
+	gboolean disable_shortcuts;         // disable shortcuts
 } display_config_t;
 
 

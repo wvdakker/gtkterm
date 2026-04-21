@@ -168,7 +168,7 @@ static void Hard_default_configuration(void)
 	term_conf.autoreconnect_enabled = FALSE;
 	term_conf.esc_clear_screen = FALSE;
 	term_conf.timestamp = FALSE;
-	term_conf.disable_hotkeys = FALSE;
+	term_conf.disable_shortcuts = FALSE;
 
 	g_free(term_conf.font);
 	term_conf.font = g_strdup(DEFAULT_FONT);
@@ -223,7 +223,7 @@ static void Copy_configuration(GKeyFile *kf, const gchar *section)
 	g_key_file_set_boolean(kf, section, "autoreconnect_enabled",    term_conf.autoreconnect_enabled);
 	g_key_file_set_boolean(kf, section, "esc_clear_screen",         term_conf.esc_clear_screen);
 	g_key_file_set_boolean(kf, section, "timestamp",                term_conf.timestamp);
-	g_key_file_set_boolean(kf, section, "disable_hotkeys",          term_conf.disable_hotkeys);
+	g_key_file_set_boolean(kf, section, "disable_shortcuts",        term_conf.disable_shortcuts);
 
 	font_quoted = g_shell_quote(term_conf.font);
 	g_key_file_set_string(kf, section, "font", font_quoted);
@@ -360,7 +360,7 @@ gint Load_configuration_from_file(const gchar *config_name)
 	term_conf.autoreconnect_enabled = kf_get_bool(kf, config_name, "autoreconnect_enabled", FALSE);
 	term_conf.esc_clear_screen      = kf_get_bool(kf, config_name, "esc_clear_screen",      FALSE);
 	term_conf.timestamp             = kf_get_bool(kf, config_name, "timestamp",             FALSE);
-	term_conf.disable_hotkeys       = kf_get_bool(kf, config_name, "disable_hotkeys",       FALSE);
+	term_conf.disable_shortcuts     = kf_get_bool(kf, config_name, "disable_shortcuts",     FALSE);
 
 	s = g_key_file_get_string(kf, config_name, "font", NULL);
 	if (s) {

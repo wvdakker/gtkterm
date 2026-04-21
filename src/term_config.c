@@ -10,7 +10,7 @@ void ConfigFlags(void)
 	Set_autoreconnect_enabled(term_conf.autoreconnect_enabled);
 	Set_esc_clear_screen(term_conf.esc_clear_screen);
 	Set_timestamp(term_conf.timestamp);
-	Set_hotkeys_disabled(term_conf.disable_hotkeys);
+	Set_shortcuts_disabled(term_conf.disable_shortcuts);
 }
 
 /**

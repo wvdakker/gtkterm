@@ -30,7 +30,7 @@ void update_port_status(void);
 void put_text(const gchar *, gsize);
 void put_hexadecimal(const gchar *, gsize);
 void Set_local_echo(gboolean);
-void Set_hotkeys_disabled(gboolean);
+void Set_shortcuts_disabled(gboolean);
 void show_message(gint type_msg, const gchar *message);
 void show_messagef(gint type_msg, const gchar *fmt, ...) G_GNUC_PRINTF(2, 3);
 void clear_display(void);
