@@ -123,7 +123,7 @@ void config_file_init(void)
 	 * If configuration file exists at new location, use that one.
 	 * Otherwise, if file exists at old location, move file to new location.
 	 */
-	gchar *old_path = g_build_filename(getenv("HOME"), CONFIGURATION_FILENAME, NULL);
+	gchar *old_path = g_build_filename(g_get_home_dir(), CONFIGURATION_FILENAME, NULL);
 	config_path = g_build_filename(g_get_user_config_dir(), CONFIGURATION_FILENAME, NULL);
 
 	if (!g_file_test(config_path, G_FILE_TEST_EXISTS) &&
@@ -247,7 +247,8 @@ static void Copy_configuration(GKeyFile *kf, const gchar *section)
 
 	for (ci = 0; ci < G_N_ELEMENTS(color_fields); ci++)
 	{
-		g_autofree gchar *_s = g_strdup_printf("%.4f", *color_fields[ci].val);
+		gchar _s[16];
+		g_snprintf(_s, sizeof(_s), "%.4f", *color_fields[ci].val);
 		g_key_file_set_string(kf, section, color_fields[ci].key, _s);
 	}
 
