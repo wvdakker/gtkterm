@@ -70,6 +70,8 @@ sources = [
 	'term_config.h',
 	'terminal_config.c',
 	'terminal_config.h',
+	'txqueue.c',
+	'txqueue.h',
 	'user_signals.c',
 	'user_signals.h',
 	gresources

@@ -16,6 +16,7 @@
 #include <string.h>
 
 #include "interface.h"
+#include "txqueue.h"
 #include "macros.h"
 
 #include <glib/gi18n.h>

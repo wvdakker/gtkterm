@@ -285,10 +285,10 @@
                   </object>
                 </child>
 
-                <!-- ASCII file transfer -->
+                <!-- Script execution -->
                 <child>
                   <object class="GtkFrame">
-                    <property name="label" translatable="yes">ASCII file transfer</property>
+                    <property name="label" translatable="yes">Script execution</property>
                     <child>
                       <object class="GtkGrid">
                         <property name="row-spacing">5</property>

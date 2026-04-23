@@ -39,6 +39,7 @@
 
 #include <glib/gi18n.h>
 #include "config_file.h"
+#include "txqueue.h"
 
 GtkWidget *StatusBar;
 GtkWidget *signals[6];
@@ -282,6 +283,7 @@ static const GActionEntry app_actions[] = {
 	{ .name = "clear-screen",       .activate = clear_screen_cb       },
 	{ .name = "clear-scrollback",   .activate = clear_scrollback_cb   },
 	{ .name = "send-raw-file",      .activate = send_raw_file         },
+	{ .name = "send-text-file",     .activate = send_text_file        },
 	{ .name = "save-raw-file",      .activate = save_raw_file         },
 	{ .name = "save-ascii-file",    .activate = save_ascii_file       },
 	{ .name = "edit-copy",          .activate = edit_copy_cb          },
@@ -459,6 +461,23 @@ void interface_apply_term_config(void)
 
 /* ---- Main window creation ---- */
 
+static void tx_lock_console(void)
+{
+	if (got_input_handler_id && display)
+		g_signal_handler_block(display, got_input_handler_id);
+}
+
+static void tx_unlock_console(void)
+{
+	if (got_input_handler_id && display)
+		g_signal_handler_unblock(display, got_input_handler_id);
+}
+
+static void tx_stall_notify(void)
+{
+	Put_temp_message(_("TX stalled — output buffer full, data discarded"), 3000);
+}
+
 void create_main_window(GtkApplication *app)
 {
 	GtkBuilderCScope *scope;
@@ -535,6 +554,9 @@ void create_main_window(GtkApplication *app)
 	set_action_enabled("edit-copy", FALSE);
 
 	toggle_logging_sensitivity(FALSE);
+
+	/* Register TX queue callbacks before any serial I/O can happen. */
+	txqueue_set_callbacks(tx_lock_console, tx_unlock_console, tx_stall_notify);
 
 	got_input_handler_id = g_signal_connect_after(display, "commit",
 	                                              G_CALLBACK(Got_Input), NULL);
@@ -644,17 +666,6 @@ void put_text(const gchar *string, gsize size)
 {
 	log_chars(string, (guint)size);
 	vte_terminal_feed(display, string, (gssize)size);
-}
-
-gssize send_serial(const gchar *string, gsize len)
-{
-	gssize bytes_written = Send_chars(string, len);
-	if (bytes_written > 0)
-	{
-		if (term_conf.echo)
-			put_chars(string, (gsize)bytes_written, term_conf.crlfauto);
-	}
-	return bytes_written;
 }
 
 static void Got_Input(VteTerminal *widget G_GNUC_UNUSED, gchar *text,
@@ -876,6 +887,7 @@ void set_saved_data(GtkWidget *widget, gboolean direction)
 
 void interface_cleanup(void)
 {
+	txqueue_abort();
 	g_queue_clear_full(&hex_history, g_free);
 	g_queue_clear(&hex_history);
 	current_hex = NULL;

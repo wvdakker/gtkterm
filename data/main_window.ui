@@ -21,8 +21,12 @@
           <attribute name="action">app.clear-scrollback</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Send _RAW file</attribute>
+          <attribute name="label" translatable="yes">Send _Binary file</attribute>
           <attribute name="action">app.send-raw-file</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Execute _Script file</attribute>
+          <attribute name="action">app.send-text-file</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">_Save RAW file</attribute>

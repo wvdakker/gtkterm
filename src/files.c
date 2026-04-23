@@ -14,41 +14,28 @@
 
 #include <gtk/gtk.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <errno.h>
 
 #include "term_config.h"
 #include "interface.h"
 #include "serial.h"
+#include "txqueue.h"
 #include "buffer.h"
 
 #include <glib/gi18n.h>
 
 /* Global variables */
-static gssize nb_car;
-static gsize car_written;
-static gsize current_buffer_position;
-static gssize bytes_read;
 static GtkProgressBar *ProgressBar;
-static gint Fichier = -1;
-static guint callback_handler;
-gchar *fic_defaut = NULL;
 static GtkWindow *Window;
-gboolean waiting_for_char = FALSE;
-static gboolean waiting_for_timer = FALSE;
-static gboolean input_running = FALSE;
 static FILE *Fic;
+static gint last_pct = -1;
+gchar *fic_defaut = NULL;
 
 /* Local functions prototype */
-static gboolean timer(gpointer pointer);
-static void remove_input(void);
-void add_input(void);
-static gint close_all(void);
+static void on_file_progress(goffset written, goffset total, gpointer user_data);
+static void on_file_done(gboolean success, gpointer user_data);
+static gint close_all(gboolean success);
 static gboolean on_file_transfer_close_request(GtkWindow *window, gpointer data);
-
-extern struct configuration_port config;
-
 
 /* ---- Send RAW file ---- */
 
@@ -138,6 +125,7 @@ static void show_transfer_dialog(const gchar *title)
 	ProgressBar = GTK_PROGRESS_BAR(gtk_builder_get_object(builder, "file_transfer_progress"));
 
 	gtk_window_set_title(Window, title);
+	last_pct = -1;
 	g_object_unref(builder);
 	gtk_window_present(Window);
 }
@@ -148,189 +136,82 @@ static void on_send_raw_response(GObject *source, GAsyncResult *result, gpointer
 	if (!fileName)
 		return;
 
-	Fichier = open(fileName, O_RDONLY);
-	if (Fichier != -1)
-	{
-		g_free(fic_defaut);
-		fic_defaut = fileName;
-		/* Single concurrent transfer; static avoids a heap alloc on every send. */
-		static gchar msg[4096 + 48];
-		g_snprintf(msg, sizeof(msg), _("%s: transfer in progress..."), fileName);
+	g_free(fic_defaut);
+	fic_defaut = fileName;
 
-		gtk_label_set_text(GTK_LABEL(StatusBar), msg);
-		car_written = 0;
-		current_buffer_position = 0;
-		bytes_read = 0;
-		nb_car = lseek(Fichier, 0L, SEEK_END);
-		if (nb_car == -1 || lseek(Fichier, 0L, SEEK_SET) == -1)
-		{
-			show_messagef(MSG_ERR, _("Cannot seek in file %s: %s\n"),
-			              fileName, g_strerror(errno));
-			close(Fichier);
-			Fichier = -1;
-			return;
-		}
-
-		show_transfer_dialog(msg);
-		add_input();
-	}
-	else
+	gtk_label_set_text(GTK_LABEL(StatusBar), _("Transfer in progress..."));
+	show_transfer_dialog(_("Transfer in progress..."));
+	if (!txqueue_send_file(fileName, FALSE, on_file_progress, on_file_done, NULL))
 	{
-		show_messagef(MSG_ERR, _("Cannot read file %s: %s\n"),
-		              fileName, g_strerror(errno));
-		g_free(fileName);
+		show_messagef(MSG_ERR, _("Cannot open file %s: %s\n"), fileName, g_strerror(errno));
+		gtk_label_set_text(GTK_LABEL(StatusBar), "");
+		gtk_window_destroy(Window);
 	}
 }
 
 void send_raw_file(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	run_file_dialog(_("Send RAW File"), FALSE, on_send_raw_response);
+	run_file_dialog(_("Send Binary File"), FALSE, on_send_raw_response);
 }
 
-static gboolean ecriture(GIOChannel *src G_GNUC_UNUSED, GIOCondition cond G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+static void on_send_text_response(GObject *source, GAsyncResult *result, gpointer data G_GNUC_UNUSED)
 {
-	static gchar buffer[BUFFER_EMISSION];
-	static gchar *current_buffer;
-	static gsize bytes_to_write;
-	gssize bytes_written;
-	gchar *car;
+	gchar *fileName = finish_file_dialog(source, result, FALSE, _("Error opening file\n"));
+	if (!fileName)
+		return;
 
-	gtk_progress_bar_set_fraction(ProgressBar, 
-	                              (gfloat)car_written / (gfloat)nb_car);
+	g_free(fic_defaut);
+	fic_defaut = fileName;
 
-	if (car_written < (gsize)nb_car)
+	gtk_label_set_text(GTK_LABEL(StatusBar), _("Transfer in progress..."));
+	show_transfer_dialog(_("Transfer in progress..."));
+	if (!txqueue_send_file(fileName, TRUE, on_file_progress, on_file_done, NULL))
 	{
-		if (current_buffer_position == (gsize)bytes_read)
-		{
-			bytes_read = read(Fichier, buffer, BUFFER_EMISSION);
-			current_buffer_position = 0;
-			current_buffer = buffer;
-			bytes_to_write = (gsize)bytes_read;
-		}
-
-		if (current_buffer == NULL)
-		{
-			show_message(MSG_ERR, _("Error sending file\n"));
-			close_all();
-			return G_SOURCE_REMOVE;
-		}
-
-		car = current_buffer;
-
-		if (config.delai != 0 || config.car != -1)
-		{
-			bytes_to_write = current_buffer_position;
-			while (*car != LINE_FEED && bytes_to_write < (gsize)bytes_read)
-			{
-				car++;
-				bytes_to_write++;
-			}
-			if (*car == LINE_FEED)
-				bytes_to_write++;
-		}
-
-		bytes_written = send_serial(current_buffer,
-		                            bytes_to_write - current_buffer_position);
-
-		if (bytes_written == -1)
-		{
-			show_messagef(MSG_ERR, _("Error sending file: %s\n"), g_strerror(errno));
-			close_all();
-			return G_SOURCE_REMOVE;
-		}
-
-		/* send_serial() returns 0 when the kernel TTY output buffer is full
-		 * (EAGAIN/EWOULDBLOCK translated in Send_chars). G_IO_OUT re-fires
-		 * once space is available — nothing to advance, just wait. */
-		if (bytes_written == 0)
-			return G_SOURCE_CONTINUE;
-
-		car_written += (gsize)bytes_written;
-		current_buffer_position += (gsize)bytes_written;
-		current_buffer += bytes_written;
-
-		gtk_progress_bar_set_fraction(ProgressBar,
-		                              (gfloat)car_written / (gfloat)nb_car);
-
-		if (config.delai != 0 && *car == LINE_FEED)
-		{
-			remove_input();
-			g_timeout_add(config.delai, (GSourceFunc)timer, NULL);
-			waiting_for_timer = TRUE;
-		}
-		else if (config.car != -1 && *car == LINE_FEED)
-		{
-			remove_input();
-			waiting_for_char = TRUE;
-		}
-	}
-	else
-	{
-		close_all();
-	}
-	return G_SOURCE_CONTINUE;
-}
-
-gboolean timer(gpointer pointer G_GNUC_UNUSED)
-{
-	if (waiting_for_timer == TRUE)
-	{
-		add_input();
-		waiting_for_timer = FALSE;
-	}
-	return FALSE;
-}
-
-void add_input(void)
-{
-	if (input_running == FALSE)
-	{
-		input_running = TRUE;
-		GIOChannel *channel = g_io_channel_unix_new(serial_port_fd);
-		callback_handler = g_io_add_watch_full(
-			channel,
-			10,
-			G_IO_OUT,
-			ecriture,
-			NULL, NULL);
-		g_io_channel_unref(channel);
+		show_messagef(MSG_ERR, _("Cannot open file %s: %s\n"), fileName, g_strerror(errno));
+		gtk_label_set_text(GTK_LABEL(StatusBar), "");
+		gtk_window_destroy(Window);
 	}
 }
 
-void remove_input(void)
+void send_text_file(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	if (input_running == TRUE)
+	run_file_dialog(_("Execute Script File"), FALSE, on_send_text_response);
+}
+
+/* File transfer progress and done callbacks ---- */
+
+static void on_file_progress(goffset written, goffset total, gpointer data G_GNUC_UNUSED)
+{
+	gint pct = (total > 0) ? (gint)((written * 100) / total) : 0;
+	if (pct != last_pct)
 	{
-		g_source_remove(callback_handler);
-		input_running = FALSE;
+		last_pct = pct;
+		gtk_progress_bar_set_fraction(ProgressBar, pct / 100.0);
 	}
 }
 
-gint close_all(void)
+static void on_file_done(gboolean success G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	remove_input();
-	waiting_for_char = FALSE;
-	waiting_for_timer = FALSE;
+	close_all(success);
+}
+
+gint close_all(gboolean success)
+{
+	if (!success)
+		show_message(MSG_ERR, _("Error sending file\n"));
 	gtk_label_set_text(GTK_LABEL(StatusBar), "");
-	close(Fichier);
-	Fichier = -1;
 	gtk_window_destroy(Window);
-
 	return FALSE;
 }
 
-/* Used as close-request handler: do cleanup but do NOT call gtk_window_destroy,
- * since GTK destroys the window itself after close-request returns FALSE. */
+/* Used as close-request handler: abort the transfer and let GTK destroy
+ * the window itself (close-request returns FALSE to allow destruction). */
 static gboolean on_file_transfer_close_request(GtkWindow *window G_GNUC_UNUSED,
 	gpointer data G_GNUC_UNUSED)
 {
-	remove_input();
-	waiting_for_char = FALSE;
-	waiting_for_timer = FALSE;
+	txqueue_abort();
 	gtk_label_set_text(GTK_LABEL(StatusBar), "");
-	close(Fichier);
-	Fichier = -1;
-	return FALSE; /* let GTK destroy the window */
+	return FALSE;
 }
 
 void write_file(const char *data, gsize size)

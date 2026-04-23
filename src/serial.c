@@ -33,7 +33,7 @@
 #include "term_config.h"
 #include "serial.h"
 #include "interface.h"
-#include "files.h"
+#include "txqueue.h"
 #include "buffer.h"
 #include "config_file.h"
 
@@ -78,20 +78,11 @@ static gboolean Lis_port(GIOChannel* src G_GNUC_UNUSED, GIOCondition cond, gpoin
 		{
 			put_chars(c, (gsize)bytes_read, term_conf.crlfauto);
 
-			if(config.car != -1 && waiting_for_char == TRUE)
-			{
-				i = 0;
-				while(i < bytes_read)
+			if (config.car != -1)
 				{
-					if(c[i] == config.car)
-					{
-						waiting_for_char = FALSE;
-						add_input();
-						i = bytes_read;
-					}
-					i++;
+					for (i = 0; i < bytes_read; i++)
+						txqueue_file_got_char(c[i]);
 				}
-			}
 		}
 		else if(bytes_read == -1)
 		{
