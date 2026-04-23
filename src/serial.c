@@ -205,6 +205,9 @@ gssize Send_chars(const char *string, gsize length)
 	}
 
 	bytes_written = write(serial_port_fd, string, length);
+	/* Port is opened O_NDELAY; a full kernel TTY buffer is not a fatal error. */
+	if (bytes_written == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
+		bytes_written = 0;
 
 	/* RS485 half-duplex mode ? */
 	if( config.flux==3 )

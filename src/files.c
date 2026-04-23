@@ -239,6 +239,12 @@ static gboolean ecriture(GIOChannel *src G_GNUC_UNUSED, GIOCondition cond G_GNUC
 			return G_SOURCE_REMOVE;
 		}
 
+		/* send_serial() returns 0 when the kernel TTY output buffer is full
+		 * (EAGAIN/EWOULDBLOCK translated in Send_chars). G_IO_OUT re-fires
+		 * once space is available — nothing to advance, just wait. */
+		if (bytes_written == 0)
+			return G_SOURCE_CONTINUE;
+
 		car_written += (gsize)bytes_written;
 		current_buffer_position += (gsize)bytes_written;
 		current_buffer += bytes_written;
