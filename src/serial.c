@@ -48,6 +48,7 @@
 struct termios termios_save;
 int serial_port_fd = -1;
 static unsigned int serial_port_speed;
+static int modem_stat = 0;  /* last known modem signal state; reset on port open */
 
 guint callback_handler_in;
 static guint modem_poll_source = 0;
@@ -147,7 +148,6 @@ static void *modem_thread_func(void *arg)
 
 int lis_sig(void)
 {
-	static int stat = 0;
 	int stat_read;
 
 	if (config.flux == 3)
@@ -167,10 +167,10 @@ int lis_sig(void)
 			}
 			return -2;
 		}
-		if (stat_read == stat)
+		if (stat_read == modem_stat)
 			return -1;
-		stat = stat_read;
-		return stat;
+		modem_stat = stat_read;
+		return modem_stat;
 	}
 	return -1;
 }
@@ -220,6 +220,7 @@ gboolean Config_port(void)
 	unsigned int speed_margin;
 
 	Close_port();
+	modem_stat = ~0;  /* force UI refresh after open */
 
 	serial_port_fd = open(config.port, O_RDWR | O_NOCTTY | O_NDELAY);
 
