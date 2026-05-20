@@ -45,6 +45,21 @@ static void on_shutdown(GtkApplication *app G_GNUC_UNUSED, gpointer user_data G_
 	files_cleanup();
 }
 
+static void on_new_window_action(GSimpleAction *action G_GNUC_UNUSED,
+                                 GVariant *param G_GNUC_UNUSED,
+                                 gpointer user_data G_GNUC_UNUSED)
+{
+	GError *err = NULL;
+	const gchar *argv[] = { "gtkterm", NULL };
+
+	if (!g_spawn_async(NULL, (gchar **)argv, NULL,
+	                   G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &err))
+	{
+		g_warning("Failed to open new window: %s", err->message);
+		g_error_free(err);
+	}
+}
+
 static void activate(GtkApplication *app, gpointer user_data G_GNUC_UNUSED)
 {
 	create_buffer();
@@ -80,10 +95,20 @@ int main(int argc, char *argv[])
 	bind_textdomain_codeset(PACKAGE, "UTF-8");
 	textdomain(PACKAGE);
 
-	app = gtk_application_new("org.gtk.gtkterm", G_APPLICATION_DEFAULT_FLAGS);
+	app = gtk_application_new("org.gtk.gtkterm", G_APPLICATION_NON_UNIQUE);
 	g_application_set_resource_base_path(G_APPLICATION(app), "/org/gtk/gtkterm");
 	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 	g_signal_connect(app, "shutdown", G_CALLBACK(on_shutdown), NULL);
+
+	/* Register new-window action so GNOME Shell shows it in the dash
+	 * context menu while the app is running (it reads GActions via D-Bus
+	 * rather than the desktop file when an instance is live). */
+	{
+		GSimpleAction *nw = g_simple_action_new("new-window", NULL);
+		g_signal_connect(nw, "activate", G_CALLBACK(on_new_window_action), NULL);
+		g_action_map_add_action(G_ACTION_MAP(app), G_ACTION(nw));
+		g_object_unref(nw);
+	}
 
 	status = g_application_run(G_APPLICATION(app), 0, NULL);
 	g_object_unref(app);
