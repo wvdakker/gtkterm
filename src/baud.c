@@ -42,8 +42,14 @@ unsigned int set_port_baudrate(unsigned int baud, int port_fd)
 #elif defined(HAVE_LINUX_TERMIOS_H)
 
 #include <linux/termios.h>
-#include <sys/ioctl.h>
 #include <sys/types.h>
+
+/*
+ * <sys/ioctl.h> cannot be included here: its <bits/ioctl-types.h>
+ * redefines struct winsize / struct termio, which are already provided
+ * by <linux/termios.h>. Declare ioctl() directly to match glibc instead.
+ */
+extern int ioctl(int fd, unsigned long request, ...);
 
 /* <termios.h> cannot be included here */
 #define NO_TERMIOS
