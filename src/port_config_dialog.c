@@ -238,7 +238,7 @@ void Config_Port_Fenetre(GSimpleAction *action G_GNUC_UNUSED,
 	if (missing_port != NULL)
 	{
 		show_messagef(MSG_WRN,
-		    _("Configured port \"%s\" is no longer available."),
+		    _("Port '%s' not found. Select a different port."),
 		    missing_port);
 		g_free(missing_port);
 	}
