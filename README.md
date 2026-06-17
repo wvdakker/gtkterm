@@ -87,6 +87,64 @@ If you wish to install GTKTerm someplace other than the default directory, e.g. 
 
 Then build and install as usual.
 
+### Building A Debian Package
+If you have `dpkg-buildpackage` installed, build a Debian package via the Meson packaging target:
+
+    ninja -C builddir deb
+
+To pass additional arguments to `dpkg-buildpackage`, run the helper directly:
+
+    bash packaging/scripts/build-deb.sh -S
+
+The Debian metadata is stored in `packaging/debian`.
+
+### Building A Snap Package
+If you have `snapcraft` installed, build a local Snap package via the Meson packaging target:
+
+    ninja -C builddir snap
+
+By default, the helper uses `--destructive-mode` for local builds.
+To use an LXD/Multipass provider instead, run the helper directly:
+
+    bash packaging/scripts/build-snap.sh --use-lxd
+
+The resulting `.snap` file is written to the repository root.
+The Snap manifest is stored in `packaging/snap/snapcraft.yaml`.
+
+### Building A Flatpak Bundle
+If you have `flatpak` and `flatpak-builder` installed, build a local Flatpak bundle via the Meson packaging target:
+
+    ninja -C builddir flatpak
+
+To pass additional arguments to `flatpak-builder`, run the helper directly:
+
+    bash packaging/scripts/build-flatpak.sh --disable-rofiles-fuse
+
+The resulting bundle is written to `gtkterm.flatpak` in the repository root.
+The Flatpak manifest is stored in `packaging/flatpak/org.gtk.gtkterm.json`.
+
+### Building An AppImage
+If you have `linuxdeploy` and `appimagetool` installed, build an AppImage via the Meson packaging target:
+
+    ninja -C builddir appimage
+
+To select a different build directory or output path, run the helper directly:
+
+    bash packaging/scripts/build-appimage.sh --build-dir builddir --output gtkterm-x86_64.AppImage
+
+The resulting AppImage is written to the repository root by default.
+
+### Building An RPM Package
+If you have `rpmbuild` installed, build RPM packages via the Meson packaging target:
+
+    ninja -C builddir rpm
+
+To pass additional arguments to `rpmbuild`, run the helper directly:
+
+    bash packaging/scripts/build-rpm.sh --nocheck
+
+The RPM spec is stored in `packaging/rpm/gtkterm.spec`.
+
 ## Uninstallation
 To uninstall GTKTerm, run:
 

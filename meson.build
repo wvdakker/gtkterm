@@ -48,3 +48,28 @@ config = declare_dependency(include_directories : include_directories('.'))
 subdir('data')
 subdir('src')
 subdir('po')
+
+# Debian package target (requires dpkg-buildpackage)
+run_target('deb',
+	command : [meson.project_source_root() / 'packaging' / 'scripts' / 'build-deb.sh']
+)
+
+# Snap package target (requires snapcraft)
+run_target('snap',
+	command : [meson.project_source_root() / 'packaging' / 'scripts' / 'build-snap.sh']
+)
+
+# Flatpak package target (requires flatpak-builder)
+run_target('flatpak',
+	command : [meson.project_source_root() / 'packaging' / 'scripts' / 'build-flatpak.sh']
+)
+
+# AppImage package target (requires linuxdeploy and appimagetool)
+run_target('appimage',
+	command : [meson.project_source_root() / 'packaging' / 'scripts' / 'build-appimage.sh']
+)
+
+# RPM package target (requires rpmbuild)
+run_target('rpm',
+	command : [meson.project_source_root() / 'packaging' / 'scripts' / 'build-rpm.sh']
+)
