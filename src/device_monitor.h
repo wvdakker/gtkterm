@@ -15,7 +15,8 @@
 #ifndef DEV_MON_H_
 #define DEV_MON_H_
 
-extern void device_monitor_start(void);
-extern void device_monitor_stop(void);
+void device_monitor_start(void);
+void device_monitor_stop(void);
+void device_monitor_clear_resume_reconnect(void);
 
 #endif

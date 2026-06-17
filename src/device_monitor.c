@@ -1,15 +1,16 @@
 /***********************************************************************/
-/* device_mintor.h													 */
-/* ---------														   */
-/*		   GTKTerm Software										  */
-/*					  (c) Julien Schmitt							 */
-/*																	 */
+/* device_monitor.c                                                    */
+/* ----------------                                                    */
+/*                      GTKTerm Software                               */
+/*                      (c) Julien Schmitt                             */
+/*                                                                     */
 /* ------------------------------------------------------------------- */
-/*																	 */
-/*   Purpose														   */
-/*	  Monitor device to autoreconnect								*/
-/*   Written by Kevin Picot - picotk27@gmail.com					   */
-/*																	 */
+/*                                                                     */
+/*   Purpose                                                           */
+/*      Monitor device to autoreconnect                                */
+/*                                                                     */
+/*   Written by Kevin Picot - picotk27@gmail.com                       */
+/*                                                                     */
 /***********************************************************************/
 
 #include <device_monitor.h>
@@ -34,7 +35,6 @@ static inline void device_monitor_status(const bool connected)
 {
 	if (connected) {
 		if (term_conf.autoreconnect_enabled || suspended_while_open) {
-			suspended_while_open = FALSE;
 			interface_open_port();
 		}
 	} else
@@ -49,7 +49,7 @@ static inline void device_monitor_handle(const char *action)
 		device_monitor_status(true);
 }
 
-void event_udev(GUdevClient *client G_GNUC_UNUSED, const gchar *action, GUdevDevice *device)
+static void event_udev(GUdevClient *client G_GNUC_UNUSED, const gchar *action, GUdevDevice *device)
 {
 	const gchar *name;
 
@@ -82,23 +82,15 @@ static void on_prepare_for_sleep(GDBusConnection *connection G_GNUC_UNUSED,
 		suspended_while_open = (serial_port_fd != -1);
 		if (suspended_while_open)
 			interface_close_port();
-	} else {
-		/* On resume, reconnect immediately only if the device is already
-		 * present (built-in UARTs). For USB serial the device hasn't
-		 * re-enumerated yet; the udev "add" event will fire later and
-		 * device_monitor_status() will reconnect because suspended_while_open
-		 * is still set. */
-		if (suspended_while_open && udev_client != NULL) {
-			GUdevDevice *dev = g_udev_client_query_by_device_file(udev_client, config.port);
-			if (dev != NULL) {
-				g_object_unref(dev);
-				device_monitor_status(true);
-			}
-		}
+	} else if (suspended_while_open) {
+		/* Built-in UARTs may not emit a udev "add" event on resume.
+		 * Try one immediate reconnect; if it fails, keep the flag set so
+		 * a later udev event (typical for USB serial) can retry. */
+		device_monitor_status(true);
 	}
 }
 
-extern void device_monitor_start(void)
+void device_monitor_start(void)
 {
 
 	const gchar *const subsystems[] = {NULL, NULL};
@@ -136,4 +128,9 @@ void device_monitor_stop(void)
 		g_object_unref(system_bus);
 		system_bus = NULL;
 	}
+}
+
+void device_monitor_clear_resume_reconnect(void)
+{
+	suspended_while_open = FALSE;
 }

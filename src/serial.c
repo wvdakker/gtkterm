@@ -33,6 +33,7 @@
 #include "term_config.h"
 #include "serial.h"
 #include "interface.h"
+#include "device_monitor.h"
 #include "txqueue.h"
 #include "buffer.h"
 #include "config_file.h"
@@ -366,6 +367,9 @@ gboolean Config_port(void)
 	callback_activated = TRUE;
 
 	Set_local_echo(term_conf.echo);
+
+	/* Clear suspend-resume reconnect state only after a successful open. */
+	device_monitor_clear_resume_reconnect();
 
 	return TRUE;
 }
