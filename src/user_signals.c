@@ -4,7 +4,7 @@
 
 static gboolean handle_usr1(gpointer user_data G_GNUC_UNUSED)
 {
-	interface_open_port();
+	interface_open_port(TRUE);
 	return G_SOURCE_CONTINUE;
 }
 

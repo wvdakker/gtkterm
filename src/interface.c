@@ -150,7 +150,7 @@ static void signals_close_port_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_
 
 static void signals_open_port_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	interface_open_port();
+	interface_open_port(TRUE);
 }
 
 static void help_shortcuts_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
@@ -713,9 +713,9 @@ void Set_window_title(const gchar *msg)
 	gtk_window_set_title(Fenetre, header);
 }
 
-void interface_open_port(void)
+void interface_open_port(gboolean show_errors)
 {
-	Config_port();
+	Config_port(show_errors);
 	update_port_status();
 }
 

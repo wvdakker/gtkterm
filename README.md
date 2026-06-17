@@ -145,6 +145,35 @@ To pass additional arguments to `rpmbuild`, run the helper directly:
 
 The RPM spec is stored in `packaging/rpm/gtkterm.spec`.
 
+### Running In A Docker Container (Ubuntu 24.04)
+
+A Docker image is provided for testing on Ubuntu 24.04 (glibc 2.39, no `cfsetobaud`),
+which exercises the kernel `termios2`/`BOTHER` fallback baud-rate path.
+
+**Build the image:**
+
+    docker build -f packaging/docker/ubuntu2404.Dockerfile -t gtkterm:ubuntu2404 .
+
+**Run the GUI on your host Wayland session:**
+
+    packaging/docker/run-wayland.sh
+
+The script forwards the host Wayland socket into the container and uses GTK4's
+software renderer, so no GPU drivers are needed inside the image.
+
+**With a serial device:**
+
+    SERIAL_DEVICE=/dev/ttyUSB0 packaging/docker/run-wayland.sh -p /dev/ttyUSB0 -s 115200
+
+The script maps the device into the container and adds its group (e.g. `dialout`)
+so the non-root container process can access it.  If you lack permission on the
+host, a clear error is printed with the `usermod` command needed to fix it:
+
+    run-wayland.sh: no permission to access '/dev/ttyUSB0'
+        (owned by root:dialout, mode 660; you are alice)
+        Add yourself to the 'dialout' group, then log out and back in:
+            sudo usermod -aG dialout alice
+
 ## Uninstallation
 To uninstall GTKTerm, run:
 

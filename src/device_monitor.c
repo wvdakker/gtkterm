@@ -35,7 +35,9 @@ static inline void device_monitor_status(const bool connected)
 {
 	if (connected) {
 		if (term_conf.autoreconnect_enabled || suspended_while_open) {
-			interface_open_port();
+			/* Autoreconnect / resume: failure is expected (device may not
+			 * be back yet), so reconnect quietly without an error dialog. */
+			interface_open_port(FALSE);
 		}
 	} else
 		interface_close_port();

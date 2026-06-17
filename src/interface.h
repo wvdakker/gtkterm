@@ -43,7 +43,7 @@ gssize send_serial(const gchar *, gsize);
 void Put_temp_message(const gchar *, guint);
 void Set_window_title(const gchar *msg);
 void interface_close_port(void);
-void interface_open_port(void);
+void interface_open_port(gboolean show_errors);
 void interface_apply_term_config(void);
 void interface_cleanup(void);
 void show_control_signals(int stat);

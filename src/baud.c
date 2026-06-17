@@ -12,6 +12,14 @@
 /*	<termios.h>. A struct termios is not valid across a call to    */
 /*      set_port_baudrate().                                           */
 /*                                                                     */
+/*      Three implementations are selected at configure time, from     */
+/*      most to least capable:                                         */
+/*        1. HAVE_CFSETOBAUD     - modern glibc baud_t API (cfsetobaud)*/
+/*        2. HAVE_LINUX_TERMIOS2 - kernel termios2/BOTHER ioctl        */
+/*        3. (fallback)          - generic POSIX cfsetospeed           */
+/*      Each path is self-contained; none redefines the kernel's       */
+/*      structures or macros.                                          */
+/*                                                                     */
 /*      Returns 0 on error, otherwise the updated baud rate if the     */
 /*      kernel reports it.                                             */
 /*                                                                     */
@@ -39,53 +47,63 @@ unsigned int set_port_baudrate(unsigned int baud, int port_fd)
 	return cfgetobaud(&tio);
 }
 
-#elif defined(HAVE_LINUX_TERMIOS_H)
+#elif defined(HAVE_LINUX_TERMIOS2)
 
-#include <linux/termios.h>
-#include <sys/types.h>
+/* <asm/termbits.h> supplies struct termios2, BOTHER, CBAUD and CIBAUD without
+ * defining struct winsize/termio/termios, so unlike <linux/termios.h> it does
+ * not clash with <sys/ioctl.h> (which provides ioctl() and TCGETS2/TCSETS2).
+ * glibc's <termios.h> still must not be included here; serial.h honours
+ * NO_TERMIOS.
+ *
+ * This branch is only compiled when meson confirmed that struct termios2,
+ * TCGETS2/TCSETS2 and BOTHER (or __BOTHER) genuinely exist, so we never fake
+ * the kernel structures or redefine their macros. */
+#include <sys/ioctl.h>
+#include <asm/termbits.h>
 
-/*
- * <sys/ioctl.h> cannot be included here: its <bits/ioctl-types.h>
- * redefines struct winsize / struct termio, which are already provided
- * by <linux/termios.h>. Declare ioctl() directly to match glibc instead.
- */
-extern int ioctl(int fd, unsigned long request, ...);
-
-/* <termios.h> cannot be included here */
 #define NO_TERMIOS
 #include "serial.h"
 
-#ifndef TCSETS2
-# define termios2 termios
-# ifdef __powerpc__
-#  define TCGETS2 _IOR('t', 19, struct termios2)
-#  define TCSETS2 _IOW('t', 20, struct termios2)
-# else
-#  define TCSETS2 TCSETS
-#  define TCGETS2 TCGETS
-# endif
-#endif
-#ifdef __BOTHER
-# undef  BOTHER
-# define BOTHER __BOTHER
-#endif
 #ifndef CIBAUD
-# define CIBAUD (CBAUD << 16)
+# define CIBAUD (CBAUD << 16)	/* Missing input-speed field on some arches */
+#endif
+#ifndef IBSHIFT
+# define IBSHIFT 16		/* CIBAUD = CBAUD << IBSHIFT (input-speed offset) */
+#endif
+
+/* A few C libraries expose the "use c_ispeed/c_ospeed" flag as __BOTHER
+ * rather than BOTHER.  Resolve it once into a constant instead of redefining
+ * the macro, so an existing BOTHER definition is never clobbered. */
+#if defined(BOTHER)
+static const tcflag_t OTHER_BAUD = BOTHER;
+#else
+static const tcflag_t OTHER_BAUD = __BOTHER;
 #endif
 
 unsigned int set_port_baudrate(unsigned int baud, int port_fd)
 {
 	struct termios2 tio;
+	speed_t std = find_standard_baudrate(baud);
+
 	CHK(ioctl(port_fd, TCGETS2, &tio));
 
-	tio.c_ispeed = tio.c_ospeed = baud;
 	tio.c_cflag &= ~(CBAUD | CIBAUD);
-	tio.c_cflag |= BOTHER;
+	if (std != B0)
+		/* Standard rate: use the matching Bxxxx selector, understood by
+		 * every driver.  BOTHER is reserved for non-standard rates that
+		 * cannot be expressed as a Bxxxx constant. */
+		tio.c_cflag |= std | ((tcflag_t)std << IBSHIFT);
+	else
+		tio.c_cflag |= OTHER_BAUD;
+	tio.c_ispeed = tio.c_ospeed = baud;
 
 	CHK(ioctl(port_fd, TCSETS2, &tio));
 	CHK(ioctl(port_fd, TCGETS2, &tio));
 
-	CHK((tio.c_cflag & CBAUD) ==  BOTHER);
+	/* Report the actual speed the kernel applied; the caller validates it
+	 * against the requested rate.  Do NOT additionally require CBAUD==BOTHER:
+	 * for a standard rate (e.g. 115200) many drivers normalise CBAUD back to
+	 * the matching Bxxxx selector, which is still success. */
 	return tio.c_ospeed;
 }
 
@@ -112,7 +130,7 @@ unsigned int set_port_baudrate(unsigned int baud, int port_fd)
 	if (speed == B0)
 	{
 		errno = EINVAL;
-		return -1;
+		return 0;
 	}
 
 	CHK(tcgetattr(port_fd, &tio));

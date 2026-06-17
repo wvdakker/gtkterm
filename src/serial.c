@@ -41,9 +41,6 @@
 #include <config.h>
 #include <glib/gi18n.h>
 
-#ifdef HAVE_LINUX_SERIAL_H
-#include <linux/serial.h>
-#endif
 
 
 struct termios termios_save;
@@ -215,7 +212,7 @@ gssize Send_chars(const char *string, gsize length)
 	return bytes_written;
 }
 
-gboolean Config_port(void)
+gboolean Config_port(gboolean show_errors)
 {
 	struct termios termios_p;
 	unsigned int speed_margin;
@@ -227,15 +224,17 @@ gboolean Config_port(void)
 
 	if(serial_port_fd == -1)
 	{
-		show_messagef(MSG_ERR, _("Cannot open %s: %s\n"),
-		              config.port, g_strerror(errno));
+		if (show_errors)
+			show_messagef(MSG_ERR, _("Cannot open %s: %s\n"),
+			              config.port, g_strerror(errno));
 		return FALSE;
 	}
 
 	if (!isatty(serial_port_fd))
 	{
 		Close_port();
-		show_messagef(MSG_ERR, _("%s is not a valid serial port\n"), config.port);
+		if (show_errors)
+			show_messagef(MSG_ERR, _("%s is not a valid serial port\n"), config.port);
 		return FALSE;
 	}
 
@@ -244,6 +243,9 @@ gboolean Config_port(void)
 		if (flock(serial_port_fd, LOCK_EX | LOCK_NB) == -1)
 		{
 			Close_port();
+			/* A lock conflict means another process is actively using the
+			 * port: always report it, even on automatic (re)connect, as it
+			 * is a hard failure the user needs to resolve. */
 			show_messagef(MSG_ERR, _("Cannot lock port: %s\n"), g_strerror(errno));
 			return FALSE;
 		}
@@ -259,7 +261,8 @@ gboolean Config_port(void)
 	    serial_port_speed - speed_margin > config.vitesse)
 	{
 		Close_port();
-		show_messagef(MSG_ERR, _("Unable to set baud rate %u"), config.vitesse);
+		if (show_errors)
+			show_messagef(MSG_ERR, _("Unable to set baud rate %u"), config.vitesse);
 		return FALSE;
 	}
 

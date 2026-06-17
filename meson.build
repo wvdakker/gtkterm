@@ -30,13 +30,31 @@ conf.set_quoted('RELEASE_DATE', release_date)
 conf.set_quoted('LOCALEDIR', localedir)
 
 cc = meson.get_compiler('c')
-if cc.has_function('cfsetobaud', prefix : [ '#define _GNU_SOURCE 1',
-					    '#define _XOPEN_SOURCE 700',
-					    '#include <termios.h>'])
+# Preferred path: the C library's baud_t API (glibc >= 2.42, et al.).  The C
+# library translates these calls to whatever the running kernel supports -
+# including old kernels, via the termios2/BOTHER ioctl internally - so when it
+# is present we never have to touch kernel headers ourselves.
+have_cfsetobaud = cc.has_function('cfsetobaud',
+				  prefix : [ '#define _GNU_SOURCE 1',
+					     '#define _XOPEN_SOURCE 700',
+					     '#include <termios.h>'])
+if have_cfsetobaud
   conf.set('HAVE_CFSETOBAUD', '1')
 endif
 if cc.has_header('linux/termios.h')
   conf.set('HAVE_LINUX_TERMIOS_H', '1')
+endif
+# Fallback path, only for a C library that lacks the baud_t API above: talk to
+# the kernel termios2/BOTHER ioctl directly for arbitrary baud rates.  Enabled
+# only when the real kernel definitions exist, so baud.c never fakes struct
+# termios2, TCSETS2 or BOTHER.  Skipped entirely when cfsetobaud is available.
+if not have_cfsetobaud \
+   and cc.has_type('struct termios2', prefix : '#include <asm/termbits.h>') \
+   and cc.has_header_symbol('sys/ioctl.h', 'TCSETS2') \
+   and cc.has_header_symbol('sys/ioctl.h', 'TCGETS2') \
+   and (cc.has_header_symbol('asm/termbits.h', 'BOTHER') \
+        or cc.has_header_symbol('asm/termbits.h', '__BOTHER'))
+  conf.set('HAVE_LINUX_TERMIOS2', '1')
 endif
 if cc.has_header('sys/sysmacros.h')
   conf.set('HAVE_SYS_SYSMACROS_H', '1')

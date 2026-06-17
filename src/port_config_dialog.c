@@ -26,6 +26,10 @@ static GtkSpinButton *rts_before_spin;
 static GtkSpinButton *rts_after_spin;
 static GtkExpander   *Expander;
 
+/* TRUE when serial_find_ports() returned nothing, so the port dropdown shows
+ * an informational placeholder at index 0 instead of a bare "Other...". */
+static gboolean       port_has_no_ports;
+
 static gboolean dd_is_other(GtkDropDown *dd)
 {
 	guint n = g_list_model_get_n_items(gtk_drop_down_get_model(dd));
@@ -36,6 +40,19 @@ static void apply_dd_custom_state(GtkDropDown *dd)
 {
 	GtkEditable *entry = (dd == port_dd) ? port_entry : baud_entry;
 	gboolean custom = dd_is_other(dd);
+
+	/* When no serial ports exist, the port dropdown shows a placeholder at
+	 * index 0.  Keep the configured port visible but never copy the
+	 * placeholder label into the entry, so it can't be saved as a port. */
+	if (dd == port_dd && port_has_no_ports && !custom
+	    && gtk_drop_down_get_selected(dd) == 0)
+	{
+		gtk_editable_set_text(entry, config.port);
+		gtk_editable_set_editable(entry, FALSE);
+		gtk_widget_set_sensitive(GTK_WIDGET(entry), FALSE);
+		return;
+	}
+
 	if (custom) {
 		gtk_expander_set_expanded(Expander, TRUE);
 		gtk_widget_grab_focus(GTK_WIDGET(entry));
@@ -82,21 +99,24 @@ static GtkStringList *build_port_model(guint *port_index_out,
 	*missing_port_out = NULL;
 
 	ports = serial_find_ports();
+	port_has_no_ports = (ports->len == 0);
 
 	/* Determine which entry to pre-select:
 	 *  - port found in discovered list      → use its index
 	 *  - port not in list but node exists   → "Other..." (explicit custom)
+	 *  - no ports discovered at all         → informational placeholder (0)
 	 *  - port configured but gone from sys  → warn, fall back to first port (0)
 	 *  - nothing configured                 → first port (0) */
 	*port_index_out = 0;
 	if (config.port[0] != '\0')
 	{
+		guint other_index = ports->len + (port_has_no_ports ? 1 : 0);
 		if (g_ptr_array_find_with_equal_func(ports, config.port,
 		                                     g_str_equal, &idx))
 			*port_index_out = idx;
 		else if (g_file_test(config.port, G_FILE_TEST_EXISTS))
-			*port_index_out = ports->len; /* index of "Other..." */
-		else
+			*port_index_out = other_index; /* index of "Other..." */
+		else if (!port_has_no_ports)
 			/* Port is gone: fall back to first port (index 0 already set).
 			 * Caller must show a warning and g_free the returned string. */
 			*missing_port_out = g_strdup(config.port);
@@ -107,6 +127,10 @@ static GtkStringList *build_port_model(guint *port_index_out,
 	g_ptr_array_set_free_func(ports, g_free);
 	g_ptr_array_free(ports, TRUE);
 
+	/* With no real ports, show a clear placeholder as the default instead of a
+	 * bare "Other..."; the user can still pick "Other..." to type one in. */
+	if (port_has_no_ports)
+		gtk_string_list_append(model, _("(no serial ports found)"));
 	gtk_string_list_append(model, _("Other..."));
 
 	return model;
@@ -279,7 +303,7 @@ void Lis_Config(void)
 		config.car = -1;
 
 	if (memcmp(&config, &prev_config, sizeof(config)) != 0)
-		Config_port();
+		Config_port(TRUE);
 	ConfigFlags();
 
 	update_port_status();

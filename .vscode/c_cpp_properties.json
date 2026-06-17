@@ -2,12 +2,25 @@
     "configurations": [
         {
             "name": "Linux",
-            "compileCommands": [
-                "${workspaceFolder}/build/compile_commands.json"
-            ],
+            "compileCommands": "${workspaceFolder}/builddir/compile_commands.json",
             "includePath": [
-                "${default}",
-                "/usr/include/gtk-4.0"
+                "${workspaceFolder}/.vscode",
+                "/usr/include",
+                "/usr/include/glib-2.0",
+                "/usr/lib/x86_64-linux-gnu/glib-2.0/include",
+                "/usr/include/gtk-4.0",
+                "/usr/include/pango-1.0",
+                "/usr/include/gdk-pixbuf-2.0",
+                "/usr/include/cairo",
+                "/usr/include/harfbuzz",
+                "/usr/include/fribidi",
+                "/usr/include/graphene-1.0",
+                "/usr/lib/x86_64-linux-gnu/graphene-1.0/include",
+                "/usr/include/sysprof-6",
+                "/usr/include/freetype2",
+                "/usr/include/libpng16",
+                "/usr/include/pixman-1",
+                "/usr/include/vte-2.91-gtk4"
             ]
         }
     ],

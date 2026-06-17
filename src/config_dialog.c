@@ -124,7 +124,7 @@ static void on_load_ok_clicked(GtkListBox *listbox, GtkButton *btn G_GNUC_UNUSED
 		}
 
 		interface_apply_term_config();
-		Config_port();
+		Config_port(TRUE);
 		ConfigFlags();
 		update_port_status();
 	}

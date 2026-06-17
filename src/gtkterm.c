@@ -67,7 +67,9 @@ static void activate(GtkApplication *app, gpointer user_data G_GNUC_UNUSED)
 	create_main_window(app);
 	interface_apply_term_config();
 
-	Config_port();
+	/* Initial start: the port may have been preselected (via -p or a saved
+	 * configuration), so surface any open/lock/baud failure to the user. */
+	Config_port(TRUE);
 	ConfigFlags();
 
 	update_port_status();

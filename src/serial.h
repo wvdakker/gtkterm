@@ -23,7 +23,7 @@
 extern int serial_port_fd;
 
 gssize Send_chars(const char *, gsize);
-gboolean Config_port(void);
+gboolean Config_port(gboolean show_errors);
 void Set_signals(guint);
 void Close_port(void);
 void sendbreak(void);
