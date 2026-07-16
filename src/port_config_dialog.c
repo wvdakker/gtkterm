@@ -302,7 +302,11 @@ void Lis_Config(void)
 	else
 		config.car = -1;
 
-	if (memcmp(&config, &prev_config, sizeof(config)) != 0)
+	/* Re-apply even if the config is unchanged when the port isn't
+	 * currently open: a previous open attempt may have failed (e.g. the
+	 * device was busy), and the user re-selecting the very same port
+	 * should retry rather than silently do nothing. */
+	if (memcmp(&config, &prev_config, sizeof(config)) != 0 || serial_port_fd == -1)
 		Config_port(TRUE);
 	ConfigFlags();
 
