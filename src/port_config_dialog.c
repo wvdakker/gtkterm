@@ -85,18 +85,11 @@ static void setup_dd(GtkDropDown *dd, GtkStringList *model, guint index,
 	apply_dd_custom_state(dd);
 }
 
-/* missing_port_out must not be NULL; *missing_port_out is set to the
- * configured port name when the port is gone from the system (caller
- * must g_free it), or NULL otherwise. */
-static GtkStringList *build_port_model(guint *port_index_out,
-	                                   gchar **missing_port_out)
+static GtkStringList *build_port_model(guint *port_index_out)
 {
 	GtkStringList *model;
 	GPtrArray     *ports;
 	guint          idx;
-
-	g_return_val_if_fail(missing_port_out != NULL, NULL);
-	*missing_port_out = NULL;
 
 	ports = serial_find_ports();
 	port_has_no_ports = (ports->len == 0);
@@ -105,7 +98,7 @@ static GtkStringList *build_port_model(guint *port_index_out,
 	 *  - port found in discovered list      → use its index
 	 *  - port not in list but node exists   → "Other..." (explicit custom)
 	 *  - no ports discovered at all         → informational placeholder (0)
-	 *  - port configured but gone from sys  → warn, fall back to first port (0)
+	 *  - port configured but gone from sys  → fall back to first port (0)
 	 *  - nothing configured                 → first port (0) */
 	*port_index_out = 0;
 	if (config.port[0] != '\0')
@@ -116,10 +109,6 @@ static GtkStringList *build_port_model(guint *port_index_out,
 			*port_index_out = idx;
 		else if (g_file_test(config.port, G_FILE_TEST_EXISTS))
 			*port_index_out = other_index; /* index of "Other..." */
-		else if (!port_has_no_ports)
-			/* Port is gone: fall back to first port (index 0 already set).
-			 * Caller must show a warning and g_free the returned string. */
-			*missing_port_out = g_strdup(config.port);
 	}
 
 	g_ptr_array_add(ports, NULL);
@@ -187,7 +176,6 @@ void Config_Port_Fenetre(GSimpleAction *action G_GNUC_UNUSED,
 	GtkWindow        *Dialogue;
 	GtkBuilderCScope *scope;
 	GtkStringList    *m;
-	gchar            *missing_port = NULL;
 	guint            idx;
 	gchar            baud_buf[21]; /* UINT64_MAX = 20 digits + NUL */
 
@@ -250,7 +238,7 @@ void Config_Port_Fenetre(GSimpleAction *action G_GNUC_UNUSED,
 	}
 
 	/* Build port and baud dropdowns dynamically */
-	m = build_port_model(&idx, &missing_port);
+	m = build_port_model(&idx);
 	setup_dd(port_dd, m, idx, config.port);
 
 	m = build_baud_model(&idx);
@@ -258,14 +246,6 @@ void Config_Port_Fenetre(GSimpleAction *action G_GNUC_UNUSED,
 	setup_dd(baud_dd, m, idx, baud_buf);
 
 	gtk_window_present(Dialogue);
-
-	if (missing_port != NULL)
-	{
-		show_messagef(MSG_WRN,
-		    _("Port '%s' not found. Select a different port."),
-		    missing_port);
-		g_free(missing_port);
-	}
 }
 
 void Lis_Config(void)
