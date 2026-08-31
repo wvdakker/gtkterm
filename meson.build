@@ -48,12 +48,15 @@ endif
 # the kernel termios2/BOTHER ioctl directly for arbitrary baud rates.  Enabled
 # only when the real kernel definitions exist, so baud.c never fakes struct
 # termios2, TCSETS2 or BOTHER.  Skipped entirely when cfsetobaud is available.
+# Probe via <linux/termios.h>, the same header baud.c uses: on powerpc/alpha/
+# sparc the TCGETS2/TCSETS2 numbers only resolve when the kernel struct termios2
+# is in scope, which <sys/ioctl.h> alone does not guarantee.
 if not have_cfsetobaud \
-   and cc.has_type('struct termios2', prefix : '#include <asm/termbits.h>') \
-   and cc.has_header_symbol('sys/ioctl.h', 'TCSETS2') \
-   and cc.has_header_symbol('sys/ioctl.h', 'TCGETS2') \
-   and (cc.has_header_symbol('asm/termbits.h', 'BOTHER') \
-        or cc.has_header_symbol('asm/termbits.h', '__BOTHER'))
+   and cc.has_type('struct termios2', prefix : '#include <linux/termios.h>') \
+   and cc.has_header_symbol('linux/termios.h', 'TCSETS2') \
+   and cc.has_header_symbol('linux/termios.h', 'TCGETS2') \
+   and (cc.has_header_symbol('linux/termios.h', 'BOTHER') \
+        or cc.has_header_symbol('linux/termios.h', '__BOTHER'))
   conf.set('HAVE_LINUX_TERMIOS2', '1')
 endif
 if cc.has_header('sys/sysmacros.h')

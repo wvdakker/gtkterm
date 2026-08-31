@@ -49,17 +49,20 @@ unsigned int set_port_baudrate(unsigned int baud, int port_fd)
 
 #elif defined(HAVE_LINUX_TERMIOS2)
 
-/* <asm/termbits.h> supplies struct termios2, BOTHER, CBAUD and CIBAUD without
- * defining struct winsize/termio/termios, so unlike <linux/termios.h> it does
- * not clash with <sys/ioctl.h> (which provides ioctl() and TCGETS2/TCSETS2).
- * glibc's <termios.h> still must not be included here; serial.h honours
- * NO_TERMIOS.
+/* <linux/termios.h> supplies struct termios2, BOTHER, CBAUD, CIBAUD and the
+ * TCGETS2/TCSETS2 ioctl numbers.  It must come before <sys/ioctl.h>: on the
+ * arches where <asm/ioctls.h> encodes these ioctls as _IOR/_IOW of
+ * sizeof(struct termios2) (powerpc, alpha, sparc), the kernel struct has to be
+ * in scope first or the numbers are computed against the wrong type.
+ * <linux/termios.h> pulls in <asm/termbits.h> ahead of <asm/ioctls.h>, so it
+ * gets this right; <sys/ioctl.h> is included only for the ioctl() prototype.
+ * glibc's <termios.h> must not be included here; serial.h honours NO_TERMIOS.
  *
  * This branch is only compiled when meson confirmed that struct termios2,
  * TCGETS2/TCSETS2 and BOTHER (or __BOTHER) genuinely exist, so we never fake
  * the kernel structures or redefine their macros. */
+#include <linux/termios.h>
 #include <sys/ioctl.h>
-#include <asm/termbits.h>
 
 #define NO_TERMIOS
 #include "serial.h"
