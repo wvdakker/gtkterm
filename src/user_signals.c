@@ -2,13 +2,13 @@
 #include <gtk/gtk.h>
 #include "interface.h"
 
-static gboolean handle_usr1(gpointer user_data)
+static gboolean handle_usr1(gpointer user_data G_GNUC_UNUSED)
 {
-	interface_open_port();
+	interface_open_port(TRUE);
 	return G_SOURCE_CONTINUE;
 }
 
-static gboolean handle_usr2(gpointer user_data)
+static gboolean handle_usr2(gpointer user_data G_GNUC_UNUSED)
 {
 	interface_close_port();
 	return G_SOURCE_CONTINUE;

@@ -16,175 +16,181 @@
 
 #include <gtk/gtk.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
-#include <glib.h>
 
 #include "interface.h"
 #include "serial.h"
 #include "buffer.h"
 #include "logging.h"
 
-#include <config.h>
 #include <glib/gi18n.h>
 
 #define MAX_WRITE_ATTEMPTS 5
 
 static gboolean	  Logging;
-static gchar     *LoggingFileName;
-static FILE      *LoggingFile;
+static gchar     *LoggingFileName = NULL;
+static FILE      *LoggingFile = NULL;
 static gchar     *logfile_default = NULL;
+static guint      log_unflushed = 0;  /* bytes written since last fflush */
 
-static gint OpenLogFile(gchar *filename)
+#define LOG_FLUSH_THRESHOLD 4096
+
+static void close_log_file(void)
 {
-	gchar *str;
-
-	// open file and start logging
-	if(!filename || (strcmp(filename, "") == 0))
-	{
-		str = g_strdup_printf(_("Filename error\n"));
-		show_message(str, MSG_ERR);
-		g_free(str);
-		g_free(filename);
-		return FALSE;
-	}
-
 	if(LoggingFile != NULL)
 	{
-		fclose(LoggingFile);
+		fclose(LoggingFile);  /* fclose() flushes */
 		LoggingFile = NULL;
-		Logging = FALSE;
 	}
-
-	LoggingFileName = filename;
-
-	LoggingFile = fopen(LoggingFileName, "a");
-	if(LoggingFile == NULL)
-	{
-		str = g_strdup_printf(_("Cannot open file %s: %s\n"), LoggingFileName, strerror(errno));
-
-		show_message(str, MSG_ERR);
-		g_free(str);
-		g_free(LoggingFileName);
-	}
-	else
-	{
-		logfile_default = g_strdup(LoggingFileName);
-		Logging = TRUE;
-	}
-
-	return FALSE;
-}
-
-void logging_start(GtkAction *action, gpointer data)
-{
-	GtkWidget *file_select;
-	gint retval;
-
-	file_select = gtk_file_chooser_dialog_new(_("Log file selection"), GTK_WINDOW(Fenetre),
-	              GTK_FILE_CHOOSER_ACTION_SAVE,
-	              GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-	              GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
-	gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(file_select), TRUE);
-
-	if(logfile_default != NULL)
-	{
-		gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(file_select), logfile_default);
-	}
-
-	retval = gtk_dialog_run(GTK_DIALOG(file_select));
-	if(retval == GTK_RESPONSE_OK)
-	{
-		OpenLogFile(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(file_select)));
-	}
-
-	gtk_widget_destroy(file_select);
-
-	toggle_logging_sensitivity(Logging);
-	toggle_logging_pause_resume(Logging);
-}
-
-void logging_clear(void)
-{
-	if(LoggingFile == NULL)
-	{
-		return;
-	}
-
-	//Reopening with "w" will truncate the file
-	LoggingFile = freopen(LoggingFileName, "w", LoggingFile);
-
-	if (LoggingFile == NULL)
-	{
-		gchar *str = g_strdup_printf(_("Cannot open file %s: %s\n"), LoggingFileName, strerror(errno));
-		show_message(str, MSG_ERR);
-		g_free(str);
-		g_free(LoggingFileName);
-	}
-}
-
-void logging_pause_resume(void)
-{
-	if(LoggingFile == NULL)
-	{
-		return;
-	}
-	if(Logging == TRUE)
-	{
-		Logging = FALSE;
-	}
-	else
-	{
-		Logging = TRUE;
-	}
-	toggle_logging_pause_resume(Logging);
-}
-
-void logging_stop(void)
-{
-	if(LoggingFile == NULL)
-	{
-		return;
-	}
-
-	fclose(LoggingFile);
-	LoggingFile = NULL;
+	log_unflushed = 0;
 	Logging = FALSE;
 	g_free(LoggingFileName);
 	LoggingFileName = NULL;
+}
+
+static void OpenLogFile(const gchar *filename)
+{
+	// open file and start logging
+	if(!filename || !filename[0])
+	{
+		show_message(MSG_ERR, _("Filename error\n"));
+		return;
+	}
+
+	close_log_file();
+
+	LoggingFile = fopen(filename, "a");
+	if(LoggingFile == NULL)
+		show_messagef(MSG_ERR, _("Cannot open file %s: %s\n"), filename, g_strerror(errno));
+	else
+	{
+		LoggingFileName = g_strdup(filename);
+		g_free(logfile_default);
+		logfile_default = g_strdup(filename);
+		Logging = TRUE;
+	}
+}
+
+static void on_log_file_response(GObject *source, GAsyncResult *result, gpointer data G_GNUC_UNUSED)
+{
+	GtkFileDialog *dialog;
+	GError *error;
+	GFile *file;
+	gchar *filename;
+
+	dialog = GTK_FILE_DIALOG(source);
+	error = NULL;
+	file = gtk_file_dialog_save_finish(dialog, result, &error);
+
+	if (!file)
+	{
+		g_clear_error(&error);
+		toggle_logging_sensitivity(Logging);
+		toggle_logging_pause_resume(Logging);
+		return;
+	}
+
+	filename = g_file_get_path(file);
+	g_object_unref(file);
+	OpenLogFile(filename);
+	g_free(filename);
 
 	toggle_logging_sensitivity(Logging);
 	toggle_logging_pause_resume(Logging);
 }
 
-void log_chars(gchar *chars, guint size)
+void logging_start(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	GtkFileDialog *dialog = gtk_file_dialog_new();
+	gtk_file_dialog_set_title(dialog, _("Log to file"));
+	gtk_file_dialog_set_modal(dialog, TRUE);
+
+	if (logfile_default != NULL)
+	{
+		GFile *f = g_file_new_for_path(logfile_default);
+		gtk_file_dialog_set_initial_file(dialog, f);
+		g_object_unref(f);
+	}
+
+	gtk_file_dialog_save(dialog, GTK_WINDOW(Fenetre), NULL,
+	                     on_log_file_response, NULL);
+	g_object_unref(dialog);
+}
+
+void logging_clear(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	if(LoggingFile == NULL)
+		return;
+
+	//Reopening with "w" will truncate the file
+	LoggingFile = freopen(LoggingFileName, "w", LoggingFile);
+	log_unflushed = 0;
+
+	if (LoggingFile == NULL)
+	{
+		show_messagef(MSG_ERR, _("Cannot open file %s: %s\n"), LoggingFileName, g_strerror(errno));
+		close_log_file();
+	}
+}
+
+void logging_pause_resume(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	if(LoggingFile == NULL)
+	{
+		return;
+	}
+	Logging = !Logging;
+	toggle_logging_pause_resume(Logging);
+}
+
+void logging_stop(GSimpleAction *action G_GNUC_UNUSED, GVariant *param G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	if(LoggingFile == NULL)
+	{
+		return;
+	}
+
+	close_log_file();
+
+	toggle_logging_sensitivity(Logging);
+	toggle_logging_pause_resume(Logging);
+}
+
+void log_chars(const gchar *chars, guint size)
 {
 	guint writeAttempts = 0;
 	guint bytesWritten = 0;
 
 	/* if we are not logging exit */
 	if(LoggingFile == NULL || Logging == FALSE)
-	{
 		return;
-	}
 
 	while (bytesWritten < size)
 	{
-		if (writeAttempts < MAX_WRITE_ATTEMPTS)
+		guint prev = bytesWritten;
+		bytesWritten += (guint)fwrite(&chars[bytesWritten], 1,
+		                       size-bytesWritten, LoggingFile);
+		if (bytesWritten == prev && ++writeAttempts >= MAX_WRITE_ATTEMPTS)
 		{
-			bytesWritten += fwrite(&chars[bytesWritten], 1,
-			                       size-bytesWritten, LoggingFile);
-		}
-		else
-		{
-			show_message(_("Failed to log data\n"), MSG_ERR);
+			show_message(MSG_ERR, _("Failed to log data\n"));
 			return;
 		}
 	}
 
-	fflush(LoggingFile);
+	/* Flush only when enough data has accumulated; fclose() will flush the
+	 * remainder when logging stops or the app exits cleanly. */
+	log_unflushed += bytesWritten;
+	if (log_unflushed >= LOG_FLUSH_THRESHOLD)
+	{
+		fflush(LoggingFile);
+		log_unflushed = 0;
+	}
+}
+
+void logging_cleanup(void)
+{
+	close_log_file(); /* frees LoggingFileName, closes LoggingFile */
+	g_free(logfile_default);
+	logfile_default = NULL;
 }

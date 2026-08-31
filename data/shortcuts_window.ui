@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkShortcutsWindow" id="shortcuts_window">
+    <property name="modal">1</property>
+    <child>
+      <object class="GtkShortcutsSection">
+        <property name="title" translatable="yes">GTKTerm</property>
+        <property name="section-name">gtkterm</property>
+        <property name="max-height">12</property>
+
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">File</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Quit</property>
+                <property name="accelerator">&lt;Shift&gt;&lt;Control&gt;Q</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Edit</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Copy</property>
+                <property name="accelerator">&lt;Shift&gt;&lt;Control&gt;C</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Paste</property>
+                <property name="accelerator">&lt;Shift&gt;&lt;Control&gt;V</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Find</property>
+                <property name="accelerator">&lt;Shift&gt;&lt;Control&gt;F</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Select All</property>
+                <property name="accelerator">&lt;Shift&gt;&lt;Control&gt;A</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Clear Screen</property>
+                <property name="accelerator">&lt;Shift&gt;&lt;Control&gt;L</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Configuration</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Port Settings</property>
+                <property name="accelerator">&lt;Shift&gt;&lt;Control&gt;S</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title" translatable="yes">Signals</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Open Port</property>
+                <property name="accelerator">F5</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Close Port</property>
+                <property name="accelerator">F6</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Toggle DTR</property>
+                <property name="accelerator">F7</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Toggle RTS</property>
+                <property name="accelerator">F8</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="title" translatable="yes">Send Break</property>
+                <property name="accelerator">&lt;Shift&gt;&lt;Control&gt;B</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+
+      </object>
+    </child>
+  </object>
+</interface>

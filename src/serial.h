@@ -15,33 +15,31 @@
 #ifndef SERIAL_H_
 #define SERIAL_H_
 
+#include <glib.h>
 #ifndef NO_TERMIOS
 #include <termios.h>
 #endif
 
 extern int serial_port_fd;
 
-int Send_chars(char *, int);
-gboolean Config_port(void);
+gssize Send_chars(const char *, gsize);
+gboolean Config_port(gboolean show_errors);
 void Set_signals(guint);
-int lis_sig(void);
 void Close_port(void);
-void configure_echo(gboolean);
-void configure_crlfauto(gboolean);
-void configure_autoreconnect_enable(gboolean);
-void configure_esc_clear_screen(gboolean);
 void sendbreak(void);
 unsigned int set_port_baudrate(unsigned int, int);
-gchar* get_port_string(void);
+const gchar *get_port_string(void);
+int lis_sig(void);
 
 struct baudrate {
 	unsigned int baud;
 	speed_t speed;
 };
 extern const struct baudrate baudrate_list[];
-extern const int baudrate_count;
+extern const gsize baudrate_count;
 extern const gboolean speed_t_is_sane;
 speed_t find_standard_baudrate(unsigned int);
+int     baudrate_find_index(unsigned int);
 unsigned int speed_t_to_baud(speed_t);
 
 #define BUFFER_RECEPTION 8192

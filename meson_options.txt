@@ -1,0 +1,6 @@
+option(
+	'dev_sanitizers',
+	type : 'boolean',
+	value : false,
+	description : 'Enable AddressSanitizer and LeakSanitizer for development builds'
+)

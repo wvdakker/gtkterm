@@ -15,23 +15,14 @@
 #ifndef TERM_CONFIG_H_
 #define TERM_CONFIG_H_
 
-void config_file_init(void);
+#include <gtk/gtk.h>
+
 void ConfigFlags(void);
-void Config_Port_Fenetre(GtkAction *action, gpointer data);
-gint Lis_Config(GtkWidget *bouton, GtkWidget **Combos);
-void Config_Terminal(GtkAction *action, gpointer data);
-void select_config_callback(GtkAction *action, gpointer data);
-void save_config_callback(GtkAction *action, gpointer data);
-void delete_config_callback(GtkAction *action, gpointer data);
-void Verify_configuration(void);
-gint Load_configuration_from_file(gchar *);
-gint Check_configuration_file(void);
 void check_text_input(GtkEditable *editable,
                       gchar       *new_text,
                       gint         new_text_length,
                       gint        *position,
                       gpointer     user_data);
-void clear_scrollback(void);
 
 struct configuration_port
 {
@@ -45,11 +36,6 @@ struct configuration_port
 	gint rs485_rts_time_before_transmit;
 	gint rs485_rts_time_after_transmit;
 	gchar car;                   // caractere attendre
-	gboolean echo;               // echo local
-	gboolean crlfauto;           // line feed auto
-	gboolean autoreconnect_enabled;	// enable autoreconnect
-	gboolean esc_clear_screen;   // clear screen when receive ESC char ('\x1b' - 27)
-	gboolean timestamp;
 	gboolean disable_port_lock;
 };
 
@@ -63,6 +49,14 @@ typedef struct
 	GdkRGBA foreground_color;
 	GdkRGBA background_color;
 	gchar *font;
+	gint window_width;
+	gint window_height;
+	gboolean echo;                      // local echo
+	gboolean crlfauto;                  // line feed auto
+	gboolean autoreconnect_enabled;     // enable autoreconnect
+	gboolean esc_clear_screen;          // clear screen when receive ESC char ('\x1b' - 27)
+	gboolean timestamp;                 // display timestamps
+	gboolean disable_shortcuts;         // disable shortcuts
 } display_config_t;
 
 

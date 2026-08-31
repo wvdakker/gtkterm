@@ -18,19 +18,17 @@
 /***********************************************************************/
 
 #include <glib.h>
-#include <stdlib.h>
 #include <string.h>
 #include "buffer.h"
-#include "i18n.h"
 #include "serial.h"
 
-#include <config.h>
 #include <glib/gi18n.h>
 #include <time.h>
 
 #define TIMESTAMP_SIZE 50
 
-extern gboolean timestamp_on;
+#include "config_file.h"
+
 static int need_to_write_timestamp = 0;
 static char *buffer = NULL;
 static char *current_buffer;
@@ -38,73 +36,63 @@ static unsigned int pointer;
 static int cr_received = 0;
 char overlapped;
 
-extern guint virt_col_pos;
 
-
-void (*write_func)(const char *, unsigned int) = NULL;
+void (*write_func)(const char *, gsize) = NULL;
 void (*clear_func)(void) = NULL;
 
 void create_buffer(void)
 {
-	if(buffer == NULL)
+	if (buffer == NULL)
 	{
-		buffer = malloc(BUFFER_SIZE);
+		buffer = g_malloc(BUFFER_SIZE);
 		clear_buffer();
 	}
-	return;
 }
 
 void delete_buffer(void)
 {
-	if(buffer != NULL)
-		free(buffer);
-	return;
+	g_free(buffer);
+	buffer = NULL;
+	current_buffer = NULL;
+	pointer = 0;
 }
 
 //assumes that buffer always has space for timestamp (TIMESTAMP_SIZE)
 //buffer points to location where timestamp will be inserted
-unsigned int insert_timestamp(char *buffer)
+static unsigned int insert_timestamp(char *buf_out)
 {
-  unsigned int size = 0;
+	unsigned int size = 0;
 
-	if(timestamp_on)
+	if (term_conf.timestamp)
 	{
-		char buf[TIMESTAMP_SIZE];
 		struct timespec ts;
-		int d,h,m,s,x;
+		struct tm tm;
 		timespec_get(&ts, TIME_UTC);
-		d = (ts.tv_sec / (3600 * 24));
-		h = (ts.tv_sec / 3600) % 24;
-		m = (ts.tv_sec / 60 ) % 60;
-		s = ts.tv_sec % 60;
-		x = ts.tv_nsec / 1000000;
-		snprintf(buf, TIMESTAMP_SIZE - 1, "[%d.%02uh.%02um.%02us.%03u] "
-				, d, h, m, s, x );
-		strcpy(buffer, buf);
-		size = strlen(buf);
+		localtime_r(&ts.tv_sec, &tm);
+		size = (unsigned int)g_snprintf(buf_out, TIMESTAMP_SIZE,
+		    "[%d.%02dh.%02dm.%02ds.%03ld] ",
+		    tm.tm_yday, tm.tm_hour, tm.tm_min, tm.tm_sec,
+		    ts.tv_nsec / 1000000L);
 	}
-  return size;
+
+	return size;
 }
 
-void put_chars(const char *chars, unsigned int size, gboolean crlf_auto, gboolean esc_clear_screen)
+void put_chars(const char *chars, gsize size, gboolean crlf_auto)
 {
 	// buffer must still be valid after cr conversion or adding timestamp
 	// only pointer is copied below
-	char out_buffer[(BUFFER_RECEPTION*2) + TIMESTAMP_SIZE];
+	// Called only from GLib main-loop callbacks (single-threaded), so static is safe.
+	static char out_buffer[(BUFFER_RECEPTION*2) + TIMESTAMP_SIZE];
 	const char *characters;
 
 	/* If the auto CR LF mode on, read the buffer to add \r before \n */
-	if(crlf_auto || timestamp_on || esc_clear_screen)
+	if(crlf_auto || term_conf.timestamp)
 	{
 		int i, out_size = 0;
 
-		for (i=0; i<size; i++)
+		for (i=0; i<(int)size; i++)
 		{
-			if(esc_clear_screen && chars[i] == '\x1b')
-			{
-				clear_buffer();
-				continue;
-			}
 			if(crlf_auto)
 			{
 				if (chars[i] == '\r')
@@ -165,11 +153,11 @@ void put_chars(const char *chars, unsigned int size, gboolean crlf_auto, gboolea
 		// converted newline characters
 		chars = out_buffer;
 		size = out_size;
-	} // if(crlf_auto || timestamp_on || esc_clear_screen)
+	} // if(crlf_auto || term_conf.timestamp)
 
 	if(buffer == NULL)
 	{
-		i18n_printf(_("ERROR: Buffer is not initialized!\n"));
+		g_print(_("ERROR: Buffer is not initialized!\n"));
 		return;
 	}
 
@@ -187,7 +175,7 @@ void put_chars(const char *chars, unsigned int size, gboolean crlf_auto, gboolea
 	{
 		memcpy(current_buffer, characters, BUFFER_SIZE - pointer);
 		chars = characters + BUFFER_SIZE - pointer;
-		pointer = size - (BUFFER_SIZE - pointer);
+		pointer = (unsigned int)(size - (BUFFER_SIZE - pointer));
 		memcpy(buffer, chars, pointer);
 		current_buffer = buffer + pointer;
 		overlapped = 1;
@@ -217,9 +205,9 @@ void write_buffer(void)
 	}
 }
 
-void write_buffer_with_func(void (*func)(const char *, unsigned int))
+void write_buffer_with_func(void (*func)(const char *, gsize))
 {
-	void (*write_func_backup)(const char *, unsigned int);
+	void (*write_func_backup)(const char *, gsize);
 
 	write_func_backup = write_func;
 	write_func = func;
@@ -236,12 +224,9 @@ void clear_buffer(void)
 		return;
 
 	overlapped = 0;
-	memset(buffer, 0, BUFFER_SIZE);
 	current_buffer = buffer;
 	pointer = 0;
 	cr_received = 0;
-
-	virt_col_pos = 0;
 }
 
 void set_clear_func(void (*func)(void))
@@ -249,17 +234,8 @@ void set_clear_func(void (*func)(void))
 	clear_func = func;
 }
 
-void unset_clear_func(void (*func)(void))
-{
-	clear_func = NULL;
-}
-
-void set_display_func(void (*func)(const char *, unsigned int))
+void set_display_func(void (*func)(const char *, gsize))
 {
 	write_func = func;
 }
 
-void unset_display_func(void (*func)(const char *, unsigned int))
-{
-	write_func = NULL;
-}

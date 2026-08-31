@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.10"/>
+
+  <!-- Window title is set dynamically from the filename being sent -->
+  <object class="GtkWindow" id="file_transfer_window">
+    <signal name="close-request" handler="on_file_transfer_close_request"/>
+    <property name="default-width">250</property>
+    <property name="default-height">100</property>
+    <property name="modal">True</property>
+    <property name="resizable">False</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">10</property>
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <property name="margin-top">10</property>
+        <property name="margin-bottom">10</property>
+        <child>
+          <object class="GtkProgressBar" id="file_transfer_progress">
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="file_transfer_cancel">
+            <property name="label" translatable="yes">_Cancel</property>
+            <property name="use-underline">True</property>
+            <signal name="clicked" handler="close_all" swapped="yes"/>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+
+</interface>

@@ -1,7 +1,21 @@
 gnome = import('gnome')
 
+# About dialog UI — substitute @VERSION@ and @RELEASE_DATE@ at build time
+about_config = configuration_data()
+about_config.set('VERSION', meson.project_version())
+about_config.set('RELEASE_DATE', release_date)
+
+about_ui = configure_file(
+	input: 'about_dialog.ui.in',
+	output: 'about_dialog.ui',
+	configuration: about_config,
+)
+
 # Glade UI files
-gresources = gnome.compile_resources('resource', 'gresource.xml', source_dir: '.')
+gresources = gnome.compile_resources('resource', 'gresource.xml',
+	source_dir: ['.', meson.current_build_dir()],
+	dependencies: [about_ui],
+)
 
 # Desktop file
 desktop_config = configuration_data()
@@ -9,12 +23,9 @@ desktop_config.set('VERSION', meson.project_version())
 
 desktop_file_configured = configure_file(
 	input: 'gtkterm.desktop.in',
-	output: 'gtkterm.desktop',
+	output: 'org.gtk.gtkterm.desktop',
 	configuration: desktop_config,
-	install_dir: join_paths(
-		datadir,
-		'applications',
-	)
+	install_dir: datadir / 'applications',
 )
 
 desktop_file_validate = find_program('desktop-file-validate', required: false)
@@ -30,28 +41,22 @@ endif
 
 # Icon
 install_data('gtkterm_256x256.png',
-	install_dir: join_paths(datadir, 'icons', 'hicolor', '256x256', 'apps'),
+	install_dir: datadir / 'icons' / 'hicolor' / '256x256' / 'apps',
 	rename : 'gtkterm.png'
 )
 
 install_data('gtkterm_128x128.png',
-	install_dir: join_paths(datadir, 'icons', 'hicolor', '128x128', 'apps'),
+	install_dir: datadir / 'icons' / 'hicolor' / '128x128' / 'apps',
 	rename : 'gtkterm.png'
 )
 
 install_data('gtkterm_64x64.png',
-	install_dir: join_paths(datadir, 'icons', 'hicolor', '64x64', 'apps'),
+	install_dir: datadir / 'icons' / 'hicolor' / '64x64' / 'apps',
 	rename : 'gtkterm.png'
 )
 
 install_data('gtkterm_48x48.png',
-	install_dir: join_paths(datadir, 'icons', 'hicolor', '48x48', 'apps'),
-	rename : 'gtkterm.png'
-)
-
-
-install_data('gtkterm_48x48.png',
-	install_dir: join_paths(datadir, 'icons', 'hicolor', '48x48', 'apps'),
+	install_dir: datadir / 'icons' / 'hicolor' / '48x48' / 'apps',
 	rename : 'gtkterm.png'
 )
 

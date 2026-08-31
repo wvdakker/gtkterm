@@ -1,0 +1,31 @@
+{
+  "app-id": "org.gtk.gtkterm",
+  "runtime": "org.gnome.Platform",
+  "runtime-version": "47",
+  "sdk": "org.gnome.Sdk",
+  "command": "gtkterm",
+  "finish-args": [
+    "--share=ipc",
+    "--share=network",
+    "--socket=fallback-x11",
+    "--socket=wayland",
+    "--filesystem=home",
+    "--filesystem=xdg-run/gvfsd",
+    "--device=all"
+  ],
+  "modules": [
+    {
+      "name": "gtkterm",
+      "buildsystem": "meson",
+      "config-opts": [
+        "--prefix=/app"
+      ],
+      "sources": [
+        {
+          "type": "dir",
+          "path": "../.."
+        }
+      ]
+    }
+  ]
+}

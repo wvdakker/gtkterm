@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkAboutDialog" id="about_dialog">
+    <property name="modal">1</property>
+    <property name="program-name">GTKTerm</property>
+    <property name="copyright">Copyright © Julien Schimtt</property>
+    <property name="website">https://github.com/Jeija/gtkterm</property>
+    <property name="website-label">https://github.com/Jeija/gtkterm</property>
+    <property name="license-type">lgpl-3-0</property>
+    <property name="version">@VERSION@</property>
+    <property name="comments">@RELEASE_DATE@
+
+GTKTerm is a simple GTK+ terminal used to communicate with the serial port.</property>
+    <property name="logo-icon-name">gtkterm</property>
+    <property name="authors">Julien Schimtt
+Zach Davis
+Florian Euchner
+Stephan Enderlein
+Kevin Picot
+Boris Krasnovskiy</property>
+  </object>
+</interface>

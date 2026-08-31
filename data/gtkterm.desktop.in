@@ -5,6 +5,12 @@ Comment=Connect to serial consoles
 Keywords=serial;console;terminal;
 Icon=gtkterm
 Exec=gtkterm
+StartupWMClass=org.gtk.gtkterm
 Terminal=false
 Type=Application
 Categories=GNOME;GTK;Utility
+Actions=new-window;
+
+[Desktop Action new-window]
+Name=New Window
+Exec=gtkterm

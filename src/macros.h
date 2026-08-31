@@ -15,18 +15,25 @@
 #ifndef MACROS_H_
 #define MACROS_H_
 
+#include <gio/gio.h>
+
 typedef struct
 {
-	gchar *shortcut;
-	gchar *action;
-	GClosure *closure;
+	gchar          *shortcut;
+	gchar          *action;
+	gchar          *expanded;
+	gsize           expanded_len;  /* cached strlen(expanded) */
+	guint           keyval;
+	GdkModifierType mods;
 }
 macro_t;
 
-void Config_macros(GtkAction *action, gpointer data);
+void Config_macros(GSimpleAction *action, GVariant *param, gpointer data);
 void remove_shortcuts(void);
-void add_shortcuts(void);
-void create_shortcuts(macro_t *, gint);
-macro_t *get_shortcuts(gint *);
+void create_shortcuts(macro_t *, gsize);
+macro_t *get_shortcuts(gsize *);
+void install_macro_shortcut_controller(GtkWidget *win);
+void set_macros_shortcuts_enabled(gboolean enabled);
 
 #endif
+

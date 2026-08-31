@@ -15,4 +15,10 @@
 /*                                                                     */
 /***********************************************************************/
 
-int read_command_line(int, char **);
+#ifndef CMDLINE_H_
+#define CMDLINE_H_
+
+void display_help(void);
+int  read_command_line(int, char **);
+
+#endif /* CMDLINE_H_ */

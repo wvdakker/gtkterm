@@ -1,0 +1,46 @@
+name: gtkterm
+base: core24
+version: "2.0.0"
+summary: GTK serial port terminal emulator
+description: |
+  GTKTerm is a graphical serial port terminal emulator for Linux and other
+  POSIX-compliant systems. It is useful for communicating with serial devices
+  such as microcontrollers, modems, and embedded systems.
+grade: stable
+confinement: strict
+
+parts:
+  gtkterm:
+    plugin: meson
+    source: ../..
+    meson-parameters:
+      - --prefix=/usr
+    build-packages:
+      - build-essential
+      - gettext
+      - libglib2.0-dev
+      - libgtk-4-dev
+      - libgudev-1.0-dev
+      - libvte-2.91-gtk4-dev
+      - meson
+      - ninja-build
+      - pkg-config
+    stage-packages:
+      - libglib2.0-0
+      - libgtk-4-1
+      - libgudev-1.0-0
+      - libvte-2.91-gtk4-0
+
+apps:
+  gtkterm:
+    command: usr/bin/gtkterm
+    desktop: usr/share/applications/org.gtk.gtkterm.desktop
+    plugs:
+      - home
+      - network
+      - opengl
+      - raw-usb
+      - removable-media
+      - serial-port
+      - wayland
+      - x11

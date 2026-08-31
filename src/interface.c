@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* widgets.c                                                           */
+/* interface.c                                                         */
 /* ---------                                                           */
 /*           GTKTerm Software                                          */
 /*                      (c) Julien Schmitt                             */
@@ -8,49 +8,7 @@
 /*                                                                     */
 /*   Purpose                                                           */
 /*      Functions for the management of the GUI for the main window    */
-/*                                                                     */
-/*   ChangeLog                                                         */
-/*   (All changes by Julien Schmitt except when explicitly written)    */
-/*                                                                     */
-/*       - 1.01  : The put_hexadecimal partly function rewritten.      */
-/*                 The vte_terminal_get_cursor_position function does  */
-/*                 not return always the actual column.                */
-/*                 Now it uses an internal column-index (virt_col_pos).*/
-/*                 (Willem van den Akker)                              */
-/*      - 0.99.7 : Changed keyboard shortcuts to <ctrl><shift>         */
-/*	            (Ken Peek)                                         */
-/*      - 0.99.6 : Added scrollbar and copy/paste (Zach Davis)         */
-/*                                                                     */
-/*      - 0.99.5 : Make package buildable on pure *BSD by changing the */
-/*                 include to asm/termios.h by sys/ttycom.h            */
-/*                 Print message without converting it into the locale */
-/*                 in show_message()                                   */
-/*                 Set backspace key binding to backspace so that the  */
-/*                 backspace works. It would even be nicer if the      */
-/*                 behaviour of this key could be configured !         */
-/*      - 0.99.4 : - Sebastien Bacher -                                */
-/*                 Added functions for CR LF auto mode                 */
-/*                 Fixed put_text() to have \r\n for the VTE Widget    */
-/*                 Rewritten put_hexadecimal() function                */
-/*                 - Julien -                                          */
-/*                 Modified send_serial to return the actual number of */
-/*                 bytes written, and also only display exactly what   */
-/*                 is written                                          */
-/*      - 0.99.3 : Modified to use a VTE terminal                      */
-/*      - 0.99.2 : Internationalization                                */
-/*      - 0.99.0 : \b byte now handled correctly by the ascii widget   */
-/*                 SUPPR (0x7F) also prints correctly                  */
-/*                 adapted for macros                                  */
-/*                 modified "about" dialog                             */
-/*      - 0.98.6 : fixed possible buffer overrun in hex send           */
-/*                 new "Send break" option                             */
-/*      - 0.98.5 : icons in the menu                                   */
-/*                 bug fixed with local echo and hexadecimal           */
-/*                 modified hexadecimal send separator, and bug fixed  */
-/*      - 0.98.4 : new hexadecimal display / send                      */
-/*      - 0.98.3 : put_text() modified to fit with 0x0D 0x0A           */
-/*      - 0.98.2 : added local echo by Julien                          */
-/*      - 0.98 : file creation by Julien                               */
+/*      Ported to GTK4                                                 */
 /*                                                                     */
 /***********************************************************************/
 
@@ -60,7 +18,6 @@
 #ifdef HAVE_LINUX_TERMIOS_H
 # include <linux/termios.h>	/* For control signals */
 # define NO_TERMIOS		/* Conflicts with <termios.h> */
-#elif defined (HAVE_SYS_TTYCOM_H)
 #endif
 #include <vte/vte.h>
 #include <stdlib.h>
@@ -68,296 +25,385 @@
 #include <string.h>
 
 #include "term_config.h"
+#include "port_config_dialog.h"
+#include "terminal_config.h"
+#include "config_dialog.h"
 #include "files.h"
 #include "search.h"
 #include "serial.h"
 #include "interface.h"
 #include "buffer.h"
 #include "macros.h"
-#include "auto_config.h"
 #include "logging.h"
 #include "device_monitor.h"
 
-#include <glib/gprintf.h>
 #include <glib/gi18n.h>
+#include "config_file.h"
+#include "txqueue.h"
 
-guint id;
-gboolean echo_on;
-gboolean autoreconnect_on;
-gboolean crlfauto_on;
-gboolean esc_clear_screen_on;
-gboolean timestamp_on = 0;
 GtkWidget *StatusBar;
 GtkWidget *signals[6];
 static GtkWidget *Hex_Box;
 GtkWidget *searchBar;
-GtkWidget *scrolled_window;
-GtkWidget *Fenetre;
-GtkWidget *popup_menu;
-GtkUIManager *ui_manager;
-GtkAccelGroup *shortcuts;
-GtkActionGroup *action_group;
-GtkWidget *display = NULL;
+GtkWindow *Fenetre;
+static GtkApplication *main_app;
+VteTerminal *display = NULL;
+static gulong got_input_handler_id = 0;
+/* Cancel-and-reschedule handle for the commit-handler unblock timeout.
+ * Non-zero while a set_view() call has the Got_Input handler blocked.
+ * Each set_view() cancels any pending timeout and reschedules a fresh
+ * 50 ms one, so only one source is ever queued at a time. */
+static guint reenable_source = 0;
 
-GtkWidget *Text;
-GtkTextBuffer *buffer;
-GtkTextIter iter;
-
-GList *hex_history = NULL;  // To store the history of entered texts
-GList *current_hex = NULL;  // Pointer to the current item in history
-
-extern struct configuration_port config;
+static GQueue hex_history = G_QUEUE_INIT;
+static GList *current_hex = NULL;
 
 /* Variables for hexadecimal display */
-static gint bytes_per_line = 16;
-static gchar blank_data[128];
+static guint bytes_per_line = 16;
 static guint total_bytes;
 static gboolean show_index = FALSE;
 guint virt_col_pos = 0;
 
-/* Local functions prototype */
-void signals_send_break_callback(GtkAction *action, gpointer data);
-void signals_toggle_DTR_callback(GtkAction *action, gpointer data);
-void signals_toggle_RTS_callback(GtkAction *action, gpointer data);
-void signals_close_port(GtkAction *action, gpointer data);
-void signals_open_port(GtkAction *action, gpointer data);
-void help_about_callback(GtkAction *action, gpointer data);
-gboolean Envoie_car(GtkWidget *, GdkEventKey *, gpointer);
-gboolean control_signals_read(void);
-void echo_toggled_callback(GtkAction *action, gpointer data);
-void Autoreconnect_toggled_callback(GtkAction *action, gpointer data);
-void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data);
-void esc_clear_screen_toggled_callback(GtkAction *action, gpointer data);
-void timestamp_toggled_callback(GtkAction *action, gpointer data);
-void view_radio_callback(GtkAction *action, gpointer data);
-void view_hexadecimal_chars_radio_callback(GtkAction* action, gpointer data);
-void view_index_toggled_callback(GtkAction *action, gpointer data);
-void view_send_hex_toggled_callback(GtkAction *action, gpointer data);
-void initialize_hexadecimal_display(void);
-gboolean Send_Hexadecimal(GtkWidget *, GdkEventKey *, gpointer);
-gboolean pop_message(void);
-static gchar *translate_menu(const gchar *, gpointer);
-static void Got_Input(VteTerminal *, gchar *, guint, gpointer);
-void edit_copy_callback(GtkAction *action, gpointer data);
-void update_copy_sensivity(VteTerminal *terminal, gpointer data);
-void edit_paste_callback(GtkAction *action, gpointer data);
-void edit_find_callback(GtkAction *action);
-void edit_select_all_callback(GtkAction *action, gpointer data);
-
-void set_saved_data(GtkWidget *widget, gboolean direction);
+/* Forward declarations */
+gboolean pop_message(gpointer user_data);
+static void Send_Hexadecimal(GtkWidget *widget, gpointer pointer);
+static void set_action_enabled(const char *name, gboolean enabled);
 void update_hex_history(GtkWidget *widget);
-gboolean on_key_press(GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+void set_saved_data(GtkWidget *widget, gboolean direction);
+void show_control_signals(int stat);
+void update_copy_sensivity(VteTerminal *terminal, gpointer data);
+static void Got_Input(VteTerminal *widget, gchar *text, guint length, gpointer ptr);
+gboolean on_hex_key_pressed(GtkEventControllerKey *ctrl,
+                                    guint keyval, guint keycode,
+                                    GdkModifierType state, gpointer user_data);
 
-/* Menu */
-const GtkActionEntry menu_entries[] =
+static void file_exit_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	/* Toplevel */
-	{"File", NULL, N_("_File")},
-	{"Edit", NULL, N_("_Edit")},
-	{"Log", NULL, N_("_Log")},
-	{"Configuration", NULL, N_("_Configuration")},
-	{"Signals", NULL, N_("Control _signals")},
-	{"View", NULL, N_("_View")},
-	{"ViewHexadecimalChars", NULL, N_("Hexadecimal _chars")},
-	{"Help", NULL, N_("_Help")},
-
-	/* File menu */
-	{"FileExit", GTK_STOCK_QUIT, NULL, "<shift><control>Q", NULL, gtk_main_quit},
-	{"ClearScreen", GTK_STOCK_CLEAR, N_("_Clear screen"), "<shift><control>L", NULL, G_CALLBACK(clear_buffer)},
-	{"ClearScrollback", GTK_STOCK_CLEAR, N_("_Clear scrollback"), "<shift><control>K", NULL, G_CALLBACK(clear_scrollback)},
-	{"SendFile", GTK_STOCK_JUMP_TO, N_("Send _RAW file"), "<shift><control>R", NULL, G_CALLBACK(send_raw_file)},
-	{"SaveFile", GTK_STOCK_SAVE_AS, N_("_Save RAW file"), "", NULL, G_CALLBACK(save_raw_file)},
-        {"SaveAsciiFile", GTK_STOCK_SAVE_AS, N_("Save _ASCII file"), "", NULL, G_CALLBACK(save_ascii_file)},
-
-	/* Edit menu */
-	{"EditCopy", GTK_STOCK_COPY, NULL, "<shift><control>C", NULL, G_CALLBACK(edit_copy_callback)},
-	{"EditPaste", GTK_STOCK_PASTE, NULL, "<shift><control>V", NULL, G_CALLBACK(edit_paste_callback)},
-	{"EditFind", GTK_STOCK_FIND, NULL, "<shift><control>F", NULL, G_CALLBACK(edit_find_callback)},
-	{"EditSelectAll", GTK_STOCK_SELECT_ALL, NULL, "<shift><control>A", NULL, G_CALLBACK(edit_select_all_callback)},
-
-	/* Log Menu */
-	{"LogToFile", GTK_STOCK_MEDIA_RECORD, N_("To file..."), "", NULL, G_CALLBACK(logging_start)},
-	{"LogPauseResume", GTK_STOCK_MEDIA_PAUSE, NULL, "", NULL, G_CALLBACK(logging_pause_resume)},
-	{"LogStop", GTK_STOCK_MEDIA_STOP, NULL, "", NULL, G_CALLBACK(logging_stop)},
-	{"LogClear", GTK_STOCK_CLEAR, NULL, "", NULL, G_CALLBACK(logging_clear)},
-
-	/* Confuguration Menu */
-	{"ConfigPort", GTK_STOCK_PROPERTIES, N_("_Port"), "<shift><control>S", NULL, G_CALLBACK(Config_Port_Fenetre)},
-	{"ConfigTerminal", GTK_STOCK_PREFERENCES, N_("_Main window"), "", NULL, G_CALLBACK(Config_Terminal)},
-	{"Macros", NULL, N_("_Macros"), NULL, NULL, G_CALLBACK(Config_macros)},
-	{"SelectConfig", GTK_STOCK_OPEN, N_("_Load configuration"), "", NULL, G_CALLBACK(select_config_callback)},
-	{"SaveConfig", GTK_STOCK_SAVE_AS, N_("_Save configuration"), "", NULL, G_CALLBACK(save_config_callback)},
-	{"DeleteConfig", GTK_STOCK_DELETE, N_("_Delete configuration"), "", NULL, G_CALLBACK(delete_config_callback)},
-
-	/* Signals Menu */
-	{"SignalsSendBreak", NULL, N_("Send break"), "<shift><control>B", NULL, G_CALLBACK(signals_send_break_callback)},
-	{"SignalsOpenPort", GTK_STOCK_OPEN, N_("_Open Port"), "F5", NULL, G_CALLBACK(signals_open_port)},
-	{"SignalsClosePort", GTK_STOCK_CLOSE, N_("_Close Port"), "F6", NULL, G_CALLBACK(signals_close_port)},
-	{"SignalsDTR", NULL, N_("Toggle DTR"), "F7", NULL, G_CALLBACK(signals_toggle_DTR_callback)},
-	{"SignalsRTS", NULL, N_("Toggle RTS"), "F8", NULL, G_CALLBACK(signals_toggle_RTS_callback)},
-
-	/* About menu */
-	{"HelpAbout", GTK_STOCK_ABOUT, NULL, NULL, NULL, G_CALLBACK(help_about_callback)}
-};
-
-const GtkToggleActionEntry menu_toggle_entries[] =
-{
-	/* Configuration Menu */
-	{"LocalEcho", NULL, N_("Local _echo"), NULL, NULL, G_CALLBACK(echo_toggled_callback), FALSE},
-	{"Autoreconnect", NULL, N_("Autoreconnect"), NULL, NULL, G_CALLBACK(Autoreconnect_toggled_callback), FALSE},
-	{"CRLFauto", NULL, N_("_CR LF auto"), NULL, NULL, G_CALLBACK(CR_LF_auto_toggled_callback), FALSE},
-	{"EscClearScreen", NULL, N_("ESC clear scree_n"), NULL, NULL, G_CALLBACK(esc_clear_screen_toggled_callback), FALSE},
-	{"Timestamp", NULL, N_("Timestamp"), NULL, NULL, G_CALLBACK(timestamp_toggled_callback), FALSE},
-
-	/* View Menu */
-	{"ViewIndex", NULL, N_("Show _index"), NULL, NULL, G_CALLBACK(view_index_toggled_callback), FALSE},
-	{"ViewSendHexData", NULL, N_("_Send hexadecimal data"), NULL, NULL, G_CALLBACK(view_send_hex_toggled_callback), FALSE}
-};
-
-const GtkRadioActionEntry menu_view_radio_entries[] =
-{
-	{"ViewASCII", NULL, N_("_ASCII"), NULL, NULL, ASCII_VIEW},
-	{"ViewHexadecimal", NULL, N_("_Hexadecimal"), NULL, NULL, HEXADECIMAL_VIEW}
-};
-
-const GtkRadioActionEntry menu_hex_chars_length_radio_entries[] =
-{
-	{"ViewHex8", NULL, "_8", NULL, NULL, 8},
-	{"ViewHex10", NULL, "1_0", NULL, NULL, 10},
-	{"ViewHex16", NULL, "_16", NULL, NULL, 16},
-	{"ViewHex24", NULL, "_24", NULL, NULL, 24},
-	{"ViewHex32", NULL, "_32", NULL, NULL, 32}
-};
-
-static const char *ui_description =
-    "<ui>"
-    "  <menubar name='MenuBar'>"
-    "    <menu action='File'>"
-    "      <menuitem action='ClearScreen'/>"
-    "      <menuitem action='ClearScrollback'/>"
-    "      <menuitem action='SendFile'/>"
-    "      <menuitem action='SaveFile'/>"
-    "      <menuitem action='SaveAsciiFile'/>"
-    "      <separator/>"
-    "      <menuitem action='FileExit'/>"
-    "    </menu>"
-    "    <menu action='Edit'>"
-    "      <menuitem action='EditCopy'/>"
-    "      <menuitem action='EditPaste'/>"
-    "      <menuitem action='EditFind'/>"
-    "      <separator/>"
-    "      <menuitem action='EditSelectAll'/>"
-    "    </menu>"
-    "    <menu action='Log'>"
-    "      <menuitem action='LogToFile'/>"
-    "      <menuitem action='LogPauseResume'/>"
-    "      <menuitem action='LogStop'/>"
-    "      <menuitem action='LogClear'/>"
-    "    </menu>"
-    "    <menu action='Configuration'>"
-    "      <menuitem action='ConfigPort'/>"
-    "      <menuitem action='ConfigTerminal'/>"
-    "      <menuitem action='LocalEcho'/>"
-    "      <menuitem action='Autoreconnect'/>"
-    "      <menuitem action='CRLFauto'/>"
-    "      <menuitem action='EscClearScreen'/>"
-    "      <menuitem action='Timestamp'/>"
-    "      <menuitem action='Macros'/>"
-    "      <separator/>"
-    "      <menuitem action='SelectConfig'/>"
-    "      <menuitem action='SaveConfig'/>"
-    "      <menuitem action='DeleteConfig'/>"
-    "    </menu>"
-    "    <menu action='Signals'>"
-    "      <menuitem action='SignalsSendBreak'/>"
-    "      <menuitem action='SignalsOpenPort'/>"
-    "      <menuitem action='SignalsClosePort'/>"
-    "      <menuitem action='SignalsDTR'/>"
-    "      <menuitem action='SignalsRTS'/>"
-    "    </menu>"
-    "    <menu action='View'>"
-    "      <menuitem action='ViewASCII'/>"
-    "      <menuitem action='ViewHexadecimal'/>"
-    "      <menu action='ViewHexadecimalChars'>"
-    "        <menuitem action='ViewHex8'/>"
-    "        <menuitem action='ViewHex10'/>"
-    "        <menuitem action='ViewHex16'/>"
-    "        <menuitem action='ViewHex24'/>"
-    "        <menuitem action='ViewHex32'/>"
-    "      </menu>"
-    "      <menuitem action='ViewIndex'/>"
-    "      <separator/>"
-    "      <menuitem action='ViewSendHexData'/>"
-    "    </menu>"
-    "    <menu action='Help'>"
-    "      <menuitem action='HelpAbout'/>"
-    "    </menu>"
-    "  </menubar>"
-    "  <popup name='PopupMenu'>"
-    "    <menuitem action='EditCopy'/>"
-    "    <menuitem action='EditPaste'/>"
-    "    <menuitem action='EditFind'/>"
-    "    <separator/>"
-    "    <menuitem action='EditSelectAll'/>"
-    "  </popup>"
-    "</ui>";
-
-static gchar *translate_menu(const gchar *path, gpointer data)
-{
-	return _(path);
+	g_application_quit(G_APPLICATION(main_app));
 }
 
-void view_send_hex_toggled_callback(GtkAction *action, gpointer data)
+static void clear_screen_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	if(gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action)))
-		gtk_widget_show(GTK_WIDGET(Hex_Box));
+	clear_buffer();
+}
+
+static void clear_scrollback_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	clear_scrollback();
+}
+
+static void edit_copy_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	vte_terminal_copy_clipboard_format(display, VTE_FORMAT_TEXT);
+}
+
+static void edit_paste_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	vte_terminal_paste_clipboard(display);
+}
+
+static void edit_find_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	if (gtk_widget_is_visible(searchBar))
+		search_bar_hide(searchBar);
 	else
-		gtk_widget_hide(GTK_WIDGET(Hex_Box));
+		search_bar_show(searchBar);
 }
 
-void view_index_toggled_callback(GtkAction *action, gpointer data)
+static void edit_select_all_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
 {
-	show_index = gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action));
+	vte_terminal_select_all(display);
+}
+
+static void signals_send_break_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	sendbreak();
+	Put_temp_message(_("Break signal sent!"), 800);
+}
+
+static void signals_toggle_DTR_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	Set_signals(0);
+}
+
+static void signals_toggle_RTS_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	Set_signals(1);
+}
+
+static void on_dtr_clicked(GtkGestureClick *gesture G_GNUC_UNUSED, int n_press G_GNUC_UNUSED,
+                           double x G_GNUC_UNUSED, double y G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	Set_signals(0);
+}
+
+static void on_rts_clicked(GtkGestureClick *gesture G_GNUC_UNUSED, int n_press G_GNUC_UNUSED,
+                           double x G_GNUC_UNUSED, double y G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	Set_signals(1);
+}
+
+static void signals_close_port_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	interface_close_port();
+}
+
+static void signals_open_port_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	interface_open_port(TRUE);
+}
+
+static void help_shortcuts_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	GtkBuilder *builder = gtk_builder_new_from_resource("/org/gtk/gtkterm/shortcuts_window.ui");
+	GtkWindow *win = GTK_WINDOW(gtk_builder_get_object(builder, "shortcuts_window"));
+
+	gtk_window_set_transient_for(win, Fenetre);
+	gtk_window_present(win);
+	g_object_unref(builder);
+}
+
+static void help_about_cb(GSimpleAction *a G_GNUC_UNUSED, GVariant *p G_GNUC_UNUSED, gpointer data G_GNUC_UNUSED)
+{
+	GtkBuilder *builder = gtk_builder_new_from_resource("/org/gtk/gtkterm/about_dialog.ui");
+	GtkAboutDialog *dlg = GTK_ABOUT_DIALOG(gtk_builder_get_object(builder, "about_dialog"));
+	g_object_unref(builder);
+
+	gtk_window_set_transient_for(GTK_WINDOW(dlg), Fenetre);
+	gtk_window_present(GTK_WINDOW(dlg));
+}
+
+/* Toggle / radio change-state callbacks */
+
+static void echo_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
+{
+	term_conf.echo = g_variant_get_boolean(s);
+	g_simple_action_set_state(a, s);
+}
+
+static void autoreconnect_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
+{
+	term_conf.autoreconnect_enabled = g_variant_get_boolean(s);
+	g_simple_action_set_state(a, s);
+}
+
+static void crlfauto_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
+{
+	term_conf.crlfauto = g_variant_get_boolean(s);
+	g_simple_action_set_state(a, s);
+}
+
+static void esc_clear_screen_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
+{
+	term_conf.esc_clear_screen = g_variant_get_boolean(s);
+	g_simple_action_set_state(a, s);
+}
+
+static void timestamp_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
+{
+	term_conf.timestamp = g_variant_get_boolean(s);
+	g_simple_action_set_state(a, s);
+}
+
+static void view_index_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
+{
+	show_index = g_variant_get_boolean(s);
+	g_simple_action_set_state(a, s);
 	set_view(HEXADECIMAL_VIEW);
 }
 
-void view_hexadecimal_chars_radio_callback(GtkAction* action, gpointer data)
+static void view_send_hex_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
 {
-	gint current_value;
-	current_value = gtk_radio_action_get_current_value(GTK_RADIO_ACTION(action));
+	g_simple_action_set_state(a, s);
+	gtk_widget_set_visible(Hex_Box, g_variant_get_boolean(s));
+}
 
-	bytes_per_line = current_value;
+static void view_mode_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
+{
+	const gchar *mode = g_variant_get_string(s, NULL);
+	g_simple_action_set_state(a, s);
+	set_view(g_str_equal(mode, "hex") ? HEXADECIMAL_VIEW : ASCII_VIEW);
+}
+
+static void hex_chars_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
+{
+	const gchar *val = g_variant_get_string(s, NULL);
+	g_simple_action_set_state(a, s);
+	bytes_per_line = atoi(val);
 	set_view(HEXADECIMAL_VIEW);
+}
+
+/* All application accelerators in one place.  Used both at startup to
+ * register them and in apply_shortcuts_disabled() to toggle them. */
+static const struct { const gchar *action; const gchar *accel; } app_accels[] = {
+	{ "app.clear-screen",       "<Shift><Control>L" },
+	{ "app.file-exit",          "<Shift><Control>Q" },
+	{ "app.edit-copy",          "<Shift><Control>C" },
+	{ "app.edit-paste",         "<Shift><Control>V" },
+	{ "app.edit-find",          "<Shift><Control>F" },
+	{ "app.edit-select-all",    "<Shift><Control>A" },
+	{ "app.config-port",        "<Shift><Control>S" },
+	{ "app.signals-send-break", "<Shift><Control>B" },
+	{ "app.signals-open-port",  "F5"                },
+	{ "app.signals-close-port", "F6"                },
+	{ "app.signals-dtr",        "F7"                },
+	{ "app.signals-rts",        "F8"                },
+	{ "app.help-shortcuts",     "<Control>question" },
+};
+
+static void apply_shortcuts_disabled(gboolean disabled)
+{
+	guint i;
+
+	set_macros_shortcuts_enabled(!disabled);
+	set_action_enabled("macros", !disabled);
+	set_action_enabled("help-shortcuts", !disabled);
+
+	for (i = 0; i < G_N_ELEMENTS(app_accels); i++) {
+		if (disabled) {
+			const char *empty[] = { NULL };
+			gtk_application_set_accels_for_action(main_app, app_accels[i].action, empty);
+		} else {
+			const char *av[] = { app_accels[i].accel, NULL };
+			gtk_application_set_accels_for_action(main_app, app_accels[i].action, av);
+		}
+	}
+}
+
+static void disable_shortcuts_change_state(GSimpleAction *a, GVariant *s, gpointer data G_GNUC_UNUSED)
+{
+	term_conf.disable_shortcuts = g_variant_get_boolean(s);
+	g_simple_action_set_state(a, s);
+	apply_shortcuts_disabled(term_conf.disable_shortcuts);
+}
+
+/* Normal action entries table */
+static const GActionEntry app_actions[] = {
+	{ .name = "file-exit",          .activate = file_exit_cb          },
+	{ .name = "clear-screen",       .activate = clear_screen_cb       },
+	{ .name = "clear-scrollback",   .activate = clear_scrollback_cb   },
+	{ .name = "send-raw-file",      .activate = send_raw_file         },
+	{ .name = "send-text-file",     .activate = send_text_file        },
+	{ .name = "save-raw-file",      .activate = save_raw_file         },
+	{ .name = "save-ascii-file",    .activate = save_ascii_file       },
+	{ .name = "edit-copy",          .activate = edit_copy_cb          },
+	{ .name = "edit-paste",         .activate = edit_paste_cb         },
+	{ .name = "edit-find",          .activate = edit_find_cb          },
+	{ .name = "edit-select-all",    .activate = edit_select_all_cb    },
+	{ .name = "log-to-file",        .activate = logging_start         },
+	{ .name = "log-pause-resume",   .activate = logging_pause_resume  },
+	{ .name = "log-stop",           .activate = logging_stop          },
+	{ .name = "log-clear",          .activate = logging_clear         },
+	{ .name = "config-port",        .activate = Config_Port_Fenetre   },
+	{ .name = "config-terminal",    .activate = Config_Terminal       },
+	{ .name = "macros",             .activate = Config_macros         },
+	{ .name = "select-config",      .activate = select_config_callback },
+	{ .name = "save-config",        .activate = save_config_callback  },
+	{ .name = "delete-config",      .activate = delete_config_callback },
+	{ .name = "signals-send-break", .activate = signals_send_break_cb },
+	{ .name = "signals-open-port",  .activate = signals_open_port_cb  },
+	{ .name = "signals-close-port", .activate = signals_close_port_cb },
+	{ .name = "signals-dtr",        .activate = signals_toggle_DTR_cb },
+	{ .name = "signals-rts",        .activate = signals_toggle_RTS_cb },
+	{ .name = "help-shortcuts",     .activate = help_shortcuts_cb     },
+	{ .name = "help-about",         .activate = help_about_cb         },
+	/* Stateful toggles */
+	{ .name = "local-echo",       .state = "false", .change_state = echo_change_state           },
+	{ .name = "autoreconnect",    .state = "false", .change_state = autoreconnect_change_state  },
+	{ .name = "crlfauto",         .state = "false", .change_state = crlfauto_change_state       },
+	{ .name = "esc-clear-screen", .state = "false", .change_state = esc_clear_screen_change_state },
+	{ .name = "timestamp",        .state = "false", .change_state = timestamp_change_state      },
+	{ .name = "view-index",       .state = "false", .change_state = view_index_change_state     },
+	{ .name = "view-send-hex",    .state = "false", .change_state = view_send_hex_change_state  },
+	/* Stateful radio actions */
+	{ .name = "view-mode", .parameter_type = "s", .state = "'ascii'", .change_state = view_mode_change_state },
+	{ .name = "hex-chars", .parameter_type = "s", .state = "'16'",    .change_state = hex_chars_change_state },
+	/* Simple action used only for enabling/disabling the hex-chars submenu */
+	{ .name = "hex-chars-submenu" },
+	{ .name = "disable-shortcuts", .state = "false", .change_state = disable_shortcuts_change_state },
+};
+
+
+/* Exported helpers that update action state */
+
+static void set_bool_action(const char *name, gboolean value)
+{
+	GAction *action = g_action_map_lookup_action(G_ACTION_MAP(main_app), name);
+	if (action)
+		g_simple_action_set_state(G_SIMPLE_ACTION(action),
+		                          g_variant_new_boolean(value));
+}
+
+static void set_action_enabled(const char *name, gboolean enabled)
+{
+	GAction *action = g_action_map_lookup_action(G_ACTION_MAP(main_app), name);
+	if (action)
+		g_simple_action_set_enabled(G_SIMPLE_ACTION(action), enabled);
+}
+
+static void set_string_action(const char *name, const char *value)
+{
+	GAction *action = g_action_map_lookup_action(G_ACTION_MAP(main_app), name);
+	if (action)
+		g_simple_action_set_state(G_SIMPLE_ACTION(action),
+		                          g_variant_new_string(value));
+}
+
+void Set_local_echo(gboolean v)            { term_conf.echo                  = v; set_bool_action("local-echo",       v); }
+void Set_crlfauto(gboolean v)              { term_conf.crlfauto              = v; set_bool_action("crlfauto",         v); }
+void Set_autoreconnect_enabled(gboolean v) { term_conf.autoreconnect_enabled = v; set_bool_action("autoreconnect",    v); }
+void Set_esc_clear_screen(gboolean v)      { term_conf.esc_clear_screen      = v; set_bool_action("esc-clear-screen", v); }
+void Set_timestamp(gboolean v)             { term_conf.timestamp             = v; set_bool_action("timestamp",        v); }
+
+void Set_shortcuts_disabled(gboolean disabled)
+{
+	term_conf.disable_shortcuts = disabled;
+	set_bool_action("disable-shortcuts", disabled);
+	apply_shortcuts_disabled(disabled);
+}
+
+static gboolean reenable_commit_cb(gpointer data G_GNUC_UNUSED)
+{
+	reenable_source = 0;
+	if (got_input_handler_id && display)
+		g_signal_handler_unblock(display, got_input_handler_id);
+	return G_SOURCE_REMOVE;
 }
 
 void set_view(guint type)
 {
-	GtkAction *action;
-	GtkAction *show_index_action;
-	GtkAction *hex_chars_action;
-
-	show_index_action = gtk_action_group_get_action(action_group, "ViewIndex");
-	hex_chars_action = gtk_action_group_get_action(action_group, "ViewHexadecimalChars");
+	/* Block the commit→serial path for the duration of the clear+replay.
+	 * vte_terminal_set_input_enabled() does NOT suppress commit emissions
+	 * from data fed via vte_terminal_feed() — VTE still responds to escape
+	 * sequences (DSR, XTGETTCAP, etc.) in the replayed buffer regardless.
+	 * g_signal_handler_block() silences Got_Input at the signal level.
+	 * A 50ms timeout (>> VTE_DISPLAY_TIMEOUT=1ms) guarantees the unblock
+	 * fires after all of VTE's async processing rounds. Cancel-and-reschedule
+	 * on rapid back-to-back calls keeps exactly one pending timeout. */
+	if (reenable_source == 0 && got_input_handler_id && display)
+		g_signal_handler_block(display, got_input_handler_id);
+	if (reenable_source)
+		g_source_remove(reenable_source);
+	reenable_source = g_timeout_add(50, reenable_commit_cb, NULL);
 
 	clear_display();
 	set_clear_func(clear_display);
-	switch(type)
+	switch (type)
 	{
 	case ASCII_VIEW:
-		action = gtk_action_group_get_action(action_group, "ViewASCII");
-		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), TRUE);
-		gtk_action_set_sensitive(show_index_action, FALSE);
-		gtk_action_set_sensitive(hex_chars_action, FALSE);
+		set_string_action("view-mode", "ascii");
+		set_action_enabled("view-index",        FALSE);
+		set_action_enabled("hex-chars",         FALSE);
+		set_action_enabled("hex-chars-submenu", FALSE);
 		total_bytes = 0;
 		set_display_func(put_text);
 		break;
 	case HEXADECIMAL_VIEW:
-		action = gtk_action_group_get_action(action_group, "ViewHexadecimal");
-		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), TRUE);
-		gtk_action_set_sensitive(show_index_action, TRUE);
-		gtk_action_set_sensitive(hex_chars_action, TRUE);
+		set_string_action("view-mode", "hex");
+		set_action_enabled("view-index",        TRUE);
+		set_action_enabled("hex-chars",         TRUE);
+		set_action_enabled("hex-chars-submenu", TRUE);
 		total_bytes = 0;
-		virt_col_pos = 0;
 		set_display_func(put_hexadecimal);
 		break;
 	default:
@@ -366,739 +412,483 @@ void set_view(guint type)
 	write_buffer();
 }
 
-void view_radio_callback(GtkAction *action, gpointer data)
+void toggle_logging_pause_resume(gboolean currentlyLogging G_GNUC_UNUSED)
 {
-	gint current_value;
-	current_value = gtk_radio_action_get_current_value(GTK_RADIO_ACTION(action));
-
-	set_view(current_value);
-}
-
-void Set_local_echo(gboolean echo)
-{
-	GtkAction *action;
-
-	echo_on = echo;
-
-	action = gtk_action_group_get_action(action_group, "LocalEcho");
-	if(action)
-		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), echo_on);
-}
-
-void echo_toggled_callback(GtkAction *action, gpointer data)
-{
-	echo_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
-	configure_echo(echo_on);
-}
-
-void Set_crlfauto(gboolean crlfauto)
-{
-	GtkAction *action;
-
-	crlfauto_on = crlfauto;
-
-	action = gtk_action_group_get_action(action_group, "CRLFauto");
-	if(action)
-		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), crlfauto_on);
-}
-
-void Set_autoreconnect_enabled(gboolean autoreconnect_enabled)
-{
-	GtkAction *action;
-
-	autoreconnect_on = autoreconnect_enabled;
-
-	action = gtk_action_group_get_action(action_group, "Autoreconnect");
-	if(action)
-		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), autoreconnect_on);
-}
-
-void Autoreconnect_toggled_callback(GtkAction *action, gpointer data)
-{
-	autoreconnect_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
-	configure_autoreconnect_enable(autoreconnect_on);
-}
-
-void CR_LF_auto_toggled_callback(GtkAction *action, gpointer data)
-{
-	crlfauto_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
-	configure_crlfauto(crlfauto_on);
-}
-
-void Set_esc_clear_screen(gboolean esc_clear_screen)
-{
-	GtkAction *action;
-
-	esc_clear_screen_on = esc_clear_screen;
-
-	action = gtk_action_group_get_action(action_group, "EscClearScreen");
-	if(action)
-		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), esc_clear_screen_on);
-}
-
-void esc_clear_screen_toggled_callback(GtkAction *action, gpointer data)
-{
-	esc_clear_screen_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
-	configure_esc_clear_screen(esc_clear_screen_on);
-}
-
-void Set_timestamp(gboolean timestamp)
-{
-	GtkAction *action;
-
-	timestamp_on = timestamp;
-
-	action = gtk_action_group_get_action(action_group, "Timestamp");
-	if(action)
-		gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), timestamp_on);
-}
-
-void timestamp_toggled_callback(GtkAction *action, gpointer data)
-{
-	timestamp_on = gtk_toggle_action_get_active (GTK_TOGGLE_ACTION(action));
-	config.timestamp = timestamp_on ? TRUE : FALSE;
-}
-
-void toggle_logging_pause_resume(gboolean currentlyLogging)
-{
-	GtkAction *action;
-
-	action = gtk_action_group_get_action(action_group, "LogPauseResume");
-
-	if (currentlyLogging)
-	{
-		gtk_action_set_label(action, NULL);
-		gtk_action_set_stock_id(action, GTK_STOCK_MEDIA_PAUSE);
-	}
-	else
-	{
-		gtk_action_set_label(action, _("Resume"));
-		gtk_action_set_stock_id(action, GTK_STOCK_MEDIA_PLAY);
-	}
+	/* Label changes are not straightforward with GMenu; just no-op */
 }
 
 void toggle_logging_sensitivity(gboolean currentlyLogging)
 {
-	GtkAction *action;
-
-	action = gtk_action_group_get_action(action_group, "LogToFile");
-	gtk_action_set_sensitive(action, !currentlyLogging);
-	action = gtk_action_group_get_action(action_group, "LogPauseResume");
-	gtk_action_set_sensitive(action, currentlyLogging);
-	action = gtk_action_group_get_action(action_group, "LogStop");
-	gtk_action_set_sensitive(action, currentlyLogging);
-	action = gtk_action_group_get_action(action_group, "LogClear");
-	gtk_action_set_sensitive(action, currentlyLogging);
+	set_action_enabled("log-to-file",      !currentlyLogging);
+	set_action_enabled("log-pause-resume",  currentlyLogging);
+	set_action_enabled("log-stop",          currentlyLogging);
+	set_action_enabled("log-clear",         currentlyLogging);
 }
 
-gboolean terminal_button_press_callback(GtkWidget *widget,
-                                        GdkEventButton *event,
-                                        gpointer *data)
+gboolean terminal_popup_key_cb(GtkEventControllerKey *ctrl G_GNUC_UNUSED,
+                                      guint keyval, guint keycode G_GNUC_UNUSED,
+                                      GdkModifierType state, gpointer data)
 {
-
-	if(event->type == GDK_BUTTON_PRESS &&
-	        event->button == 3 &&
-	        (event->state & gtk_accelerator_get_default_mod_mask()) == 0)
+	if (keyval == GDK_KEY_Menu ||
+	    (keyval == GDK_KEY_F10 && (state & GDK_SHIFT_MASK)))
 	{
-		gtk_menu_popup(GTK_MENU(popup_menu), NULL, NULL, NULL, NULL,
-		               event->button, event->time);
+		gtk_popover_popup(GTK_POPOVER(data));
 		return TRUE;
 	}
-
 	return FALSE;
 }
 
-void terminal_popup_menu_callback(GtkWidget *widget, gpointer data)
+void interface_apply_term_config(void)
 {
-	gtk_menu_popup(GTK_MENU(popup_menu), NULL, NULL, NULL, NULL,
-	               0, gtk_get_current_event_time());
+	PangoFontDescription *desc;
+
+	if (!display)
+		return;
+
+	vte_terminal_set_size(display, term_conf.rows, term_conf.columns);
+	vte_terminal_set_scrollback_lines(display, term_conf.scrollback);
+	vte_terminal_set_color_foreground(display, &term_conf.foreground_color);
+	vte_terminal_set_color_background(display, &term_conf.background_color);
+	vte_terminal_set_cursor_shape(display,
+	    term_conf.block_cursor ? VTE_CURSOR_SHAPE_BLOCK : VTE_CURSOR_SHAPE_IBEAM);
+
+	desc = pango_font_description_from_string(term_conf.font);
+	vte_terminal_set_font(display, desc);
+	pango_font_description_free(desc);
+
+	gtk_widget_queue_draw(GTK_WIDGET(display));
 }
 
-void create_main_window(void)
+/* ---- Main window creation ---- */
+
+static void tx_lock_console(void)
 {
-	GtkWidget *menu, *main_vbox, *label;
-	GtkWidget *hex_send_entry;
-	GtkAccelGroup *accel_group;
-	GError *error;
+	if (got_input_handler_id && display)
+		g_signal_handler_block(display, got_input_handler_id);
+}
 
-	Fenetre = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+static void tx_unlock_console(void)
+{
+	if (got_input_handler_id && display)
+		g_signal_handler_unblock(display, got_input_handler_id);
+}
 
-	shortcuts = gtk_accel_group_new();
-	gtk_window_add_accel_group(GTK_WINDOW(Fenetre), GTK_ACCEL_GROUP(shortcuts));
+static void tx_stall_notify(void)
+{
+	Put_temp_message(_("TX stalled — output buffer full, data discarded"), 3000);
+}
 
-	g_signal_connect(GTK_WIDGET(Fenetre), "destroy", (GCallback)gtk_main_quit, NULL);
-	g_signal_connect(GTK_WIDGET(Fenetre), "delete_event", (GCallback)gtk_main_quit, NULL);
+void create_main_window(GtkApplication *app)
+{
+	GtkBuilderCScope *scope;
+	GtkBuilder *builder;
+	GtkWidget *sb_placeholder;
+	guint i;
+
+	main_app = app;
+
+	/* Register all actions on the application */
+	g_action_map_add_action_entries(G_ACTION_MAP(app), app_actions,
+	                                G_N_ELEMENTS(app_actions), NULL);
+
+	/* Ensure VteTerminal's GLib type is registered before GtkBuilder
+	 * tries to instantiate <object class="VteTerminal"> from the UI file.
+	 * Without this, gtk_builder_get_object(builder, "display") returns NULL. */
+	g_type_ensure(VTE_TYPE_TERMINAL);
+
+	/* Load window layout and menu models from resource */
+	scope = GTK_BUILDER_CSCOPE(gtk_builder_cscope_new());
+	gtk_builder_cscope_add_callback_symbols(scope,
+	    "g_application_quit",         G_CALLBACK(g_application_quit),
+	    "Send_Hexadecimal",           G_CALLBACK(Send_Hexadecimal),
+	    "on_hex_key_pressed",         G_CALLBACK(on_hex_key_pressed),
+	    "on_dtr_clicked",             G_CALLBACK(on_dtr_clicked),
+	    "on_rts_clicked",             G_CALLBACK(on_rts_clicked),
+	    "terminal_popup_key_cb",      G_CALLBACK(terminal_popup_key_cb),
+	    "update_copy_sensivity",      G_CALLBACK(update_copy_sensivity),
+	    "gtk_widget_unparent",        G_CALLBACK(gtk_widget_unparent),
+	    NULL);
+
+	builder = gtk_builder_new();
+	gtk_builder_set_scope(builder, GTK_BUILDER_SCOPE(scope));
+	g_object_unref(scope);
+	gtk_builder_add_from_resource(builder, "/org/gtk/gtkterm/main_window.ui", NULL);
+
+	Fenetre = GTK_WINDOW(gtk_builder_get_object(builder, "main_window"));
+	gtk_window_set_application(Fenetre, GTK_APPLICATION(app));
+
+	/* Register all keyboard accelerators from the shared table. */
+	for (i = 0; i < G_N_ELEMENTS(app_accels); i++) {
+		const gchar *av[] = { app_accels[i].accel, NULL };
+		gtk_application_set_accels_for_action(app, app_accels[i].action, av);
+	}
+
+	gtk_icon_theme_add_resource_path(
+		gtk_icon_theme_get_for_display(gdk_display_get_default()),
+		"/org/gtk/gtkterm/icons");
 
 	Set_window_title("GTKTerm");
 
-	main_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	gtk_container_add(GTK_CONTAINER(Fenetre), main_vbox);
+	/* Retrieve static widgets */
+	Hex_Box         = GTK_WIDGET(gtk_builder_get_object(builder, "hex_box"));
+	StatusBar       = GTK_WIDGET(gtk_builder_get_object(builder, "status_bar"));
+	signals[5]      = GTK_WIDGET(gtk_builder_get_object(builder, "signal_dtr"));
+	signals[4]      = GTK_WIDGET(gtk_builder_get_object(builder, "signal_rts"));
+	signals[3]      = GTK_WIDGET(gtk_builder_get_object(builder, "signal_cts"));
+	signals[2]      = GTK_WIDGET(gtk_builder_get_object(builder, "signal_cd"));
+	signals[1]      = GTK_WIDGET(gtk_builder_get_object(builder, "signal_dsr"));
+	signals[0]      = GTK_WIDGET(gtk_builder_get_object(builder, "signal_ri"));
 
-	/* Create the UIManager */
-	ui_manager = gtk_ui_manager_new();
-
-	accel_group = gtk_ui_manager_get_accel_group (ui_manager);
-	gtk_window_add_accel_group (GTK_WINDOW (Fenetre), accel_group);
-
-	/* Create the actions */
-	action_group = gtk_action_group_new("MenuActions");
-	gtk_action_group_set_translate_func(action_group, translate_menu, NULL, NULL);
-
-	gtk_action_group_add_actions(action_group, menu_entries,
-	                             G_N_ELEMENTS (menu_entries),
-	                             Fenetre);
-	gtk_action_group_add_toggle_actions(action_group, menu_toggle_entries,
-	                                    G_N_ELEMENTS (menu_toggle_entries),
-	                                    Fenetre);
-	gtk_action_group_add_radio_actions(action_group, menu_view_radio_entries,
-	                                   G_N_ELEMENTS (menu_view_radio_entries),
-	                                   -1, G_CALLBACK(view_radio_callback),
-	                                   Fenetre);
-	gtk_action_group_add_radio_actions(action_group, menu_hex_chars_length_radio_entries,
-	                                   G_N_ELEMENTS (menu_hex_chars_length_radio_entries),
-	                                   16, G_CALLBACK(view_hexadecimal_chars_radio_callback),
-	                                   Fenetre);
-
-	gtk_ui_manager_insert_action_group (ui_manager, action_group, 0);
-
-	/* Load the UI */
-	error = NULL;
-	if(!gtk_ui_manager_add_ui_from_string(ui_manager, ui_description, -1, &error))
-	{
-		g_message ("building menus failed: %s", error->message);
-		g_error_free (error);
-		exit (EXIT_FAILURE);
-	}
-
-	menu = gtk_ui_manager_get_widget (ui_manager, "/MenuBar");
-	gtk_box_pack_start(GTK_BOX(main_vbox), menu, FALSE, TRUE, 0);
-
-	/* create vte window */
-	display = vte_terminal_new();
-
-	/* set terminal properties, these could probably be made user configurable */
-	vte_terminal_set_scroll_on_output(VTE_TERMINAL(display), FALSE);
-	vte_terminal_set_scroll_on_keystroke(VTE_TERMINAL(display), TRUE);
-	vte_terminal_set_mouse_autohide(VTE_TERMINAL(display), TRUE);
-	vte_terminal_set_backspace_binding(VTE_TERMINAL(display),
-	                                   VTE_ERASE_ASCII_BACKSPACE);
+	/* VTE terminal */
+	display = VTE_TERMINAL(gtk_builder_get_object(builder, "display"));
 
 	clear_display();
 
-	searchBar = search_bar_new(GTK_WINDOW(Fenetre), VTE_TERMINAL(display));
-	gtk_box_pack_start(GTK_BOX(main_vbox), GTK_WIDGET(searchBar), FALSE, FALSE, 0);
+	/* Search bar — inserted into its placeholder box */
+	sb_placeholder = GTK_WIDGET(gtk_builder_get_object(builder, "search_bar_placeholder"));
+	searchBar = search_bar_new(Fenetre, display);
+	gtk_box_append(GTK_BOX(sb_placeholder), searchBar);
 
-	/* make vte window scrollable - inspired by gnome-terminal package */
-	scrolled_window = gtk_scrolled_window_new(NULL, gtk_scrollable_get_vadjustment (GTK_SCROLLABLE (display)));
+	g_object_unref(builder);
 
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window),
-	                               GTK_POLICY_AUTOMATIC,
-	                               GTK_POLICY_AUTOMATIC);
+	set_action_enabled("edit-copy", FALSE);
 
-	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolled_window),
-	                                    GTK_SHADOW_NONE);
-
-	gtk_container_add(GTK_CONTAINER(scrolled_window), GTK_WIDGET(display));
-
-	gtk_box_pack_start(GTK_BOX(main_vbox), scrolled_window, TRUE, TRUE, 0);
-
-	g_signal_connect(G_OBJECT(display), "button-press-event",
-	                 G_CALLBACK(terminal_button_press_callback), NULL);
-
-	g_signal_connect(G_OBJECT(display), "popup-menu",
-	                 G_CALLBACK(terminal_popup_menu_callback), NULL);
-
-	g_signal_connect(G_OBJECT(display), "selection-changed",
-	                 G_CALLBACK(update_copy_sensivity), NULL);
-	update_copy_sensivity(VTE_TERMINAL(display), NULL);
-
-	popup_menu = gtk_ui_manager_get_widget(ui_manager, "/PopupMenu");
-
-	/* set up logging buttons availability */
-	toggle_logging_pause_resume(FALSE);
 	toggle_logging_sensitivity(FALSE);
 
-	/* send hex char box (hidden when not in use) */
-	Hex_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	label = gtk_label_new(_("Hexadecimal data to send (separator: ';' or space): "));
-	gtk_box_pack_start(GTK_BOX(Hex_Box), label, FALSE, FALSE, 5);
-	hex_send_entry = gtk_entry_new();
-    g_signal_connect(GTK_WIDGET(hex_send_entry), "key-press-event", G_CALLBACK(on_key_press), NULL);
-	g_signal_connect(GTK_WIDGET(hex_send_entry), "activate", (GCallback)Send_Hexadecimal, NULL);
-	gtk_box_pack_start(GTK_BOX(Hex_Box), hex_send_entry, TRUE, TRUE, 5);
-	gtk_box_pack_start(GTK_BOX(main_vbox), Hex_Box, FALSE, TRUE, 2);
+	/* Register TX queue callbacks before any serial I/O can happen. */
+	txqueue_set_callbacks(tx_lock_console, tx_unlock_console, tx_stall_notify);
 
-	/* status bar */
-	StatusBar = gtk_statusbar_new();
-	gtk_box_pack_start(GTK_BOX(main_vbox), StatusBar, FALSE, FALSE, 0);
-	id = gtk_statusbar_get_context_id(GTK_STATUSBAR(StatusBar), "Messages");
+	got_input_handler_id = g_signal_connect_after(display, "commit",
+	                                              G_CALLBACK(Got_Input), NULL);
 
-	label = gtk_label_new("RI");
-	gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
-	gtk_widget_set_sensitive(GTK_WIDGET(label), FALSE);
-	signals[0] = label;
+	/* Modem signal monitoring is owned entirely by serial.c:
+	 * Config_port() reads the initial state, and then either uses the
+	 * TIOCMIWAIT event-driven thread or falls back to a poll timer. */
 
-	label = gtk_label_new("DSR");
-	gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
-	signals[1] = label;
+	install_macro_shortcut_controller(GTK_WIDGET(display));
 
-	label = gtk_label_new("CD");
-	gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
-	signals[2] = label;
+	if (term_conf.window_width > 0 && term_conf.window_height > 0)
+	{
+		GdkDisplay *gdk_disp = gdk_display_get_default();
+		int w = term_conf.window_width;
+		int h = term_conf.window_height;
 
-	label = gtk_label_new("CTS");
-	gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
-	signals[3] = label;
+		if (gdk_disp)
+		{
+			GListModel *monitors = gdk_display_get_monitors(gdk_disp);
+			if (monitors && g_list_model_get_n_items(monitors) > 0)
+			{
+				GdkMonitor *monitor = g_list_model_get_item(monitors, 0);
+				if (monitor)
+				{
+					GdkRectangle workarea;
+					gdk_monitor_get_geometry(monitor, &workarea);
+					w = CLAMP(w, 100, workarea.width);
+					h = CLAMP(h, 100, workarea.height);
+					g_object_unref(monitor);
+				}
+			}
+		}
+		gtk_window_set_default_size(Fenetre, w, h);
+	}
 
-	label = gtk_label_new("RTS");
-	gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
-	signals[4] = label;
-
-	label = gtk_label_new("DTR");
-	gtk_box_pack_end(GTK_BOX(StatusBar), label, FALSE, TRUE, 5);
-	signals[5] = label;
-
-	g_signal_connect_after(GTK_WIDGET(display), "commit", G_CALLBACK(Got_Input), NULL);
-
-	g_timeout_add(POLL_DELAY, (GSourceFunc)control_signals_read, NULL);
-
-	gtk_window_set_default_size(GTK_WINDOW(Fenetre), 750, 550);
-	gtk_widget_show_all(Fenetre);
-	search_bar_hide(searchBar);
-	gtk_widget_hide(GTK_WIDGET(Hex_Box));
+	gtk_widget_set_visible(GTK_WIDGET(Fenetre), TRUE);
 }
 
 void initialize_hexadecimal_display(void)
 {
-	total_bytes = 0;
-	memset(blank_data, ' ', 128);
-	blank_data[bytes_per_line * 3 + 5] = 0;
+	total_bytes  = 0;
+	virt_col_pos = 0;
 }
 
-void put_hexadecimal(const gchar *string, guint size)
+void put_hexadecimal(const gchar *string, gsize size)
 {
-	static gchar data[128];
-	static gchar data_byte[6];
-	gint i = 0;
+	/* Accumulate an entire line (or partial line) into one buffer and call
+	 * vte_terminal_feed() once per line instead of 4-6 times per byte.
+	 * log_chars() is also called once per line (hex portion only).
+	 * Worst case with bytes_per_line=32, show_index=TRUE: ~530 bytes. */
+	static gchar line_buf[1024];
+	static gchar log_buf[128];   /* bytes_per_line (max 32) × 3 chars each */
+	size_t i = 0;
 
-	if(size == 0)
+	if (size == 0)
 		return;
 
-	while(i < size)
+	while (i < size)
 	{
-		while(gtk_events_pending()) gtk_main_iteration();
+		gsize line_len = 0;
+		gsize log_len  = 0;
 
-		/* Print hexadecimal characters */
-		data[0] = 0;
+		if (show_index && virt_col_pos == 0)
+			line_len += (gsize)sprintf(line_buf + line_len, "%6u: ", total_bytes);
 
-		while(virt_col_pos < bytes_per_line && i < size)
+		while (virt_col_pos < bytes_per_line && i < size)
 		{
-			gint avance=0;
-			gchar ascii[1];
+			guint avance = (bytes_per_line - virt_col_pos) * 3 + virt_col_pos + 2;
 
-			if(show_index)
+			/* Format hex byte; copy to log accumulator */
+			sprintf(line_buf + line_len, "%02X ", (guchar)string[i]);
+			log_buf[log_len++] = line_buf[line_len];
+			log_buf[log_len++] = line_buf[line_len + 1];
+			log_buf[log_len++] = line_buf[line_len + 2];
+			line_len += 3;
+
+			/* Jump right to ASCII column, write char, jump back */
+			line_len += (gsize)sprintf(line_buf + line_len, "\033[%uC", avance);
+			line_buf[line_len++] = (string[i] > 0x1F) ? string[i] : '.';
+			line_len += (gsize)sprintf(line_buf + line_len, "\033[%uD", avance + 1U);
+
+			if (virt_col_pos == bytes_per_line / 2 - 1)
 			{
-				/* First byte on line */
-				if(virt_col_pos == 0)
-				{
-					sprintf(data, "%6d: ", total_bytes);
-					vte_terminal_feed(VTE_TERMINAL(display), data, strlen(data));
-				}
+				line_buf[line_len++] = '-';
+				line_buf[line_len++] = ' ';
 			}
-
-			sprintf(data_byte, "%02X ", (guchar)string[i]);
-			log_chars(data_byte, 3);
-			vte_terminal_feed(VTE_TERMINAL(display), data_byte, 3);
-
-			avance = (bytes_per_line - virt_col_pos) * 3 + virt_col_pos + 2;
-			/* Move forward */
-			sprintf(data_byte, "%c[%dC", 27, avance);
-			vte_terminal_feed(VTE_TERMINAL(display), data_byte, strlen(data_byte));
-
-			/* Print ascii characters */
-			ascii[0] = (string[i] > 0x1F) ? string[i] : '.';
-			vte_terminal_feed(VTE_TERMINAL(display), ascii, 1);
-
-			/* Move backward */
-			sprintf(data_byte, "%c[%dD", 27, avance + 1);
-			vte_terminal_feed(VTE_TERMINAL(display), data_byte, strlen(data_byte));
-
-			if(virt_col_pos == bytes_per_line / 2 - 1)
-				vte_terminal_feed(VTE_TERMINAL(display), "- ", strlen("- "));
 
 			virt_col_pos++;
 			i++;
-
-			/* End of line ? */
-			if(virt_col_pos == bytes_per_line)
-			{
-				vte_terminal_feed(VTE_TERMINAL(display), "\r\n", 2);
-				total_bytes += virt_col_pos;
-				virt_col_pos = 0;
-			}
-
 		}
 
+		if (virt_col_pos == bytes_per_line)
+		{
+			line_buf[line_len++] = '\r';
+			line_buf[line_len++] = '\n';
+			total_bytes += bytes_per_line;
+			virt_col_pos = 0;
+		}
+
+		if (log_len > 0)
+			log_chars(log_buf, (guint)log_len);
+		vte_terminal_feed(display, line_buf, (gssize)line_len);
 	}
 }
 
-void put_text(const gchar *string, guint size)
+void put_text(const gchar *string, gsize size)
 {
-	log_chars(string, size);
-	vte_terminal_feed(VTE_TERMINAL(display), string, size);
+	log_chars(string, (guint)size);
+	vte_terminal_feed(display, string, (gssize)size);
 }
 
-gint send_serial(gchar *string, gint len)
+static void Got_Input(VteTerminal *widget G_GNUC_UNUSED, gchar *text,
+	guint length, gpointer data G_GNUC_UNUSED)
 {
-	gint bytes_written;
-
-	bytes_written = Send_chars(string, len);
-	if(bytes_written > 0)
+	if (term_conf.esc_clear_screen && length >= 1 && text[0] == 0x1b)
 	{
-		if(echo_on)
-			put_chars(string, bytes_written, crlfauto_on, esc_clear_screen_on);
+		clear_buffer();
+		clear_display();
 	}
-
-	return bytes_written;
+	else
+		send_serial(text, length);
 }
 
-
-static void Got_Input(VteTerminal *widget, gchar *text, guint length, gpointer ptr)
+void update_copy_sensivity(VteTerminal *terminal, gpointer data G_GNUC_UNUSED)
 {
-	send_serial(text, length);
-}
-
-gboolean Envoie_car(GtkWidget *widget, GdkEventKey *event, gpointer pointer)
-{
-	if(g_utf8_validate(event->string, 1, NULL))
-		send_serial(event->string, 1);
-
-	return FALSE;
-}
-
-
-void help_about_callback(GtkAction *action, gpointer data)
-{
-	gchar *authors[] = {"Julien Schimtt", "Zach Davis", "Florian Euchner", "Stephan Enderlein",
-			    "Kevin Picot", NULL};
-	gchar *comments_program = _("GTKTerm is a simple GTK+ terminal used to communicate with the serial port.");
-	gchar comments[256];
-	GError *error = NULL;
-	GdkPixbuf *logo = NULL;
-
-	logo = gdk_pixbuf_new_from_resource ("/org/gtk/gtkterm/gtkterm_64x64.png", &error);
-	g_sprintf(comments, "%s\n\n%s", RELEASE_DATE, comments_program);;
-
-	gtk_show_about_dialog(GTK_WINDOW(Fenetre),
-	                      "program-name", "GTKTerm",
-	                      "logo", logo,
-	                      "version", VERSION,
-	                      "comments", comments,
-	                      "copyright", "Copyright © Julien Schimtt",
-	                      "authors", authors,
-	                      "website", "https://github.com/Jeija/gtkterm",
-	                      "website-label", "https://github.com/Jeija/gtkterm",
-	                      "license-type", GTK_LICENSE_LGPL_3_0,
-	                      NULL);
+	gboolean can_copy = vte_terminal_get_has_selection(terminal);
+	set_action_enabled("edit-copy", can_copy);
 }
 
 void show_control_signals(int stat)
 {
-	if(stat & TIOCM_RI)
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[0]), TRUE);
-	else
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[0]), FALSE);
-	if(stat & TIOCM_DSR)
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[1]), TRUE);
-	else
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[1]), FALSE);
-	if(stat & TIOCM_CD)
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[2]), TRUE);
-	else
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[2]), FALSE);
-	if(stat & TIOCM_CTS)
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[3]), TRUE);
-	else
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[3]), FALSE);
-	if(stat & TIOCM_RTS)
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[4]), TRUE);
-	else
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[4]), FALSE);
-	if(stat & TIOCM_DTR)
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[5]), TRUE);
-	else
-		gtk_widget_set_sensitive(GTK_WIDGET(signals[5]), FALSE);
+	gtk_widget_set_sensitive(signals[0], (stat & TIOCM_RI)  != 0);
+	gtk_widget_set_sensitive(signals[1], (stat & TIOCM_DSR) != 0);
+	gtk_widget_set_sensitive(signals[2], (stat & TIOCM_CD)  != 0);
+	gtk_widget_set_sensitive(signals[3], (stat & TIOCM_CTS) != 0);
+	/* DTR and RTS: use opacity to show on/off state; always sensitive so the
+	   signal level is visible. Clicking RTS when driver-managed (HW flow or
+	   RS485) is silently ignored in on_signal_label_clicked(). */
+	gtk_widget_set_opacity(signals[5], (stat & TIOCM_DTR) ? 1.0 : 0.3);
+	gtk_widget_set_opacity(signals[4], (stat & TIOCM_RTS) ? 1.0 : 0.3);
 }
 
-void signals_send_break_callback(GtkAction *action, gpointer data)
+void update_port_status(void)
 {
-	sendbreak();
-	Put_temp_message(_("Break signal sent!"), 800);
-}
-
-void signals_toggle_DTR_callback(GtkAction *action, gpointer data)
-{
-	Set_signals(0);
-}
-
-void signals_toggle_RTS_callback(GtkAction *action, gpointer data)
-{
-	Set_signals(1);
-}
-
-void signals_close_port(GtkAction *action, gpointer data)
-{
-	interface_close_port();
-}
-
-void signals_open_port(GtkAction *action, gpointer data)
-{
-	interface_open_port();
-}
-
-gboolean control_signals_read(void)
-{
-	int state;
-
-	state = lis_sig();
-	if(state >= 0)
-		show_control_signals(state);
-
-	return TRUE;
-}
-
-void Set_status_message(gchar *msg)
-{
-	gtk_statusbar_pop(GTK_STATUSBAR(StatusBar), id);
-	gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, msg);
-}
-
-void Set_window_title(gchar *msg)
-{
-	gchar* header = g_strdup_printf("GTKTerm - %s", msg);
-	gtk_window_set_title(GTK_WINDOW(Fenetre), header);
-	g_free(header);
-}
-
-void interface_open_port(void)
-{
-	Config_port();
-
-	gchar *message;
-	message = get_port_string();
-	Set_status_message(message);
+	const gchar *message = get_port_string();
+	gtk_label_set_text(GTK_LABEL(StatusBar), message);
 	Set_window_title(message);
-	g_free(message);
+}
+
+void Set_window_title(const gchar *msg)
+{
+	gchar header[256];
+	g_snprintf(header, sizeof(header), "GTKTerm - %s", msg ? msg : "");
+	gtk_window_set_title(Fenetre, header);
+}
+
+void interface_open_port(gboolean show_errors)
+{
+	Config_port(show_errors);
+	update_port_status();
 }
 
 void interface_close_port(void)
 {
 	Close_port();
-
-	gchar *message;
-	message = get_port_string();
-	Set_status_message(message);
-	Set_window_title(message);
-	g_free(message);
+	update_port_status();
 }
 
-void show_message(gchar *message, gint type_msg)
+void show_message(gint type_msg, const gchar *message)
 {
-	GtkWidget *Fenetre_msg;
+	GtkAlertDialog *dialog;
 
-	if(type_msg==MSG_ERR)
-	{
-		Fenetre_msg = gtk_message_dialog_new(GTK_WINDOW(Fenetre),
-		                                     GTK_DIALOG_DESTROY_WITH_PARENT,
-		                                     GTK_MESSAGE_ERROR,
-		                                     GTK_BUTTONS_OK,
-		                                     message, NULL);
-	}
-	else if(type_msg==MSG_WRN)
-	{
-		Fenetre_msg = gtk_message_dialog_new(GTK_WINDOW(Fenetre),
-		                                     GTK_DIALOG_DESTROY_WITH_PARENT,
-		                                     GTK_MESSAGE_WARNING,
-		                                     GTK_BUTTONS_OK,
-		                                     message, NULL);
-	}
-	else
+	if (type_msg != MSG_ERR && type_msg != MSG_WRN)
 		return;
 
-	gtk_dialog_run(GTK_DIALOG(Fenetre_msg));
-	gtk_widget_destroy(Fenetre_msg);
+	dialog = gtk_alert_dialog_new("%s", message);
+	gtk_alert_dialog_set_modal(dialog, TRUE);
+	gtk_alert_dialog_show(dialog, Fenetre);
+	g_object_unref(dialog);
 }
 
-gboolean Send_Hexadecimal(GtkWidget *widget, GdkEventKey *event, gpointer pointer)
+void show_messagef(gint type_msg, const gchar *fmt, ...)
+{
+	va_list args;
+	gchar *msg;
+
+	if (type_msg != MSG_ERR && type_msg != MSG_WRN)
+		return;
+
+	va_start(args, fmt);
+	msg = g_strdup_vprintf(fmt, args);
+	va_end(args);
+	show_message(type_msg, msg);
+	g_free(msg);
+}
+
+static void Send_Hexadecimal(GtkWidget *widget, gpointer data G_GNUC_UNUSED)
 {
 	guint i;
-	gchar *text, *message, **tokens, *buff;
+	gchar *message, **tokens, *buff;
 	guint scan_val;
 
-	text = (gchar *)gtk_entry_get_text(GTK_ENTRY(widget));
+	const gchar *text = gtk_editable_get_text(GTK_EDITABLE(widget));
 
-	if(strlen(text) == 0)
+	if (!*text)
 	{
-		message = g_strdup_printf(_("0 byte(s) sent!"));
-		Put_temp_message(message, 1500);
-		gtk_entry_set_text(GTK_ENTRY(widget), "");
-		g_free(message);
-		return FALSE;
-	}    
+		Put_temp_message(_("0 byte(s) sent!"), 1500);
+		gtk_editable_set_text(GTK_EDITABLE(widget), "");
+		return;
+	}
 
 	tokens = g_strsplit_set(text, " ;", -1);
 	buff = g_malloc(g_strv_length(tokens));
 
-	for(i = 0; tokens[i] != NULL; i++)
+	for (i = 0; tokens[i] != NULL; i++)
 	{
-		if(sscanf(tokens[i], "%02X", &scan_val) != 1)
+		if (sscanf(tokens[i], "%02X", &scan_val) != 1)
 		{
-			Put_temp_message(_("Improper formatted hex input, 0 bytes sent!"),
-			                 1500);
+			Put_temp_message(_("Improper formatted hex input, 0 bytes sent!"), 1500);
 			g_free(buff);
-			return FALSE;
+			g_strfreev(tokens);
+			return;
 		}
-		buff[i] = scan_val;
+		buff[i] = (gchar)scan_val;
 	}
 
 	send_serial(buff, i);
 	g_free(buff);
 
-	message = g_strdup_printf(_("%d byte(s) sent!"), i);
-    update_hex_history(widget);
+	message = g_strdup_printf(_("%u byte(s) sent!"), i);
+	update_hex_history(widget);
 	Put_temp_message(message, 2000);
-	gtk_entry_set_text(GTK_ENTRY(widget), "");
+	g_free(message);
+	gtk_editable_set_text(GTK_EDITABLE(widget), "");
 	g_strfreev(tokens);
-
-	return FALSE;
 }
 
-void Put_temp_message(const gchar *text, gint time)
+void Put_temp_message(const gchar *text, guint time)
 {
-	/* time in ms */
-	gtk_statusbar_push(GTK_STATUSBAR(StatusBar), id, text);
-	g_timeout_add(time, (GSourceFunc)pop_message, NULL);
+	static guint temp_msg_source = 0;
+	if (temp_msg_source)
+		g_source_remove(temp_msg_source);
+	gtk_label_set_text(GTK_LABEL(StatusBar), text ? text : "");
+	temp_msg_source = g_timeout_add(time, pop_message, &temp_msg_source);
 }
 
-gboolean pop_message(void)
+gboolean pop_message(gpointer user_data)
 {
-	gtk_statusbar_pop(GTK_STATUSBAR(StatusBar), id);
-
-	return FALSE;
+	if (user_data)
+		*(guint *)user_data = 0;
+	gtk_label_set_text(GTK_LABEL(StatusBar), "");
+	return G_SOURCE_REMOVE;
 }
 
 void clear_display(void)
 {
 	initialize_hexadecimal_display();
-	if(display)
-		vte_terminal_reset(VTE_TERMINAL(display), TRUE, TRUE);
+	if (display)
+		vte_terminal_reset(display, TRUE, TRUE);
 }
 
-void edit_copy_callback(GtkAction *action, gpointer data)
+gboolean on_hex_key_pressed(GtkEventControllerKey *ctrl,
+                            guint keyval, guint keycode G_GNUC_UNUSED,
+                            GdkModifierType state G_GNUC_UNUSED,
+							gpointer user_data G_GNUC_UNUSED)
 {
-	vte_terminal_copy_clipboard(VTE_TERMINAL(display));
+	GtkWidget *widget = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(ctrl));
+
+	switch (keyval)
+	{
+	case GDK_KEY_Up:
+		set_saved_data(widget, TRUE);
+		return TRUE;
+	case GDK_KEY_Down:
+		set_saved_data(widget, FALSE);
+		return TRUE;
+	default:
+		return FALSE;
+	}
 }
 
-void update_copy_sensivity(VteTerminal *terminal, gpointer data)
+void update_hex_history(GtkWidget *widget)
 {
-	GtkAction *action;
-	gboolean can_copy;
+	const gchar *text = gtk_editable_get_text(GTK_EDITABLE(widget));
 
-	can_copy = vte_terminal_get_has_selection(VTE_TERMINAL(terminal));
+	if (*text == '\0')
+		return;
 
-	action = gtk_action_group_get_action(action_group, "EditCopy");
-	gtk_action_set_sensitive(action, can_copy);
+	if (current_hex && g_strcmp0((const gchar *)current_hex->data, text) == 0)
+		g_queue_delete_link(&hex_history, current_hex);
+
+	g_queue_push_tail(&hex_history, g_strdup(text));
+	current_hex = NULL;
 }
 
-void edit_paste_callback(GtkAction *action, gpointer data)
+void set_saved_data(GtkWidget *widget, gboolean direction)
 {
-	vte_terminal_paste_clipboard(VTE_TERMINAL(display));
-}
+	const gchar *text = "";
 
-void edit_find_callback(GtkAction *action)
-{
-	if (gtk_widget_is_visible(searchBar))
-		search_bar_hide(searchBar);
+	if (g_queue_is_empty(&hex_history))
+		return;
+
+	if (direction)
+	{
+		if (!current_hex)
+			current_hex = hex_history.tail;
+		else if (current_hex->prev)
+			current_hex = current_hex->prev;
+		else
+			return;
+		text = (const gchar *)current_hex->data;
+	}
 	else
-		search_bar_show(searchBar);
+	{
+		if (current_hex && current_hex->next)
+		{
+			current_hex = current_hex->next;
+			text = (const gchar *)current_hex->data;
+		}
+		else
+		{
+			current_hex = NULL;
+		}
+	}
+
+	gtk_editable_set_text(GTK_EDITABLE(widget), text);
 }
 
-void edit_select_all_callback(GtkAction *action, gpointer data)
+void interface_cleanup(void)
 {
-	vte_terminal_select_all(VTE_TERMINAL(display));
-}
-
-// Callback for "key-press-event"
-gboolean on_key_press(GtkWidget *widget, GdkEventKey *event, gpointer user_data) {
-    switch (event->keyval) {
-    case GDK_KEY_Up:        
-        set_saved_data(widget, TRUE);  // TRUE for KEY_UP
-        return TRUE;  // Event handled
-    case GDK_KEY_Down:        
-        set_saved_data(widget, FALSE);  // FALSE for KEY_DOWN
-        return TRUE;  // Event handled
-    default:
-        return FALSE;  // Event not handled, propagate further
-    }
-}
-
-// Function to update the hex history when a new text is entered
-void update_hex_history(GtkWidget *widget) {
-    const gchar *text = gtk_entry_get_text(GTK_ENTRY(widget));
-
-    // Only add non-empty texts to history
-    if (g_strcmp0(text, "") == 0) {
-        return;
-    }
-
-    if (!current_hex) {
-        // If current_hex is NULL, add the text to the end of the history
-        hex_history = g_list_append(hex_history, g_strdup(text));
-    } else {
-        const gchar *current_text = (const gchar *)current_hex->data;
-
-        if (g_strcmp0(current_text, text) == 0) {
-            // If the entered text matches the current_hex, move it to the end
-            hex_history = g_list_remove(hex_history, current_hex->data);
-            hex_history = g_list_append(hex_history, g_strdup(current_text));
-        } else {
-            // If the text is different, add it as a new entry
-            hex_history = g_list_append(hex_history, g_strdup(text));
-        }
-    }
-
-    // Reset current_hex to NULL after adding or moving an entry
-    current_hex = NULL;
-}
-
-// Function to get the previous/next item from the history
-void set_saved_data(GtkWidget *widget, gboolean direction) {
-    if (!hex_history) {
-        return;
-    }
-
-    if (direction) {
-        // KEY_UP pressed, go to the previous history item
-        if (!current_hex) {
-            current_hex = g_list_last(hex_history);
-        }
-        else if (current_hex && current_hex->prev) {
-            current_hex = current_hex->prev;
-        }
-        else
-            return;
-        const gchar *prev_text = (const gchar *)current_hex->data;
-        gtk_entry_set_text(GTK_ENTRY(widget), prev_text);  // Set text in entry
-    } else {
-        // KEY_DOWN pressed, go to the next history item
-        if (current_hex && current_hex->next) {
-            current_hex = current_hex->next;
-            const gchar *next_text = (const gchar *)current_hex->data;
-            gtk_entry_set_text(GTK_ENTRY(widget), next_text);  // Set text in entry
-        } else {
-            // If no further history, clear the entry
-            gtk_entry_set_text(GTK_ENTRY(widget), "");
-            current_hex = NULL;  // Reset the pointer
-        }
-    }
+	txqueue_abort();
+	g_queue_clear_full(&hex_history, g_free);
+	g_queue_clear(&hex_history);
+	current_hex = NULL;
 }

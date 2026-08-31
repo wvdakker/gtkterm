@@ -1,0 +1,35 @@
+Source: gtkterm
+Section: comm
+Priority: optional
+Rules-Requires-Root: no
+Maintainer: Willem van den Akker <wvdakker@wilsoft.nl> Boris Krasnovskiy <borkra@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+ meson,
+ libgudev-1.0-dev,
+ libgtk-4-dev,
+ libvte-2.91-gtk4-dev,
+ intltool,
+ libxml2-utils
+Standards-Version: 4.7.0
+Vcs-Browser: https://salsa.debian.org/debian/gtkterm
+Vcs-Git: https://salsa.debian.org/debian/gtkterm.git
+Homepage: https://github.com/wvdakker/gtkterm
+
+Package: gtkterm
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: simple GTK4 serial port terminal
+ gtkterm is a simple GTK terminal used to communicate with the serial port.
+ .
+ Its features :
+ .
+  * Serial port terminal window
+  * Serial port setup (speed, parity, bits, stopbits, flow control)
+  * Using the termios API
+  * Possible to send a file (only RAW data, no protocol)
+  * End of line delay while sending a file
+  * Special character wait before next line while sending a file
+  * Possible to toggle control lines manually (DTR, CTS)
+  * Also reads the state of control lines (RTS, CD, DSR, RI)
+ .
+  Author:   Julien Schmitt <julien@jls-info.com>

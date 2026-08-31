@@ -1,2 +1,14 @@
 *~
 build
+*.log
+*.snap
+.snapcraft/
+*.flatpak
+.flatpak-builder/
+.flatpak-repo/
+debian
+*.AppImage
+.appimage/
+*.rpm
+*.src.rpm
+.rpmbuild/

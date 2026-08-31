@@ -1,4 +1,34 @@
 prog_sh = find_program('sh')
+dev_sanitizers = get_option('dev_sanitizers')
+
+gtkterm_c_args = [
+	'-Wall',
+	'-Wextra',
+	'-Werror',
+	# Hardening flags
+	'-D_FORTIFY_SOURCE=2',
+	'-fstack-protector-strong',
+	'-fstack-clash-protection',
+	'-fcf-protection=full',
+	'-Wformat=2',
+	'-Wformat-security',
+]
+
+gtkterm_link_args = [
+	'-Wl,-z,relro',
+	'-Wl,-z,now',
+	'-Wl,-z,noexecstack',
+]
+
+if dev_sanitizers
+	gtkterm_c_args += [
+		'-fsanitize=address,leak',
+		'-fno-omit-frame-pointer',
+		'-O1',
+	]
+	gtkterm_link_args += ['-fsanitize=address,leak']
+endif
+
 baudrates_h = custom_target(
 	    'baudrates.h',
 	    output : 'baudrates.h',
@@ -13,27 +43,35 @@ sources = [
 	'buffer.h',
 	'cmdline.c',
 	'cmdline.h',
+	'config_file.c',
+	'config_file.h',
+	'config_dialog.c',
+	'config_dialog.h',
 	'device_monitor.c',
 	'device_monitor.h',
 	'files.c',
 	'files.h',
 	'gtkterm.c',
-	'i18n.c',
-	'i18n.h',
 	'interface.c',
 	'interface.h',
 	'logging.c',
 	'logging.h',
 	'macros.c',
 	'macros.h',
-	'parsecfg.c',
-	'parsecfg.h',
+	'port_config_dialog.c',
+	'port_config_dialog.h',
+	'port_list.c',
+	'port_list.h',
 	'search.c',
 	'search.h',
 	'serial.c',
 	'serial.h',
 	'term_config.c',
 	'term_config.h',
+	'terminal_config.c',
+	'terminal_config.h',
+	'txqueue.c',
+	'txqueue.h',
 	'user_signals.c',
 	'user_signals.h',
 	gresources
@@ -42,11 +80,14 @@ sources = [
 executable(
 	'gtkterm', sources,
 	export_dynamic : true,
+	c_args : gtkterm_c_args,
+	link_args : gtkterm_link_args,
 	dependencies : [
 		gtk_deps,
 		vte_deps,
 		config,
-		gudev_deps
+		gudev_deps,
+		dependency('threads')
 	],
 	install : true
 )

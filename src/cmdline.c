@@ -17,53 +17,50 @@
 /*                                                                     */
 /***********************************************************************/
 
-#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
 
 #include "term_config.h"
+#include "config_file.h"
+#include "cmdline.h"
 #include "files.h"
-#include "auto_config.h"
-#include "i18n.h"
 
 #include <config.h>
 #include <glib/gi18n.h>
 
-extern struct configuration_port config;
-
 void display_help(void)
 {
-	i18n_printf(_("\nGTKTerm version %s\n"), VERSION);
-	i18n_printf(_("\t (c) Julien Schmitt\n"));
-	i18n_printf(_("\nThis program is released under the terms of the GPL V.2\n"));
-	i18n_printf(_("\t ** Use at your own risks! **\n"));
-	i18n_printf(_("\nCommand line options\n"));
-	i18n_printf(_("--help or -h: this help screen\n"));
-	i18n_printf(_("--config <configuration> or -c: load configuration\n"));
-	i18n_printf(_("--port <device> or -p: serial port device (default /dev/ttyS0)\n"));
-	i18n_printf(_("--speed <speed> or -s: serial port speed (default 9600)\n"));
-	i18n_printf(_("--bits <bits> or -b: number of bits (default 8)\n"));
-	i18n_printf(_("--stopbits <stopbits> or -t: number of stopbits (default 1)\n"));
-	i18n_printf(_("--parity <odd | even> or -a: parity (default none)\n"));
-	i18n_printf(_("--flow <Xon | RTS | RS485> or -w: flow control (default none)\n"));
-	i18n_printf(_("--delay <ms> or -d: end of line delay in ms (default none)\n"));
-	i18n_printf(_("--char <char> or -r: wait for a special char at end of line (default none)\n"));
-	i18n_printf(_("--file <filename> or -f: default file to send (default none)\n"));
-	i18n_printf(_("--rts_time_before <ms> or -x: for RS-485, time in ms before transmit with rts on\n"));
-	i18n_printf(_("--rts_time_after <ms> or -y: for RS-485, time in ms after transmit with rts on\n"));
-	i18n_printf(_("--echo or -e: switch on local echo\n"));
-	i18n_printf(_("--disable-port-lock or -L: does not lock serial port. Allows to send to serial port from different terminals\n"));
-	i18n_printf(_("                      Note: incoming data are displayed randomly on only one terminal\n"));
-	i18n_printf("\n");
+	g_print(_("\nGTKTerm version %s\n"), VERSION);
+	g_print(_("\t (c) Julien Schmitt\n"));
+	g_print(_("\nThis program is released under the terms of the GPL V.2\n"));
+	g_print(_("\t ** Use at your own risks! **\n"));
+	g_print(_("\nCommand line options\n"));
+	g_print(_("--help or -h: this help screen\n"));
+	g_print(_("--config <configuration> or -c: load configuration\n"));
+	g_print(_("--port <device> or -p: serial port device (default /dev/ttyS0)\n"));
+	g_print(_("--speed <speed> or -s: serial port speed (default 9600)\n"));
+	g_print(_("--bits <bits> or -b: number of bits (default 8)\n"));
+	g_print(_("--stopbits <stopbits> or -t: number of stopbits (default 1)\n"));
+	g_print(_("--parity <odd | even> or -a: parity (default none)\n"));
+	g_print(_("--flow <Xon | RTS | RS485> or -w: flow control (default none)\n"));
+	g_print(_("--delay <ms> or -d: end of line delay in ms (default none)\n"));
+	g_print(_("--char <char> or -r: wait for a special char at end of line (default none)\n"));
+	g_print(_("--file <filename> or -f: default file to send (default none)\n"));
+	g_print(_("--rts_time_before <ms> or -x: for RS-485, time in ms before transmit with rts on\n"));
+	g_print(_("--rts_time_after <ms> or -y: for RS-485, time in ms after transmit with rts on\n"));
+	g_print(_("--echo or -e: switch on local echo\n"));
+	g_print(_("--disable-port-lock or -L: does not lock serial port. Allows to send to serial port from different terminals\n"));
+	g_print(_("                      Note: incoming data are displayed randomly on only one terminal\n"));
+	g_print("\n");
 }
 
-int read_command_line(int argc, char **argv, gchar *configuration_to_read)
+int read_command_line(int argc, char **argv)
 {
 	int c;
 	int option_index = 0;
 
-	static struct option long_options[] =
+	static const struct option long_options[] =
 	{
 		{"speed", 1, 0, 's'},
 		{"parity", 1, 0, 'a'},
@@ -83,8 +80,36 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 		{0, 0, 0, 0}
 	};
 
-	/* need a working configuration file ! */
-	Check_configuration_file();
+	/*
+	 * Pre-scan for -c/--config so the named section is loaded as the base
+	 * *before* any other CLI overrides are applied on top of it.
+	 * Check_configuration_file() (which loads "default") has already been
+	 * called in main() — do not call it again here.
+	 * Use getopt_long itself to handle all argument forms correctly
+	 * (-c val, -cval, --config val, --config=val).
+	 */
+	{
+		int saved_optind = optind;
+		int saved_opterr = opterr;
+		int preopt;
+
+		optind = 1;
+		opterr = 0; /* suppress "unknown option" noise during pre-scan */
+
+		while ((preopt = getopt_long(argc, argv, "s:a:t:b:f:p:w:d:r:heLc:x:y:",
+		                             long_options, &option_index)) != -1)
+		{
+			if (preopt == 'c')
+			{
+				if (Load_configuration_from_file(optarg) == -1)
+				g_printerr(_("No section \"%s\" in configuration file\n"), optarg);
+				break; /* only the first -c matters */
+			}
+		}
+
+		optind = saved_optind;
+		opterr = saved_opterr;
+	}
 
 	while(1)
 	{
@@ -96,7 +121,7 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 		switch(c)
 		{
 		case 'c':
-			Load_configuration_from_file(optarg);
+			/* Already handled in the pre-scan above; skip here. */
 			break;
 
 		case 's':
@@ -104,18 +129,22 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 			break;
 
 		case 'a':
-			if(!strcmp(optarg, "odd"))
+			if (!g_ascii_strcasecmp(optarg, "odd"))
 				config.parite = 1;
-			else if(!strcmp(optarg, "even"))
+			else if (!g_ascii_strcasecmp(optarg, "even"))
 				config.parite = 2;
+			else
+				config.parite = 0;
 			break;
 
 		case 't':
-			config.stops = atoi(optarg);
+			config.stops = (atoi(optarg) == 2) ? 2 : 1;
 			break;
 
 		case 'b':
 			config.bits = atoi(optarg);
+			if (config.bits < 5 || config.bits > 8)
+				config.bits = DEFAULT_BITS;
 			break;
 
 		case 'f':
@@ -127,36 +156,42 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 			break;
 
 		case 'w':
-			if(!strcmp(optarg, "Xon"))
+			if (!g_ascii_strcasecmp(optarg, "Xon"))
 				config.flux = 1;
-			else if(!strcmp(optarg, "RTS"))
+			else if (!g_ascii_strcasecmp(optarg, "RTS"))
 				config.flux = 2;
-			else if(!strcmp(optarg, "RS485"))
+			else if (!g_ascii_strcasecmp(optarg, "RS485"))
 				config.flux = 3;
 			break;
 
 		case 'd':
 			config.delai = atoi(optarg);
+			if (config.delai < 0 || config.delai > 500)
+				config.delai = DEFAULT_DELAY;
 			break;
 
 		case 'r':
-			config.car = *optarg;
+			config.car = *optarg ? *optarg : -1;
 			break;
 
 		case 'e':
-			config.echo = TRUE;
-			break;
+		term_conf.echo = TRUE;
+		break;
 
-		case 'L':
-			config.disable_port_lock = TRUE;
-			break;
+	case 'L':
+		config.disable_port_lock = TRUE;
+		break;
 
 		case 'x':
 			config.rs485_rts_time_before_transmit = atoi(optarg);
+			if (config.rs485_rts_time_before_transmit < 0 || config.rs485_rts_time_before_transmit > 500)
+				config.rs485_rts_time_before_transmit = DEFAULT_DELAY_RS485;
 			break;
 
 		case 'y':
 			config.rs485_rts_time_after_transmit = atoi(optarg);
+			if (config.rs485_rts_time_after_transmit < 0 || config.rs485_rts_time_after_transmit > 500)
+				config.rs485_rts_time_after_transmit = DEFAULT_DELAY_RS485;
 			break;
 
 		case 'h':
@@ -164,10 +199,9 @@ int read_command_line(int argc, char **argv, gchar *configuration_to_read)
 			return -1;
 
 		default:
-			i18n_printf(_("Undefined command line option\n"));
+			g_print(_("Undefined command line option\n"));
 			return -1;
 		}
 	}
-	Verify_configuration();
 	return 0;
 }

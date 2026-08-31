@@ -14,10 +14,11 @@
 #ifndef LOGGING_H_
 #define LOGGING_H_
 
-void logging_start(GtkAction *action, gpointer data);
-void logging_pause_resume(void);
-void logging_stop(void);
-void logging_clear(void);
-void log_chars(gchar *chars, guint size);
+void logging_start(GSimpleAction *action, GVariant *param, gpointer data);
+void logging_pause_resume(GSimpleAction *action, GVariant *param, gpointer data);
+void logging_stop(GSimpleAction *action, GVariant *param, gpointer data);
+void logging_clear(GSimpleAction *action, GVariant *param, gpointer data);
+void log_chars(const gchar *chars, guint size);
+void logging_cleanup(void);
 
 #endif /* LOGGING_H_ */

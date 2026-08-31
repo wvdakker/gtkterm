@@ -1,0 +1,165 @@
+gtkterm (2.0.0-1) UNRELEASED; urgency=medium
+
+  * New upstream release: port to GTK4 and vte-2.91-gtk4.
+  * Bump version to 2.0.0.
+  * debian/control: Update build dependencies to libgtk-4-dev and
+    libvte-2.91-gtk4-dev.
+  * debian/copyright: Remove parsecfg.c/h entries (replaced by GKeyFile).
+
+ -- Boris Krasnovskiy <borkra@gmail.com>  Sat, 19 Apr 2026 00:00:00 +0000
+
+gtkterm (1.3.1-1build1) resolute; urgency=medium
+
+  * No-change mass rebuild for Ubuntu 26.04 (LP: #2132257)
+
+ -- Graham Inggs <ginggs@ubuntu.com>  Wed, 21 Jan 2026 19:03:50 +0000
+
+gtkterm (1.3.1-1) unstable; urgency=medium
+
+  [ Willem van den Akker ]
+  * New release (compile fix)
+  * New upstream release. (Closes: #1066645, #1071239).
+  * debian/control
+    - bump standards to 4.7.0. No changes needed.
+    - update homepage url
+
+  [ Debian Janitor ]
+  * Bump debhelper from old 12 to 13.
+  * Set upstream metadata fields: Bug-Database, Bug-Submit, Repository,
+    Repository-Browse.
+  * Remove deprecated Encoding key from desktop file debian/gtkterm.desktop.
+
+ -- Boyuan Yang <byang@debian.org>  Fri, 17 May 2024 06:34:31 -0400
+
+gtkterm (1.2.1-1) unstable; urgency=medium
+
+  * Upgrade to 3.0 source format. (Closes: #1007580).
+  * debian/watch: Update watchfile
+  * debian/control: Update Standard to 4.6.1 (no changes needed).
+  * New upstream version 1.2.1
+
+ -- Willem van den Akker <wvdakker@wilsoft.nl>  Wed, 06 Jul 2022 19:20:16 +0200
+
+gtkterm (1.1.1-1) unstable; urgency=medium
+
+  * New upstream release;
+  * debian/control
+    - bump standards to 4.5.1. No changes needed.
+
+ -- Willem van den Akker <wvdakker@wilsoft.nl>  Thu, 03 Dec 2020 12:52:59 +0100
+
+gtkterm (1.1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/control
+    - switch from private to team repository.
+    - bump standards to 4.5.0. No changes needed.
+  * debian/copyright: add upstream maintainer to copyright file.
+  * debian/watch: fix for d.d releases.
+  * debian/gtkterm.desktop: Add X-AppStream-Ignore=true.
+
+ -- Willem van den Akker <wvdakker@wilsoft.nl>  Mon, 20 Jul 2020 13:11:39 +0200
+
+gtkterm (1.0.1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/rules
+    - switch to meson buildsystem.
+  * debian/control
+    - add build dependencies.
+    - switch to debhelper-compat.
+    - bump standards to 4.4.1. No changes needed.
+    - correct VCS-git link.
+    - add Rules-Requires-Root: no.
+  * debian/install
+    - icons are now in data directory.
+  * debian/docs
+    - remove TODO.
+  * debian/compat
+    - remove.
+
+ -- Willem van den Akker <wvdakker@wilsoft.nl>  Wed, 18 Dec 2019 17:38:00 +0100
+
+gtkterm (0.99.7+git9d63182-3) unstable; urgency=medium
+
+  * debian/control
+    - corrected mismatch standards-version with changelog.
+
+ -- Willem van den Akker <wvdakker@wilsoft.nl>  Tue, 10 Jul 2018 10:21:02 +0200
+
+gtkterm (0.99.7+git9d63182-2) unstable; urgency=medium
+
+  * debian/control
+    - VCS*: migrate to salsa.debian.org
+    - bump to standards-version 4.1.4
+  * Bump debhelper to 11.
+  * Fix FTBFS: Adapt to renamed README file (Closes: #903175).
+
+ -- Willem van den Akker <wvdakker@wilsoft.nl>  Mon, 9 Jul 2018 08:02:57 +0100
+
+gtkterm (0.99.7+git9d63182-1) unstable; urgency=low
+
+  * New maintainer (Closes: #857476).
+  * New upstream release (Closes: #601916).
+    - add Russian translation. Thanks to Sergey Alyoshin (Closes: #548945).
+    - add German translation. Thanks to Chris Leick (Closes: #574971).
+    - add more baudrates (Closes: #460747).
+    - migrate to GTK3 and vte-2.91 (Closes: #790177).
+  * debian/copyright
+    - add icon/*.png.
+    - make dep5.
+  * debian/control
+    - bump to standards-version 4.1.1.1.
+    - add Homepage field (Closes: #615330).
+  * debian/install
+    - add file.
+  * debian/gtkterm.desktop
+    - add icon.
+    - fix Menu entry (Closes: #400796).
+  * debian/rules
+    - migrate from cdbs to dh.
+  * debian/watch
+    - add file.
+
+ -- Willem van den Akker <wvdakker@wilsoft.nl>  Fri, 17 Nov 2017 17:31:28 +0100
+
+gtkterm (0.99.7~rc1-0.3) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Switch to debhelper compat level 10 (Closes: #817489).
+  * Remove the menu file.
+  * Add explicit debian/source/format.
+
+ -- Andrey Rahmatullin <wrar@debian.org>  Thu, 24 Nov 2016 01:13:00 +0500
+
+gtkterm (0.99.7~rc1-0.2) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * src/serie.c: Added use of "#ifdef __linux__".  Closes: #675835.  Patch by
+    Petr Salinger <Petr.Salinger@seznam.cz>.
+  * debian/copyright: Updated.
+
+ -- Bart Martens <bartm@debian.org>  Fri, 13 Jul 2012 06:17:16 +0000
+
+gtkterm (0.99.7~rc1-0.1) unstable; urgency=medium
+
+  * Non-Maintainer upload
+  * New upstream release
+    - fix "config.c:38:21: fatal error: vte/vte.h: No such file or directory"
+      (Closes: #634537)
+  * debian/control
+    - add "Build-Depends: intltool"
+
+ -- Hideki Yamane <henrich@debian.org>  Thu, 24 May 2012 08:23:44 +0900
+
+gtkterm (0.99.5-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Sebastien Bacher <seb128@debian.org>  Mon, 14 Nov 2005 20:46:10 +0100
+
+gtkterm (0.97-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Sebastien Bacher <seb128@debian.org>  Tue, 17 Sep 2002 15:59:09 +0200
