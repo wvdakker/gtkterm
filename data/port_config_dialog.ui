@@ -27,6 +27,7 @@
     <property name="resizable">False</property>
     <property name="width-request">580</property>
     <property name="modal">True</property>
+    <property name="default-widget">port_ok_btn</property>
     <child>
       <object class="GtkShortcutController">
         <child>
@@ -253,6 +254,7 @@
                         <child>
                           <object class="GtkEntry" id="port_custom_port_entry">
                             <property name="hexpand">True</property>
+                            <property name="activates-default">True</property>
                           <layout>
                             <property name="column">1</property>
                             <property name="row">0</property>
@@ -273,6 +275,7 @@
                           <object class="GtkEntry" id="port_custom_baud_entry">
                             <property name="max-length">10</property>
                             <property name="hexpand">True</property>
+                            <property name="activates-default">True</property>
                             <signal name="insert-text" handler="check_baud_input"/>
                           <layout>
                             <property name="column">1</property>
@@ -431,6 +434,7 @@
               <object class="GtkButton" id="port_ok_btn">
                 <property name="label" translatable="yes">_OK</property>
                 <property name="use-underline">True</property>
+                <property name="receives-default">True</property>
                 <signal name="clicked" handler="on_port_ok_clicked"/>
               </object>
             </child>
