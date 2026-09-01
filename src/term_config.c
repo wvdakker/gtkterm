@@ -1326,15 +1326,6 @@ void Verify_configuration(void)
 {
 	gchar *string = NULL;
 
-	if (find_standard_baudrate(config.vitesse) == B0)
-	{
-		/* Is this really meaningful? Plenty of the whitelisted
-		   rates are not supported on standard hardware... */
-		string = g_strdup_printf(_("Baud rate %u may not be supported by all hardware"), config.vitesse);
-		show_message(string, MSG_ERR);
-		g_free(string);
-	}
-
 	if(config.stops != 1 && config.stops != 2)
 	{
 		string = g_strdup_printf(_("Invalid number of stop-bits: %d\nFalling back to default number of stop-bits number: %d\n"), config.stops, DEFAULT_STOP);
