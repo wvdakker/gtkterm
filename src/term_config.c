@@ -367,14 +367,39 @@ static int is_serial_port(const char *path, const struct device_path *dp)
 
 #if defined(major) && defined(minor)
 	/* Match against the device number if possible */
+
+	unsigned long rdev_major = major(st.st_rdev);
+	unsigned long rdev_minor = minor(st.st_rdev);
+
 	if (!dp->nminors)
 		return TRUE;
 
-	if (dp->major != major(st.st_rdev))
+	if (dp->major != rdev_major)
 		return FALSE;
 
-	if ((unsigned long)minor(st.st_rdev) - dp->minor >= dp->nminors)
+	if (rdev_minor - dp->minor >= dp->nminors)
 		return FALSE;
+
+#ifdef __linux__
+	/*
+	 * On Linux, look to see if there is a UART type listed in /sys.
+	 * If there is one, make sure the type is not 0 (PORT_UNKNOWN,
+	 * meaning the device node is not mapped to a hardware device.)
+	 */
+	static const char sys_pattern[] = "/sys/dev/char/%lu:%lu/type";
+	char syspath[sizeof(sys_pattern) + 6*sizeof(unsigned long)];
+	FILE *typefh;
+
+	snprintf(syspath, sizeof syspath, sys_pattern, rdev_major, rdev_minor);
+	typefh = fopen(syspath, "r");
+	if (typefh) {
+		int type;
+		int rv = fscanf(typefh, "%i", &type);
+		fclose(typefh);
+		if (rv > 0 && !type)
+			return FALSE;
+	}
+#endif
 #endif
 
 	return TRUE;
