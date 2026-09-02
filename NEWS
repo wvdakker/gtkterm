@@ -1,42 +1,53 @@
+1.4    : Baudrate: remove warning about nonstandard baud rates (Thanks to Hpax)
+         linux: filter out placeholder serial port nodes (Thanks to Hpax)
+		 device_monitor: handle suspend/resume via logind PrepareForSleep (Thanks to borkra)
+		 Add Georgian translation (Thanks to EkaterinePapava)
+		 Probe more device patterns for serial ports (Thanks to Hpax)
+		 Handle RTS/CTS on platforms with CRTS_IFLOW | CCTS_OFLOW (Thanks to Hpax)
+		 Fix numerous settings with the baud rate setting code (Thanks to Hpax)
+		 Update Russian translation (Thanks to FraxinusAcer)
+		 Set current font in Main Window Dialog (Thanks to wjakiela)
+		 Push'n'Pop hex data history (Thanks to MikePooh)
+
 1.3.1  : Compile fix (Thanks to neOh).
 
 1.3    : Added BR translation and other updates.
-	   Thanks to JuniorPolegato, cweickhmann.
-	 Autoreconnect toggle. Thanks to danielkucera.
-	 Fix missing includes. Thanks to fweimer-rh.
-	 Remove control chars when saving. Thanks to blardyblar.
-	 Many other fixes.
+	     Thanks to JuniorPolegato, cweickhmann.
+	     Autoreconnect toggle. Thanks to danielkucera.
+	     Fix missing includes. Thanks to fweimer-rh.
+	     Remove control chars when saving. Thanks to blardyblar.
+	     Many other fixes.
 
 1.2    : Searchbar added
-	 Load/save config from XDG_CONFIG_HOME
+	     Load/save config from XDG_CONFIG_HOME
 
 1.1.1  : Fixed many typos (Thanks to Markus Hiereth)
 
 1.1    : Clear scrollbuffer option
-	 Added Dutch translation
-	 Translation updates
+	     Added Dutch translation
+	     Translation updates
 
 1.0.1  : Change to meson buildsystem
-	 Autoreconnect last port
-	 Add several translations
-	 Bugfix: show HEX output
+	     Autoreconnect last port
+	     Add several translations
+	     Bugfix: show HEX output
 
 0.99.6 : Change of maintainership
-         handfull of existing patches applied
+         Handfull of existing patches applied
 
 0.99.4 : VTxxx compatible display
 
-0.99.2 : internationalization (gettext support)
+0.99.2 : Internationalization (gettext support)
 
-0.99.0 : macros support
+0.99.0 : Macros support
 
-0.98.4 : hexadecimal support (send and receive)
+0.98.4 : Hexadecimal support (send and receive)
 
-0.98.3 : now gtkterm has a configuration file
+0.98.3 : Now gtkterm has a configuration file
 
-0.98   : first GTK+ 2.0 version
+0.98   : Frst GTK+ 2.0 version
          lots of other changes ! see ChangeLog
     
-0.97   : control signals control
+0.97   : Control signals control
 
-0.9    : initial revision
+0.9    : Initial revision
