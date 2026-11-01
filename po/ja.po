@@ -1,0 +1,778 @@
+# Japanese translation for gtkterm package.
+# Copyright (C) 2026 Julien Schmitt
+# This file is distributed under the same license as the gtkterm package.
+# Ryo Nakano <ryonakaknock3@gmail.com>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-05-01 20:11-0300\n"
+"PO-Revision-Date: 2026-11-01 11:20+0900\n"
+"Last-Translator: Ryo Nakano <ryonakaknock3@gmail.com>\n"
+"Language-Team: \n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/buffer.c:172
+msgid "ERROR: Buffer is not initialized!\n"
+msgstr "エラー: バッファが初期化されていません!\n"
+
+#: src/cmdline.c:37
+#, c-format
+msgid ""
+"\n"
+"GTKTerm version %s\n"
+msgstr ""
+"\n"
+"GTKTerm バージョン %s\n"
+
+#: src/cmdline.c:38
+msgid "\t (c) Julien Schmitt\n"
+msgstr "\t (c) Julien Schmitt\n"
+
+#: src/cmdline.c:39
+msgid ""
+"\n"
+"This program is released under the terms of the GPL V.2\n"
+msgstr ""
+"\n"
+"このプログラムは GPLv2 の条項に基づいて公開されています。\n"
+
+#: src/cmdline.c:40
+msgid "\t ** Use at your own risks! **\n"
+msgstr "\t ** 自己責任でご利用ください! **\n"
+
+#: src/cmdline.c:41
+msgid ""
+"\n"
+"Command line options\n"
+msgstr ""
+"\n"
+"コマンドラインオプション\n"
+
+#: src/cmdline.c:42
+msgid "--help or -h: this help screen\n"
+msgstr "--help または -h: このヘルプ画面\n"
+
+#: src/cmdline.c:43
+msgid "--config <configuration> or -c: load configuration\n"
+msgstr "--config <configuration> または -c: 設定を読み込む\n"
+
+#: src/cmdline.c:44
+msgid "--port <device> or -p: serial port device (default /dev/ttyS0)\n"
+msgstr ""
+"--port <device> または -p: シリアルポートデバイス (デフォルトは /dev/ttyS0)\n"
+
+#: src/cmdline.c:45
+msgid "--speed <speed> or -s: serial port speed (default 9600)\n"
+msgstr ""
+"--speed <speed> または -s: シリアルポートの伝送速度 (デフォルトは 9600)\n"
+
+#: src/cmdline.c:46
+msgid "--bits <bits> or -b: number of bits (default 8)\n"
+msgstr "--bits <bits> または -b: ビットの数 (デフォルトは 8)\n"
+
+#: src/cmdline.c:47
+msgid "--stopbits <stopbits> or -t: number of stopbits (default 1)\n"
+msgstr "--stopbits <stopbits> または -t: ストップビットの数 (デフォルトは 1)\n"
+
+#: src/cmdline.c:48
+msgid "--parity <odd | even> or -a: parity (default none)\n"
+msgstr "--parity <odd | even> または -a: パリティ (デフォルトは none)\n"
+
+#: src/cmdline.c:49
+msgid "--flow <Xon | RTS | RS485> or -w: flow control (default none)\n"
+msgstr "--flow <Xon | RTS | RS485> または -w: フロー制御 (デフォルトは none)\n"
+
+#: src/cmdline.c:50
+msgid "--delay <ms> or -d: end of line delay in ms (default none)\n"
+msgstr "--delay <ms> または -d: 送信遅延 (ミリ秒) (デフォルトは none)\n"
+
+#: src/cmdline.c:51
+msgid ""
+"--char <char> or -r: wait for a special char at end of line (default none)\n"
+msgstr ""
+"--char <char> または -r: 次の行へ移動する前に必要とする特殊文字 (デフォルト"
+"は none)\n"
+
+#: src/cmdline.c:52
+msgid "--file <filename> or -f: default file to send (default none)\n"
+msgstr ""
+"--file <filename> または -f: 送信するデフォルトのファイル (デフォルトは "
+"none)\n"
+
+#: src/cmdline.c:53
+msgid ""
+"--rts_time_before <ms> or -x: for RS-485, time in ms before transmit with "
+"rts on\n"
+msgstr ""
+"--rts_time_before <ms> または -x: RS-485 の場合に、送信前に RTS を on にする"
+"時間 (ミリ秒)\n"
+
+#: src/cmdline.c:54
+msgid ""
+"--rts_time_after <ms> or -y: for RS-485, time in ms after transmit with rts "
+"on\n"
+msgstr ""
+"--rts_time_after <ms> または -y: RS-485 の場合に、送信後に RTS を on にする時"
+"間 (ミリ秒)\n"
+
+#: src/cmdline.c:55
+msgid "--echo or -e: switch on local echo\n"
+msgstr "--echo または -e: ローカルエコーを有効にする\n"
+
+#: src/cmdline.c:56
+msgid ""
+"--disable-port-lock or -L: does not lock serial port. Allows to send to "
+"serial port from different terminals\n"
+msgstr ""
+"--disable-port-lock または -L: シリアルポートをロックしない。別の端末からシリ"
+"アルポートに送信できるようにする\n"
+
+#: src/cmdline.c:57
+msgid ""
+"                      Note: incoming data are displayed randomly on only one "
+"terminal\n"
+msgstr ""
+"                      注意: 受信したデータは、いずれかの端末にのみランダムに"
+"表示される\n"
+
+#: src/cmdline.c:167
+msgid "Undefined command line option\n"
+msgstr "不明なコマンドラインオプション\n"
+
+#: src/files.c:77
+msgid "Send RAW File"
+msgstr "バイナリファイルを送信"
+
+#: src/files.c:96
+msgid "Error opening file\n"
+msgstr "ファイルのオープンエラー\n"
+
+#: src/files.c:110
+#, c-format
+msgid "%s: transfer in progress..."
+msgstr "%s: 転送中…"
+
+#: src/files.c:128 src/term_config.c:513
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: src/files.c:143
+#, c-format
+msgid "Cannot read file %s: %s\n"
+msgstr "ファイル %s を読み込めません: %s\n"
+
+#: src/files.c:178
+msgid "Error sending file\n"
+msgstr "ファイルの送信エラー\n"
+
+#: src/files.c:206
+#, c-format
+msgid "Error sending file: %s\n"
+msgstr "ファイルの送信エラー: %s\n"
+
+#: src/files.c:311
+msgid "Save RAW File"
+msgstr "バイナリファイルを保存"
+
+#: src/files.c:330 src/files.c:381
+msgid "File error\n"
+msgstr "ファイルのエラー\n"
+
+#: src/files.c:341 src/files.c:392 src/logging.c:68 src/logging.c:123
+#, c-format
+msgid "Cannot open file %s: %s\n"
+msgstr "ファイル %s を開けません: %s\n"
+
+#: src/files.c:362
+msgid "Save ASCII File"
+msgstr "ASCII ファイルを保存"
+
+#. Toplevel
+#: src/interface.c:150
+msgid "_File"
+msgstr "ファイル(_F)"
+
+#: src/interface.c:151
+msgid "_Edit"
+msgstr "編集(_E)"
+
+#: src/interface.c:152
+msgid "_Log"
+msgstr "ログ(_L)"
+
+#: src/interface.c:153
+msgid "_Configuration"
+msgstr "設定(_C)"
+
+#: src/interface.c:154
+msgid "Control _signals"
+msgstr "コントロールシグナル(_S)"
+
+#: src/interface.c:155
+msgid "_View"
+msgstr "表示(_V)"
+
+#: src/interface.c:156
+msgid "Hexadecimal _chars"
+msgstr "16 進数の文字(_C)"
+
+#: src/interface.c:157
+msgid "_Help"
+msgstr "ヘルプ(_H)"
+
+#: src/interface.c:161
+msgid "_Clear screen"
+msgstr "画面をクリア(_C)"
+
+#: src/interface.c:162
+msgid "_Clear scrollback"
+msgstr "スクロールバックをクリア(_C)"
+
+#: src/interface.c:163
+msgid "Send _RAW file"
+msgstr "バイナリファイルを送信(_R)"
+
+#: src/interface.c:164
+msgid "_Save RAW file"
+msgstr "バイナリファイルを保存(_S)"
+
+#: src/interface.c:165
+msgid "Save _ASCII file"
+msgstr "ASCII ファイルを保存(_A)"
+
+#. Log Menu
+#: src/interface.c:174
+msgid "To file..."
+msgstr "ファイルに保存…"
+
+#. Confuguration Menu
+#: src/interface.c:180
+msgid "_Port"
+msgstr "ポート(_P)"
+
+#: src/interface.c:181
+msgid "_Main window"
+msgstr "メインウィンドウ(_M)"
+
+#: src/interface.c:182
+msgid "_Macros"
+msgstr "マクロ(_M)"
+
+#: src/interface.c:183
+msgid "_Load configuration"
+msgstr "設定を読み込む(_L)"
+
+#: src/interface.c:184
+msgid "_Save configuration"
+msgstr "設定を保存(_S)"
+
+#: src/interface.c:185
+msgid "_Delete configuration"
+msgstr "設定を削除(_D)"
+
+#. Signals Menu
+#: src/interface.c:188
+msgid "Send break"
+msgstr "ブレークを送信"
+
+#: src/interface.c:189
+msgid "_Open Port"
+msgstr "ポートを開く(_O)"
+
+#: src/interface.c:190
+msgid "_Close Port"
+msgstr "ポートを閉じる(_C)"
+
+#: src/interface.c:191
+msgid "Toggle DTR"
+msgstr "DTR を切り換え"
+
+#: src/interface.c:192
+msgid "Toggle RTS"
+msgstr "RTS を切り換え"
+
+#. Configuration Menu
+#: src/interface.c:201
+msgid "Local _echo"
+msgstr "ローカルエコー(_E)"
+
+#: src/interface.c:202
+msgid "Autoreconnect"
+msgstr "自動再接続"
+
+#: src/interface.c:203
+msgid "_CR LF auto"
+msgstr "CR LF 自動(_C)"
+
+#: src/interface.c:204
+msgid "ESC clear scree_n"
+msgstr "ESC で画面をクリア(_N)"
+
+#: src/interface.c:205
+msgid "Timestamp"
+msgstr "タイムスタンプ"
+
+#. View Menu
+#: src/interface.c:208
+msgid "Show _index"
+msgstr "インデックスを表示(_I)"
+
+#: src/interface.c:209
+msgid "_Send hexadecimal data"
+msgstr "16 進数のデータを送信(_S)"
+
+#: src/interface.c:214
+msgid "_ASCII"
+msgstr "ASCII(_A)"
+
+#: src/interface.c:215
+msgid "_Hexadecimal"
+msgstr "16 進数(_H)"
+
+#: src/interface.c:470
+msgid "Resume"
+msgstr "再開"
+
+#: src/interface.c:618
+msgid "Hexadecimal data to send (separator: ';' or space): "
+msgstr "送信する 16 進数のデータ (区切り文字: ';' またはスペース): "
+
+#: src/interface.c:778
+msgid ""
+"GTKTerm is a simple GTK+ terminal used to communicate with the serial port."
+msgstr ""
+"GTKTerm は、シリアルポートで通信するのに使えるシンプルな GTK+ 製のターミナル"
+"です。"
+
+#: src/interface.c:830
+msgid "Break signal sent!"
+msgstr "ブレークシグナルを送信しました!"
+
+#: src/interface.c:936
+msgid "0 byte(s) sent!"
+msgstr "何も送信しませんでした!"
+
+#: src/interface.c:950
+msgid "Improper formatted hex input, 0 bytes sent!"
+msgstr "入力された 16 進数の書式が不適切なため、何も送信しませんでした!"
+
+#: src/interface.c:961
+#, c-format
+msgid "%d byte(s) sent!"
+msgstr "%d バイトを送信しました!"
+
+#: src/logging.c:49
+msgid "Filename error\n"
+msgstr "ファイル名エラー\n"
+
+#: src/logging.c:88
+msgid "Log file selection"
+msgstr "ログファイルの選択"
+
+#: src/logging.c:184
+msgid "Failed to log data\n"
+msgstr "ログデータの書き込みに失敗しました\n"
+
+#: src/macros.c:144
+#, c-format
+msgid "Macro \"%s\" sent!"
+msgstr "マクロ \"%s\" を送信しました!"
+
+#: src/macros.c:275
+msgid "Shortcut"
+msgstr "ショートカット"
+
+#: src/macros.c:432
+msgid ""
+"The \"action\" field of a macro is the data to be sent on the port. Text can "
+"be entered, but also special chars, like \\n, \\t, \\r, etc. You can also "
+"enter hexadecimal data preceded by a '\\'. The hexadecimal data should not "
+"begin with a letter (eg. use \\0FF and not \\FF)\n"
+"Examples:\n"
+"\t\"Hello\\n\" sends \"Hello\" followed by a Line Feed\n"
+"\t\"Hello\\0A\" does the same thing but the LF is entered in hexadecimal"
+msgstr ""
+"マクロの \"アクション\" フィールドには、ポート経由で送信するデータを指定しま"
+"す。テキストを入力できるほか、\\n、\\t、\\r といった特殊文字も使用可能です。"
+"また、先頭に '\\' を付けた形式で、16 進数のデータを入力することもできます。な"
+"お、16 進数のデータは英字で開始することはできません (例: \\FF ではなく \\0FF "
+"と記述してください)\n"
+"例:\n"
+"\t\"Hello\\n\" は、\"Hello\" の後に Line Feed (改行コード) を送信します\n"
+"\t\"Hello\\0A\" も同様ですが、Line Feed が 16 進数で指定されています"
+
+#: src/macros.c:452
+msgid "Configure Macros"
+msgstr "マクロを設定"
+
+#: src/macros.c:489
+msgid "_Add"
+msgstr "追加(_A)"
+
+#: src/macros.c:493
+msgid "_Delete"
+msgstr "削除(_D)"
+
+#: src/macros.c:497
+msgid "_Capture Shortcut"
+msgstr "ショートカットキーを設定(_C)"
+
+#: src/parsecfg.c:355
+#, c-format
+msgid "Cannot open configuration file `%s'.\n"
+msgstr "設定ファイル `%s' を開けません。\n"
+
+#: src/parsecfg.c:358
+#, c-format
+msgid "Cannot create configuration file `%s'.\n"
+msgstr "設定ファイル `%s' を作成できません。\n"
+
+#: src/parsecfg.c:361
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Syntax error\n"
+msgstr ""
+"%s(%d): %s\n"
+"シンタックスエラー\n"
+
+#: src/parsecfg.c:364
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Unrecognized parameter\n"
+msgstr ""
+"%s(%d): %s\n"
+"不明なパラメータ\n"
+
+#: src/parsecfg.c:367
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Internal error\n"
+msgstr ""
+"%s(%d): %s\n"
+"内部エラー\n"
+
+#: src/parsecfg.c:370
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Invalid number\n"
+msgstr ""
+"%s(%d): %s\n"
+"無効な番号\n"
+
+#: src/parsecfg.c:373
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Out of range\n"
+msgstr ""
+"%s(%d): %s\n"
+"範囲外\n"
+
+#: src/parsecfg.c:376
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Cannot allocate memory.\n"
+msgstr ""
+"%s(%d): %s\n"
+"メモリを確保できません。\n"
+
+#: src/parsecfg.c:379
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"It must be specified TRUE or FALSE.\n"
+msgstr ""
+"%s(%d): %s\n"
+"TRUE または FALSE を指定する必要があります。\n"
+
+#: src/parsecfg.c:382
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"The section name is already used.\n"
+msgstr ""
+"%s(%d): %s\n"
+"セクション名はすでに使用されています。\n"
+
+#: src/parsecfg.c:385
+#, c-format
+msgid ""
+"%s(%d)\n"
+"There is no closing bracket.\n"
+msgstr ""
+"%s(%d)\n"
+"閉じかっこがありません\n"
+
+#: src/parsecfg.c:390
+#, c-format
+msgid ""
+"%s(%d): %s\n"
+"Unexplained error\n"
+msgstr ""
+"%s(%d): %s\n"
+"不明なエラー\n"
+
+#: src/serial.c:154
+#, c-format
+msgid "Cannot open %s: %s\n"
+msgstr "%s を開けません: %s\n"
+
+#: src/serial.c:167
+msgid ""
+"Cannot lock port! The serial port may currently be in use by another "
+"program.\n"
+msgstr ""
+"ポートをロックできません! シリアルポートが他のプログラムによって現在使用され"
+"ている可能性があります。\n"
+
+#: src/serial.c:238
+msgid "Arbitrary baud rates not supported"
+msgstr "ボーレートは任意の値にできません"
+
+# "set signals"はこのログの出力箇所の関数名と判断
+#: src/serial.c:365
+msgid "Control signals read set signals"
+msgstr "コントロールシグナルの読み込み: Set_signals"
+
+#: src/serial.c:377
+msgid "DTR write"
+msgstr "DTR の書き込み"
+
+#: src/serial.c:387
+msgid "RTS write"
+msgstr "RTS の書き込み"
+
+# "lis_sig"はこのログの出力箇所の関数名と判断
+#: src/serial.c:411
+msgid "Control signals read lis_sig"
+msgstr "コントロールシグナルの読み込み: lis_sig"
+
+#: src/serial.c:465
+msgid "No open port"
+msgstr "開いているポートなし"
+
+#: src/term_config.c:216
+msgid ""
+"No serial devices found!\n"
+"\n"
+"Searched the following device path patterns:\n"
+"\t/dev/ttyS*\n"
+"\t/dev/tts/*\n"
+"\t/dev/ttyUSB*\n"
+"\t/dev/ttyACM*\n"
+"\t/dev/usb/tts/*\n"
+"\n"
+"Enter a different device path in the 'Port' box.\n"
+msgstr ""
+"シリアルデバイスが見つかりませんでした!\n"
+"\n"
+"以下のデバイスパスのパターンを検索しました:\n"
+"\t/dev/ttyS*\n"
+"\t/dev/tts/*\n"
+"\t/dev/ttyUSB*\n"
+"\t/dev/ttyACM*\n"
+"\t/dev/usb/tts/*\n"
+"\n"
+"'ポート' に別のデバイスパスを入力してください。\n"
+
+#: src/term_config.c:226
+msgid "Configuration"
+msgstr "設定"
+
+#: src/term_config.c:230
+msgid "Serial port"
+msgstr "シリアルポート"
+
+#: src/term_config.c:236
+msgid "Port:"
+msgstr "ポート:"
+
+#: src/term_config.c:238
+msgid "Baud Rate:"
+msgstr "ボーレート:"
+
+#: src/term_config.c:240
+msgid "Parity:"
+msgstr "パリティ:"
+
+#: src/term_config.c:387
+msgid "Bits:"
+msgstr "ビット:"
+
+#: src/term_config.c:389
+msgid "Stopbits:"
+msgstr "ストップビット:"
+
+#: src/term_config.c:391
+msgid "Flow control:"
+msgstr "フロー制御:"
+
+#. create an expander widget to hide the 'Advanced features'
+#: src/term_config.c:442
+msgid "Advanced Configuration Options"
+msgstr "高度な設定オプション"
+
+#: src/term_config.c:447
+msgid "ASCII file transfer"
+msgstr "ASCII ファイル転送"
+
+#: src/term_config.c:453
+msgid "End of line delay (milliseconds):"
+msgstr "送信遅延 (ミリ秒):"
+
+#: src/term_config.c:469
+msgid "Wait for this special character before passing to next line:"
+msgstr "次の行へ移動する前に必要とする特殊文字:"
+
+#: src/term_config.c:482
+msgid "RS-485 half-duplex parameters (RTS signal used to send)"
+msgstr "RS-485 半二重パラメータ (送信に RTS シグナルを使用)"
+
+#: src/term_config.c:489
+msgid "Time with RTS 'on' before transmit (milliseconds):"
+msgstr "送信前に RTS を 'on' にする時間 (ミリ秒):"
+
+#: src/term_config.c:491
+msgid "Time with RTS 'on' after transmit (milliseconds):"
+msgstr "送信後に RTS を 'on' にする時間 (ミリ秒):"
+
+#: src/term_config.c:509
+msgid "OK"
+msgstr "OK"
+
+#: src/term_config.c:616
+msgid "Load configuration"
+msgstr "設定を読み込む"
+
+#: src/term_config.c:626
+msgid "Delete configuration"
+msgstr "設定を削除"
+
+#: src/term_config.c:656 src/term_config.c:921
+msgid ""
+"Cannot read configuration file!\n"
+"Config file may contain invalid parameter.\n"
+msgstr ""
+"設定ファイルを読み込めません!\n"
+"設定ファイルに無効なパラメータが含まれている可能性があります。\n"
+
+#: src/term_config.c:662
+msgid "Configurations"
+msgstr "設定"
+
+#: src/term_config.c:729
+msgid "Save configuration"
+msgstr "設定を保存"
+
+#: src/term_config.c:741
+msgid "Configuration name: "
+msgstr "設定の名前: "
+
+#: src/term_config.c:775
+msgid ""
+"Cannot save configuration file!\n"
+"Config file may contain invalid parameter.\n"
+msgstr ""
+"設定ファイルを保存できません!\n"
+"設定ファイルに無効なパラメータが含まれている可能性があります。\n"
+
+#: src/term_config.c:795
+msgid "Cannot overwrite section!"
+msgstr "セクションを上書きできません!"
+
+#: src/term_config.c:800
+msgid "Cannot read configuration file!"
+msgstr "設定ファイルを読み込めません!"
+
+#: src/term_config.c:810
+#, c-format
+msgid "Configuration [%s] saved\n"
+msgstr "設定 [%s] を保存しました\n"
+
+#: src/term_config.c:829
+msgid ""
+"Cannot write configuration file!\n"
+"Config file may contain invalid parameter.\n"
+msgstr ""
+"設定ファイルに書き込めません!\n"
+"設定ファイルに無効なパラメータが含まれている可能性があります。\n"
+
+#: src/term_config.c:844
+#, c-format
+msgid ""
+"<b>Section [%s] already exists.</b>\n"
+"\n"
+"Do you want to overwrite it ?"
+msgstr ""
+"<b>セクション [%s] はすでに存在します。</b>\n"
+"\n"
+"上書きしてもよろしいですか?"
+
+#: src/term_config.c:904
+msgid "Cannot delete section!"
+msgstr "セクションを削除できません!"
+
+#: src/term_config.c:1095
+#, c-format
+msgid "No section \"%s\" in configuration file\n"
+msgstr "設定ファイルに \"%s\" というセクションはありません\n"
+
+#: src/term_config.c:1140
+#, c-format
+msgid "Baudrate %d may not be supported by all hardware"
+msgstr "ボーレート %d は非対応のハードウェアが存在する可能性があります"
+
+#: src/term_config.c:1147
+#, c-format
+msgid ""
+"Invalid number of stop-bits: %d\n"
+"Falling back to default number of stop-bits number: %d\n"
+msgstr ""
+"ストップビットの数が無効です: %d\n"
+"デフォルトのストップビットの数にフォールバックします: %d\n"
+
+#: src/term_config.c:1155
+#, c-format
+msgid ""
+"Invalid number of bits: %d\n"
+"Falling back to default number of bits: %d\n"
+msgstr ""
+"ビットの数が無効です: %d\n"
+"デフォルトのビットの数にフォールバックします: %d\n"
+
+#: src/term_config.c:1163
+#, c-format
+msgid ""
+"Invalid delay: %d ms\n"
+"Falling back to default delay: %d ms\n"
+msgstr ""
+"遅延の値が無効です: %d ミリ秒\n"
+"デフォルトの遅延の値にフォールバックします: %d ミリ秒\n"
+
+#: src/term_config.c:1193
+#, c-format
+msgid ""
+"Configuration file (%s) with\n"
+"[default] configuration has been created.\n"
+msgstr ""
+"[default] 設定の設定ファイル (%s)\n"
+"を作成しました。\n"
+
+#: src/term_config.c:1467
+#, c-format
+msgid "Cannot find section %s\n"
+msgstr "セクション %s が見つかりません\n"
+
+#: src/term_config.c:1507
+msgid "Main Window"
+msgstr "メインウィンドウ"
