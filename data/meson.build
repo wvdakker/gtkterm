@@ -49,11 +49,5 @@ install_data('gtkterm_48x48.png',
 	rename : 'gtkterm.png'
 )
 
-
-install_data('gtkterm_48x48.png',
-	install_dir: join_paths(datadir, 'icons', 'hicolor', '48x48', 'apps'),
-	rename : 'gtkterm.png'
-)
-
 # Manpage
 install_man('gtkterm.1')
